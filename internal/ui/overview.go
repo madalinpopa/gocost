@@ -34,6 +34,14 @@ func (m MonthlyModel) Init() tea.Cmd {
 }
 
 func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
+	switch msg := msg.(type) {
+
+	case tea.WindowSizeMsg:
+		m.Width = msg.Width
+		m.Height = msg.Height
+
+	}
 	return m, nil
 }
 
@@ -56,7 +64,7 @@ func (m MonthlyModel) View() string {
 
 	_, _ = balance, totalExpensesGroup
 
-	header := m.getHeader(monthKey)
+	header := m.getHeader()
 
 	b.WriteString(header)
 
@@ -64,18 +72,14 @@ func (m MonthlyModel) View() string {
 
 }
 
-func (m MonthlyModel) getHeader(monthKey string) string {
-	var buffer bytes.Buffer
+func (m MonthlyModel) getHeader() string {
+	var b bytes.Buffer
 
 	headerLeft := fmt.Sprintf("Month: %s %d", m.CurrentMonth.String(), m.CurrentYear)
 	headerRight := MutedText.Render("(h/l Month)")
 
 	// Calculate available width for the spacer in the header
-	headerSpacerWidth := m.Width - lipgloss.Width(headerLeft) - lipgloss.Width(headerRight) - AppStyle.GetHorizontalPadding()
-
-	if headerSpacerWidth < 0 {
-		headerSpacerWidth = 0
-	}
+	headerSpacerWidth := max(m.Width-lipgloss.Width(headerLeft)-lipgloss.Width(headerRight)-AppStyle.GetHorizontalPadding(), 0)
 	headerStr := lipgloss.JoinHorizontal(
 		lipgloss.Top,
 		HeaderText.Render(headerLeft),
@@ -83,8 +87,12 @@ func (m MonthlyModel) getHeader(monthKey string) string {
 		headerRight,
 	)
 
-	buffer.WriteString(headerStr)
-	return buffer.String()
+	b.WriteString(headerStr)
+	b.WriteString("\n")
+	b.WriteString(lipgloss.NewStyle().Border(lipgloss.NormalBorder(), false, false, true, false).BorderForeground(ColorSubtleBorder).Width(m.Width - AppStyle.GetHorizontalPadding()).Render(""))
+	b.WriteString("\n")
+
+	return b.String()
 }
 
 func (m MonthlyModel) getCurrentMonth() string {

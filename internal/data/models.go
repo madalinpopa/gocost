@@ -44,5 +44,8 @@ type DataRoot struct {
 
 // NewDataRoot creates a new instance of DataRoot
 func NewDataRoot() *DataRoot {
-	return &DataRoot{}
+	return &DataRoot{
+		CategoryGroups: make([]CategoryGroup, 0),
+		MonthlyData:    make(map[string]MonthlyRecord),
+	}
 }

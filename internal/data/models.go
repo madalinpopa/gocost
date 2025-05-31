@@ -28,10 +28,11 @@ type IncomeRecord struct {
 
 // ExpenseRecord represents an expense record
 type ExpenseRecord struct {
-	MasterCatID string  `json:"masterCatId"`
-	Amount      float64 `json:"amount"`
-	Status      string  `json:"status"`
-	Notes       string  `json:"notes"`
+	CatID  string  `json:"catId"`
+	Budget string  `json:"budget"`
+	Amount float64 `json:"amount"`
+	Status string  `json:"status"`
+	Notes  string  `json:"notes"`
 }
 
 // DataRoot represents the root data structure

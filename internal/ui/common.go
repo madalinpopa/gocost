@@ -22,7 +22,7 @@ type MonthYear struct {
 // WindowSize represents the size of a window.
 type WindowSize struct {
 	Width  int
-	Weight int
+	Height int
 }
 
 // GetPreviousMonth returns the previous month and year given the current month and year.

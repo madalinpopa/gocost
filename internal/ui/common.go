@@ -9,8 +9,8 @@ import (
 
 // Data represents the application data.
 type Data struct {
-	Data         *data.DataRoot
-	DataFilePath string
+	Root     *data.DataRoot
+	FilePath string
 }
 
 // MonthYear represents the current month and year.

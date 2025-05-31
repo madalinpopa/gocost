@@ -3,6 +3,7 @@ package ui
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/madalinpopa/gocost/internal/data"
 )
 
@@ -36,4 +37,9 @@ func GetNextMonth(year int, month time.Month) (int, time.Month) {
 	currentTime := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
 	nextMonthTime := currentTime.AddDate(0, 1, 0)
 	return nextMonthTime.Year(), nextMonthTime.Month()
+}
+
+// GenerateID generates a unique ID.
+func GenerateID() string {
+	return uuid.NewString()
 }

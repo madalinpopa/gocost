@@ -1,33 +1,35 @@
 package data
 
 import (
-	"fmt"
+	"encoding/json"
+	"errors"
 	"os"
-	"path/filepath"
 )
 
-const (
-	defaultDataFilename = "expenses_data.json"
-	dataDir             = ".gocost"
-)
+// LoadData loads data from a file.
+func LoadData(filePath string) (*DataRoot, error) {
 
-// GetDataFilePath returns the path to the data file.
-func GetDataFilePath() (string, error) {
-	homeDir, err := os.UserHomeDir()
+	fileData, err := os.ReadFile(filePath)
 	if err != nil {
-		return "", fmt.Errorf("could not get user home directory: %w", err)
-	}
-
-	appDataDir := filepath.Join(homeDir, dataDir)
-
-	// Create directory if not exists
-	if _, err := os.Stat(appDataDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(appDataDir, 0755); err != nil {
-			return "", fmt.Errorf("could not create data directory: %w", err)
+		if errors.Is(err, os.ErrNotExist) {
+			return NewDataRoot(), nil
 		}
-	} else if err != nil {
-		return "", fmt.Errorf("could not stat data directory: %w", err)
+		return nil, err
 	}
 
-	return filepath.Join(appDataDir, defaultDataFilename), nil
+	if len(fileData) == 0 {
+		return NewDataRoot(), nil
+	}
+
+	var dataRoot DataRoot
+	err = json.Unmarshal(fileData, &dataRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dataRoot, nil
+}
+
+func SaveData(filePath string, data *DataRoot) error {
+	return nil
 }

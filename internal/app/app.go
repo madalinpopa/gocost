@@ -27,18 +27,20 @@ type App struct {
 
 func New(initialData *data.DataRoot, dataFilePath string) App {
 	now := time.Now()
+	currentM := now.Month()
+	currentY := now.Year()
 
 	return App{
 		Data: ui.Data{
-			Data:         initialData,
-			DataFilePath: dataFilePath,
+			Root:     initialData,
+			FilePath: dataFilePath,
 		},
 		MonthYear: ui.MonthYear{
-			CurrentMonth: now.Month(),
-			CurrentYear:  now.Year(),
+			CurrentMonth: currentM,
+			CurrentYear:  currentY,
 		},
 		AppViews: AppViews{
-			monthlyModel: new(ui.MonthlyModel),
+			monthlyModel: ui.NewMonthlyModel(initialData, currentM, currentY),
 		},
 	}
 }

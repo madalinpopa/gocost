@@ -64,11 +64,7 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch m.activeView {
 
 		case viewMonthlyOverview:
-			switch msg.String() {
-
-			case "q":
-				return m, tea.Quit
-			}
+			return m.handleMonthlyView(msg.String())
 		}
 	}
 	return m, nil
@@ -86,6 +82,8 @@ func (m App) View() string {
 		} else {
 			viewContent = "Monthly overview loading..."
 		}
+	default:
+		viewContent = "Error: View not found or not initialized"
 	}
 
 	return viewContent

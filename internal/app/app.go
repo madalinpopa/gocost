@@ -45,7 +45,7 @@ func (m App) Init() tea.Cmd {
 }
 
 func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	return nil, nil
+	return m, nil
 }
 
 func (m App) View() string {

@@ -3,6 +3,7 @@ package data
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 )
 
@@ -30,6 +31,16 @@ func LoadData(filePath string) (*DataRoot, error) {
 	return &dataRoot, nil
 }
 
+// SaveData saves data to a file.
 func SaveData(filePath string, data *DataRoot) error {
+
+	jsonData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal data: %w", err)
+	}
+
+	if err := os.WriteFile(filePath, jsonData, 0644); err != nil {
+		return fmt.Errorf("failed to save data: %w", err)
+	}
 	return nil
 }

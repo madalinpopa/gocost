@@ -1,11 +1,32 @@
 package ui
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	"bytes"
+	"fmt"
+	"strings"
+	"time"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/madalinpopa/gocost/internal/data"
+)
 
 type MonthlyModel struct {
 	Data
 	MonthYear
 	WindowSize
+}
+
+func NewMonthlyModel(data *data.DataRoot, month time.Month, year int) *MonthlyModel {
+	return &MonthlyModel{
+		Data: Data{
+			Root: data,
+		},
+		MonthYear: MonthYear{
+			CurrentMonth: month,
+			CurrentYear:  year,
+		},
+	}
 }
 
 func (m MonthlyModel) Init() tea.Cmd {
@@ -17,5 +38,85 @@ func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m MonthlyModel) View() string {
-	return "Monthly view"
+	var b strings.Builder
+
+	var totalExpenses float64
+	var totalExpensesGroup map[string]float64
+	var totalIncome float64
+
+	monthKey := m.getCurrentMonth()
+	record, ok := m.Data.Root.MonthlyData[monthKey]
+
+	if ok {
+		totalIncome = m.getMonthIncome(record)
+		totalExpenses, totalExpensesGroup = m.getMonthExpenses(record, m.Data.Root.CategoryGroups)
+	}
+
+	balance := totalIncome - totalExpenses
+
+	_, _ = balance, totalExpensesGroup
+
+	header := m.getHeader(monthKey)
+
+	b.WriteString(header)
+
+	return AppStyle.Render(b.String())
+
+}
+
+func (m MonthlyModel) getHeader(monthKey string) string {
+	var buffer bytes.Buffer
+
+	headerLeft := fmt.Sprintf("Month: %s %d", m.CurrentMonth.String(), m.CurrentYear)
+	headerRight := MutedText.Render("(h/l Month)")
+
+	// Calculate available width for the spacer in the header
+	headerSpacerWidth := m.Width - lipgloss.Width(headerLeft) - lipgloss.Width(headerRight) - AppStyle.GetHorizontalPadding()
+
+	if headerSpacerWidth < 0 {
+		headerSpacerWidth = 0
+	}
+	headerStr := lipgloss.JoinHorizontal(
+		lipgloss.Top,
+		HeaderText.Render(headerLeft),
+		lipgloss.NewStyle().Width(headerSpacerWidth).Render(""),
+		headerRight,
+	)
+
+	buffer.WriteString(headerStr)
+	return buffer.String()
+}
+
+func (m MonthlyModel) getCurrentMonth() string {
+	monthKey := fmt.Sprintf("%s-%d", m.CurrentMonth.String(), m.CurrentYear)
+	return monthKey
+}
+
+func (m MonthlyModel) getMonthIncome(monthRecord data.MonthlyRecord) float64 {
+	var totalIncome float64
+	for _, income := range monthRecord.Incomes {
+		totalIncome += income.Amount
+	}
+	return totalIncome
+}
+
+func (m MonthlyModel) getMonthExpenses(mr data.MonthlyRecord, g []data.CategoryGroup) (float64, map[string]float64) {
+	var expenseTotals float64
+	groupTotals := make(map[string]float64)
+
+	for _, expense := range mr.Expenses {
+		expenseTotals += expense.Amount
+
+		for _, group := range g {
+
+			for _, cat := range group.Categories {
+				if cat.CatID == expense.CatID {
+					groupTotals[group.GroupID] += expense.Amount
+					break
+				}
+			}
+
+		}
+	}
+	return expenseTotals, groupTotals
 }

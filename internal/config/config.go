@@ -10,6 +10,10 @@ import (
 )
 
 const (
+	CurrencyField = "currency"
+	DataDirField  = "dataDir"
+	DataFileField = "dataFilename"
+
 	defaultCurrency     = "RON"
 	dataDir             = ".gocost"
 	defaultDataFilename = "expenses_data.json"
@@ -17,7 +21,6 @@ const (
 	defaultConfigType   = "json"
 )
 
-// getDefaultDataDir returns the default data directory path.
 func getDefaultDataDir() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -51,15 +54,20 @@ func LoadConfig() error {
 				return fmt.Errorf("failed to get data directory: %w", err)
 			}
 
-			viper.SetDefault("currency", defaultCurrency)
-			viper.SetDefault("dataDir", dataDirPath)
-			viper.SetDefault("dataFilename", defaultDataFilename)
+			dataFilename := filepath.Join(dataDirPath, defaultDataFilename)
+
+			viper.SetDefault(CurrencyField, defaultCurrency)
+			viper.SetDefault(DataDirField, dataDirPath)
+			viper.SetDefault(DataFileField, dataFilename)
 
 			configFilename := filepath.Join(
 				dataDirPath, fmt.Sprintf("%s.%s", defaultConfigName, defaultConfigType),
 			)
 
 			if err := viper.SafeWriteConfigAs(configFilename); err != nil {
+				if _, ok := err.(viper.ConfigFileAlreadyExistsError); ok {
+					return nil
+				}
 				return fmt.Errorf("failed to write config file: %w", err)
 			}
 		} else {

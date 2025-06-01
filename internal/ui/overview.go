@@ -78,8 +78,13 @@ func (m MonthlyModel) getHeader() string {
 	headerLeft := fmt.Sprintf("Month: %s %d", m.CurrentMonth.String(), m.CurrentYear)
 	headerRight := MutedText.Render("(h/l Month)")
 
+	frameSize := AppStyle.GetHorizontalFrameSize()
+	headerLeftSize := lipgloss.Width(headerLeft)
+	headerRightSize := lipgloss.Width(headerRight)
+
 	// Calculate available width for the spacer in the header
-	headerSpacerWidth := max(m.Width-lipgloss.Width(headerLeft)-lipgloss.Width(headerRight)-AppStyle.GetHorizontalFrameSize(), 0)
+	headerSpacerWidth := max(m.Width-headerLeftSize-headerRightSize-frameSize, 0)
+
 	headerStr := lipgloss.JoinHorizontal(
 		lipgloss.Top,
 		HeaderText.Render(headerLeft),

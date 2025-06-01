@@ -75,10 +75,30 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch m.activeView {
 
 		case viewMonthlyOverview:
-			return m.handleMonthlyViewKeys(msg.String())
+			updatedModel, cmd := m.handleMonthlyViewKeys(msg.String())
+			if cmd != nil || updatedModel != m {
+				return updatedModel, cmd
+			}
+			if m.monthlyModel != nil {
+				updatedMonthlyModel, monthlyCmd := m.monthlyModel.Update(msg)
+				if mo, ok := updatedMonthlyModel.(ui.MonthlyModel); ok {
+					m.monthlyModel = &mo
+				}
+				return m, monthlyCmd
+			}
 
 		case viewCategoryGroup:
-			return m.handleCategoryGroupViewKeys(msg.String())
+			updatedModel, cmd := m.handleCategoryGroupViewKeys(msg.String())
+			if cmd != nil || updatedModel != m {
+				return updatedModel, cmd
+			}
+			if m.categoryGroupModel != nil {
+				updatedCategoryGroupModel, categoryCmd := m.categoryGroupModel.Update(msg)
+				if cgMo, ok := updatedCategoryGroupModel.(ui.CategoryGroupModel); ok {
+					m.categoryGroupModel = &cgMo
+				}
+				return m, categoryCmd
+			}
 		}
 
 	case tea.WindowSizeMsg:

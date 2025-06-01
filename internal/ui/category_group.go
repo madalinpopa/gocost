@@ -208,6 +208,18 @@ func (m CategoryGroupModel) View() string {
 	return viewStr
 }
 
+func (m CategoryGroupModel) UpdateData(data *data.DataRoot) tea.Model {
+	m.Data.Root = data
+	m.groups = data.CategoryGroups
+	if m.cursor >= len(m.groups) && len(m.groups) > 0 {
+		m.cursor = len(m.groups) - 1
+	} else {
+		m.cursor = 0
+	}
+
+	return m
+}
+
 func (m CategoryGroupModel) focusInput() (tea.Model, tea.Cmd) {
 	m.isEditingName = true
 	m.editInput.Focus()

@@ -90,6 +90,8 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		updatedModel, cmds = m.handleModelsWindowResize(msg)
 		return updatedModel, tea.Batch(cmds...)
 
+	case ui.MonthlyViewMsg:
+		return m.handleMonthlyViewMsg()
 	case ui.GroupAddMsg:
 		fmt.Println("Add category group")
 	case ui.GroupDeleteMsg:

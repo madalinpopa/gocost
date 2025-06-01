@@ -40,7 +40,7 @@ func NewMonthlyModel(data *data.DataRoot, month time.Month, year int) *MonthlyMo
 	}
 }
 
-func (m *MonthlyModel) Init() tea.Cmd {
+func (m MonthlyModel) Init() tea.Cmd {
 	return nil
 }
 
@@ -56,7 +56,7 @@ func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m *MonthlyModel) View() string {
+func (m MonthlyModel) View() string {
 	var b strings.Builder
 
 	var totalExpenses float64
@@ -83,7 +83,7 @@ func (m *MonthlyModel) View() string {
 
 }
 
-func (m *MonthlyModel) getHeader() string {
+func (m MonthlyModel) getHeader() string {
 	var b bytes.Buffer
 
 	headerLeft := fmt.Sprintf("Month: %s %d", m.CurrentMonth.String(), m.CurrentYear)
@@ -111,12 +111,12 @@ func (m *MonthlyModel) getHeader() string {
 	return b.String()
 }
 
-func (m *MonthlyModel) getCurrentMonth() string {
+func (m MonthlyModel) getCurrentMonth() string {
 	monthKey := fmt.Sprintf("%s-%d", m.CurrentMonth.String(), m.CurrentYear)
 	return monthKey
 }
 
-func (m *MonthlyModel) getMonthIncome(monthRecord data.MonthlyRecord) float64 {
+func (m MonthlyModel) getMonthIncome(monthRecord data.MonthlyRecord) float64 {
 	var totalIncome float64
 	for _, income := range monthRecord.Incomes {
 		totalIncome += income.Amount
@@ -124,7 +124,7 @@ func (m *MonthlyModel) getMonthIncome(monthRecord data.MonthlyRecord) float64 {
 	return totalIncome
 }
 
-func (m *MonthlyModel) getMonthExpenses(mr data.MonthlyRecord, g []data.CategoryGroup) (float64, map[string]float64) {
+func (m MonthlyModel) getMonthExpenses(mr data.MonthlyRecord, g []data.CategoryGroup) (float64, map[string]float64) {
 	var expenseTotals float64
 	groupTotals := make(map[string]float64)
 
@@ -145,7 +145,7 @@ func (m *MonthlyModel) getMonthExpenses(mr data.MonthlyRecord, g []data.Category
 	return expenseTotals, groupTotals
 }
 
-func (m *MonthlyModel) SetMonthYear(month time.Month, year int) {
+func (m MonthlyModel) SetMonthYear(month time.Month, year int) MonthlyModel {
 	m.CurrentMonth = month
 	m.CurrentYear = year
 
@@ -157,4 +157,6 @@ func (m *MonthlyModel) SetMonthYear(month time.Month, year int) {
 		m.focusedGroupIndex = -1
 	}
 	m.focusedCategoryIndex = -1
+	
+	return m
 }

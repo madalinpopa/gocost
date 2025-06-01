@@ -12,10 +12,12 @@ type currentView int
 
 const (
 	viewMonthlyOverview currentView = iota
+	viewCategoryGroup
 )
 
 type AppViews struct {
-	monthlyModel *ui.MonthlyModel
+	monthlyModel       *ui.MonthlyModel
+	categoryGroupModel *ui.CategoryGroupModel
 }
 
 type App struct {
@@ -41,7 +43,8 @@ func New(initialData *data.DataRoot, dataFilePath string) App {
 			CurrentYear:  currentY,
 		},
 		AppViews: AppViews{
-			monthlyModel: ui.NewMonthlyModel(initialData, currentM, currentY),
+			monthlyModel:       ui.NewMonthlyModel(initialData, currentM, currentY),
+			categoryGroupModel: ui.NewCategoryGroupModel(initialData),
 		},
 	}
 }
@@ -52,6 +55,11 @@ func (m App) Init() tea.Cmd {
 	case viewMonthlyOverview:
 		if m.monthlyModel != nil {
 			return m.monthlyModel.Init()
+		}
+
+	case viewCategoryGroup:
+		if m.categoryGroupModel != nil {
+			return m.categoryGroupModel.Init()
 		}
 
 	}
@@ -66,10 +74,20 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 
+		if msg.String() == "ctrl+g" {
+			if m.activeView == viewMonthlyOverview {
+				m.activeView = viewCategoryGroup
+				return m, m.categoryGroupModel.Init()
+			}
+		}
+
 		switch m.activeView {
 
 		case viewMonthlyOverview:
 			return m.handleMonthlyView(msg.String())
+
+		case viewCategoryGroup:
+			return m.handleCategoryGroupView(msg.String())
 		}
 
 	case tea.WindowSizeMsg:
@@ -82,6 +100,14 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.monthlyModel = &mo
 			}
 			cmds = append(cmds, moCmd)
+		}
+
+		if m.categoryGroupModel != nil {
+			updatedCategoryGroupModel, cgCmd := m.categoryGroupModel.Update(msg)
+			if cgMo, ok := updatedCategoryGroupModel.(ui.CategoryGroupModel); ok {
+				m.categoryGroupModel = &cgMo
+			}
+			cmds = append(cmds, cgCmd)
 		}
 		return m, tea.Batch(cmds...)
 	}
@@ -100,6 +126,13 @@ func (m App) View() string {
 			viewContent = m.monthlyModel.View()
 		} else {
 			viewContent = "Monthly overview loading..."
+		}
+
+	case viewCategoryGroup:
+		if m.categoryGroupModel != nil {
+			viewContent = m.categoryGroupModel.View()
+		} else {
+			viewContent = "Category groups loading..."
 		}
 	default:
 		viewContent = "Error: View not found or not initialized"

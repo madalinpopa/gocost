@@ -9,7 +9,7 @@ func (m App) handleMonthlyView(key string) (tea.Model, tea.Cmd) {
 
 	switch key {
 
-	case "q":
+	case "ctrl+c", "q":
 		return m, tea.Quit
 
 	case "h":

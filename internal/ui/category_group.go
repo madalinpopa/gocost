@@ -208,7 +208,7 @@ func (m CategoryGroupModel) View() string {
 	return viewStr
 }
 
-func (m CategoryGroupModel) UpdateData(data *data.DataRoot) tea.Model {
+func (m CategoryGroupModel) UpdateData(data *data.DataRoot) CategoryGroupModel {
 	m.Data.Root = data
 	m.groups = data.CategoryGroups
 	if m.cursor >= len(m.groups) && len(m.groups) > 0 {
@@ -216,7 +216,6 @@ func (m CategoryGroupModel) UpdateData(data *data.DataRoot) tea.Model {
 	} else {
 		m.cursor = 0
 	}
-
 	return m
 }
 

@@ -106,7 +106,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 
 		case "q", "esc":
-			return m, func() tea.Msg { return SwitchToMonthlyOverviewMsg{} }
+			return m, func() tea.Msg { return MonthlyViewMsg{} }
 
 		case "j", "down":
 			if len(m.groups) > 0 {

@@ -25,7 +25,7 @@ type WindowSize struct {
 	Height int
 }
 
-type SwitchToMonthlyOverviewMsg struct{}
+type MonthlyViewMsg struct{}
 
 // GetPreviousMonth returns the previous month and year given the current month and year.
 func GetPreviousMonth(year int, month time.Month) (int, time.Month) {

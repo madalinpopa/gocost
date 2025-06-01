@@ -1,9 +1,19 @@
 package app
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/madalinpopa/gocost/internal/ui"
 )
+
+func (m App) handleCategoryGroupView(key string) (tea.Model, tea.Cmd) {
+	switch key {
+	case "ctrl+g":
+		fmt.Println("switching to category group view")
+	}
+	return m, nil
+}
 
 func (m App) handleMonthlyView(key string) (tea.Model, tea.Cmd) {
 

@@ -8,7 +8,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/madalinpopa/gocost/internal/config"
 	"github.com/madalinpopa/gocost/internal/data"
+	"github.com/spf13/viper"
 )
 
 type focusLevel int
@@ -75,7 +77,13 @@ func (m MonthlyModel) View() string {
 
 	_, _ = balance, totalExpensesGroup
 
-	header := m.getHeader()
+	// amountColWidth := 12        // For "1234.56 $"
+	// statusColWidth := 11        // For "[Not Paid]"
+	// notesIndicatorColWidth := 4 // For " (N)"
+
+	// columnSpacer := "  " // Two spaces
+
+	header := m.getHeader(totalIncome)
 
 	b.WriteString(header)
 
@@ -83,7 +91,7 @@ func (m MonthlyModel) View() string {
 
 }
 
-func (m MonthlyModel) getHeader() string {
+func (m MonthlyModel) getHeader(totalIncome float64) string {
 	var b bytes.Buffer
 
 	headerLeft := fmt.Sprintf("Month: %s %d", m.CurrentMonth.String(), m.CurrentYear)
@@ -103,11 +111,21 @@ func (m MonthlyModel) getHeader() string {
 		headerRight,
 	)
 
+	bottomBorder := lipgloss.NewStyle().
+		Border(lipgloss.NormalBorder(), false, false, true, false).
+		BorderForeground(ColorSubtleBorder).
+		Width(m.Width - AppStyle.GetHorizontalFrameSize()).
+		Render("")
+
 	b.WriteString(headerStr)
 	b.WriteString("\n")
-	b.WriteString(lipgloss.NewStyle().Border(lipgloss.NormalBorder(), false, false, true, false).BorderForeground(ColorSubtleBorder).Width(m.Width - AppStyle.GetHorizontalFrameSize()).Render(""))
+	b.WriteString(bottomBorder)
 	b.WriteString("\n")
 
+	defaultCurrency := viper.GetString(config.CurrencyField)
+	income := fmt.Sprintf("Total Income: %.2f %s", totalIncome, defaultCurrency)
+
+	b.WriteString(MutedText.Render(income))
 	return b.String()
 }
 
@@ -157,6 +175,6 @@ func (m MonthlyModel) SetMonthYear(month time.Month, year int) MonthlyModel {
 		m.focusedGroupIndex = -1
 	}
 	m.focusedCategoryIndex = -1
-	
+
 	return m
 }

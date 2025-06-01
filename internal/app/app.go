@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -68,48 +69,36 @@ func (m App) Init() tea.Cmd {
 
 func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
-	var cmds []tea.Cmd
-
 	switch msg := msg.(type) {
 
 	case tea.KeyMsg:
 
-		if msg.String() == "ctrl+g" {
-			if m.activeView == viewMonthlyOverview {
-				m.activeView = viewCategoryGroup
-				return m, m.categoryGroupModel.Init()
-			}
-		}
-
 		switch m.activeView {
 
 		case viewMonthlyOverview:
-			return m.handleMonthlyView(msg.String())
+			return m.handleMonthlyViewKeys(msg.String())
 
 		case viewCategoryGroup:
-			return m.handleCategoryGroupView(msg.String())
+			return m.handleCategoryGroupViewKeys(msg.String())
 		}
 
 	case tea.WindowSizeMsg:
+		var cmds []tea.Cmd
+		var updatedModel tea.Model
 		m.Width = msg.Width
 		m.Height = msg.Height
+		updatedModel, cmds = m.handleModelsWindowResize(msg)
+		return updatedModel, tea.Batch(cmds...)
 
-		if m.monthlyModel != nil {
-			updatedMonthlyModel, moCmd := m.monthlyModel.Update(msg)
-			if mo, ok := updatedMonthlyModel.(ui.MonthlyModel); ok {
-				m.monthlyModel = &mo
-			}
-			cmds = append(cmds, moCmd)
-		}
+	case ui.GroupAddMsg:
+		fmt.Println("Add category group")
+	case ui.GroupDeleteMsg:
+		fmt.Println("Delete category group")
+	case ui.GroupUpdateMsg:
+		fmt.Println("Update category group")
+	case ui.GroupManageCategoriesMsg:
+		fmt.Println("Manage categories")
 
-		if m.categoryGroupModel != nil {
-			updatedCategoryGroupModel, cgCmd := m.categoryGroupModel.Update(msg)
-			if cgMo, ok := updatedCategoryGroupModel.(ui.CategoryGroupModel); ok {
-				m.categoryGroupModel = &cgMo
-			}
-			cmds = append(cmds, cgCmd)
-		}
-		return m, tea.Batch(cmds...)
 	}
 
 	return m, nil
@@ -139,4 +128,25 @@ func (m App) View() string {
 	}
 
 	return viewContent
+}
+
+func (m App) handleModelsWindowResize(msg tea.Msg) (tea.Model, []tea.Cmd) {
+	var cmds []tea.Cmd
+
+	if m.monthlyModel != nil {
+		updatedMonthlyModel, moCmd := m.monthlyModel.Update(msg)
+		if mo, ok := updatedMonthlyModel.(ui.MonthlyModel); ok {
+			m.monthlyModel = &mo
+		}
+		cmds = append(cmds, moCmd)
+	}
+
+	if m.categoryGroupModel != nil {
+		updatedCategoryGroupModel, cgCmd := m.categoryGroupModel.Update(msg)
+		if cgMo, ok := updatedCategoryGroupModel.(ui.CategoryGroupModel); ok {
+			m.categoryGroupModel = &cgMo
+		}
+		cmds = append(cmds, cgCmd)
+	}
+	return m, cmds
 }

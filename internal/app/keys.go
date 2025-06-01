@@ -5,21 +5,18 @@ import (
 	"github.com/madalinpopa/gocost/internal/ui"
 )
 
-func (m App) handleCategoryGroupView(key string) (tea.Model, tea.Cmd) {
-	switch key {
-	case "esc", "q":
-		m.activeView = viewMonthlyOverview
-		return m, nil
-	}
-	return m, nil
-}
-
-func (m App) handleMonthlyView(key string) (tea.Model, tea.Cmd) {
+func (m App) handleMonthlyViewKeys(key string) (tea.Model, tea.Cmd) {
 
 	switch key {
 
 	case "ctrl+c", "q":
 		return m, tea.Quit
+
+	case "ctrl+g":
+		if m.activeView == viewMonthlyOverview {
+			m.activeView = viewCategoryGroup
+			return m, m.categoryGroupModel.Init()
+		}
 
 	case "h":
 		m.CurrentYear, m.CurrentMonth = ui.GetPreviousMonth(m.CurrentYear, m.CurrentMonth)
@@ -40,5 +37,14 @@ func (m App) handleMonthlyView(key string) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
+	return m, nil
+}
+
+func (m App) handleCategoryGroupViewKeys(key string) (tea.Model, tea.Cmd) {
+	switch key {
+	case "esc", "q":
+		m.activeView = viewMonthlyOverview
+		return m, nil
+	}
 	return m, nil
 }

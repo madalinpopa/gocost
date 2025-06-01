@@ -15,7 +15,8 @@ func (m App) handleMonthlyView(key string) (tea.Model, tea.Cmd) {
 	case "h":
 		m.CurrentYear, m.CurrentMonth = ui.GetPreviousMonth(m.CurrentYear, m.CurrentMonth)
 		if m.monthlyModel != nil {
-			m.monthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+			updatedModel := m.monthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+			m.monthlyModel = &updatedModel
 		}
 
 		return m, nil
@@ -23,7 +24,8 @@ func (m App) handleMonthlyView(key string) (tea.Model, tea.Cmd) {
 	case "l":
 		m.CurrentYear, m.CurrentMonth = ui.GetNextMonth(m.CurrentYear, m.CurrentMonth)
 		if m.monthlyModel != nil {
-			m.monthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+			updatedModel := m.monthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+			m.monthlyModel = &updatedModel
 		}
 
 		return m, nil

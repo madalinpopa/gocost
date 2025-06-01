@@ -78,8 +78,8 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if m.monthlyModel != nil {
 			updatedMonthlyModel, moCmd := m.monthlyModel.Update(msg)
-			if mo, ok := updatedMonthlyModel.(*ui.MonthlyModel); ok {
-				m.monthlyModel = mo
+			if mo, ok := updatedMonthlyModel.(ui.MonthlyModel); ok {
+				m.monthlyModel = &mo
 			}
 			cmds = append(cmds, moCmd)
 		}

@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -92,15 +91,18 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case ui.MonthlyViewMsg:
 		return m.handleMonthlyViewMsg()
-	case ui.GroupAddMsg:
-		fmt.Println("Add category group")
-	case ui.GroupDeleteMsg:
-		fmt.Println("Delete category group")
-	case ui.GroupUpdateMsg:
-		fmt.Println("Update category group")
-	case ui.GroupManageCategoriesMsg:
-		fmt.Println("Manage categories")
 
+	case ui.GroupAddMsg:
+		return m.handleGroupAddMsg(msg)
+
+	case ui.GroupDeleteMsg:
+		return m.handleGroupDeleteMsg()
+
+	case ui.GroupUpdateMsg:
+		return m.handleGroupUpdateMsg()
+
+	case ui.GroupManageCategoriesMsg:
+		return m.handleGroupManageCategoriesMsg()
 	}
 
 	return m, nil

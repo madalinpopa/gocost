@@ -11,10 +11,21 @@ import (
 	"github.com/madalinpopa/gocost/internal/data"
 )
 
+type focusLevel int
+
+const (
+	focusLevelGroups focusLevel = iota
+	focusLevelCategories
+)
+
 type MonthlyModel struct {
 	Data
 	MonthYear
 	WindowSize
+
+	level                focusLevel
+	focusedGroupIndex    int
+	focusedCategoryIndex int
 }
 
 func NewMonthlyModel(data *data.DataRoot, month time.Month, year int) *MonthlyModel {
@@ -132,4 +143,18 @@ func (m MonthlyModel) getMonthExpenses(mr data.MonthlyRecord, g []data.CategoryG
 		}
 	}
 	return expenseTotals, groupTotals
+}
+
+func (m MonthlyModel) SetMonthYear(month time.Month, year int) {
+	m.CurrentMonth = month
+	m.CurrentYear = year
+
+	// Reset focus when month changes, back to group navigation
+	m.level = focusLevelGroups
+	if len(m.Data.Root.CategoryGroups) > 0 {
+		m.focusedCategoryIndex = 0
+	} else {
+		m.focusedGroupIndex = -1
+	}
+	m.focusedCategoryIndex = -1
 }

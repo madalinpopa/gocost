@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -171,7 +172,40 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m CategoryGroupModel) View() string {
-	return "Category group view"
+
+	var b strings.Builder
+
+	b.WriteString(HeaderText.Render("Manage Category Groups"))
+	b.WriteString("\n\n")
+
+	if m.isEditingName {
+		b.WriteString("Enter Category Group Name (Enter to save, Esc to cancel):\n")
+		b.WriteString(m.editInput.View())
+		b.WriteString("\n")
+	} else {
+		if len(m.groups) == 0 {
+			b.WriteString(MutedText.Render("No category groups defined yet."))
+		} else {
+			for i, item := range m.groups {
+				style := NormalListItem
+				prefix := "  "
+				if i == m.cursor {
+					style = FocusedListItem
+					prefix = "> "
+				}
+				totalCategories := len(item.Categories)
+				line := fmt.Sprintf("%s%s (ID: %s, Categories: %d)", prefix, item.GroupName, item.GroupID, totalCategories)
+				b.WriteString(style.Render(line))
+				b.WriteString("\n")
+			}
+		}
+		b.WriteString("\n\n")
+		keyHints := "(j/k: Nav, a/n: Add, e: Edit, d: Delete, Enter: Manage Cat, Esc/q: Back)"
+		b.WriteString(MutedText.Render(keyHints))
+	}
+
+	viewStr := AppStyle.Width(m.Width).Height(m.Height - 1).Render(b.String())
+	return viewStr
 }
 
 func (m CategoryGroupModel) focusInput() (tea.Model, tea.Cmd) {

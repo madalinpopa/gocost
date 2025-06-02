@@ -60,13 +60,13 @@ func (m App) handleGroupAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // handleGroupDeleteMsg handles the deletion of a category group.
 func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(ui.GroupAddMsg); ok {
+	if msg, ok := msg.(ui.GroupDeleteMsg); ok {
 		canDelete := true
 		groupIndexToDelete := -1
 		var groupName string
 
 		for i, group := range m.Data.CategoryGroups {
-			if group.GroupID == msg.Group.GroupID {
+			if group.GroupID == msg.GroupID {
 				groupIndexToDelete = i
 
 				// Check if group has any category. If so, you need to delete first
@@ -91,7 +91,8 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if m.CategoryGroupModel != nil {
-			m.CategoryGroupModel.UpdateData(m.Data)
+			updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
+			m.CategoryGroupModel = &updatedModel
 		}
 	}
 	return m, nil

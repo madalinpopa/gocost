@@ -10,9 +10,9 @@ import (
 
 func (m App) handleMonthlyViewMsg() (tea.Model, tea.Cmd) {
 	m.activeView = viewMonthlyOverview
-	if m.monthlyModel != nil {
-		updatedModel := m.monthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
-		m.monthlyModel = &updatedModel
+	if m.MonthlyModel != nil {
+		updatedModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+		m.MonthlyModel = &updatedModel
 	}
 	return m, nil
 }
@@ -25,8 +25,8 @@ func (m App) handleGroupAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if err := data.SaveData(m.Data.FilePath, m.Data.Root); err != nil {
 			fmt.Printf("Error while saving data: %v", err)
 		} else {
-			updatedModel := m.categoryGroupModel.UpdateData(m.Data.Root)
-			m.categoryGroupModel = &updatedModel
+			updatedModel := m.CategoryGroupModel.UpdateData(m.Data.Root)
+			m.CategoryGroupModel = &updatedModel
 		}
 	}
 	return m, nil

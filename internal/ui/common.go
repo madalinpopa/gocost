@@ -25,6 +25,12 @@ type WindowSize struct {
 	Height int
 }
 
+// AppViews holds all the models used by App
+type AppViews struct {
+	MonthlyModel       *MonthlyModel
+	CategoryGroupModel *CategoryGroupModel
+}
+
 type MonthlyViewMsg struct{}
 
 // GetPreviousMonth returns the previous month and year given the current month and year.

@@ -17,8 +17,8 @@ func createTestApp() App {
 	currentYear := 2024
 
 	return App{
-		Data: ui.Data{
-			Root:     testData,
+		AppData: ui.AppData{
+			Data:     testData,
 			FilePath: "test.json",
 		},
 		MonthYear: ui.MonthYear{

@@ -7,9 +7,9 @@ import (
 	"github.com/madalinpopa/gocost/internal/data"
 )
 
-// Data represents the application data.
-type Data struct {
-	Root     *data.DataRoot
+// AppData represents the application data.
+type AppData struct {
+	Data     *data.DataRoot
 	FilePath string
 }
 

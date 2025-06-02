@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"slices"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/madalinpopa/gocost/internal/data"
@@ -80,7 +81,7 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		if canDelete && groupIndexToDelete != -1 {
-			m.Data.CategoryGroups = append(m.Data.CategoryGroups[:groupIndexToDelete], m.Data.CategoryGroups[groupIndexToDelete+1:]...)
+			m.Data.CategoryGroups = slices.Delete(m.Data.CategoryGroups, groupIndexToDelete, groupIndexToDelete+1)
 			if err := data.SaveData(m.FilePath, m.Data); err != nil {
 				// TODO: Need to set status message here
 			} else {

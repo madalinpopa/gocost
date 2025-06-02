@@ -66,11 +66,11 @@ func (m MonthlyModel) View() string {
 	var totalIncome float64
 
 	monthKey := m.getCurrentMonth()
-	record, ok := m.AppData.Data.MonthlyData[monthKey]
+	record, ok := m.Data.MonthlyData[monthKey]
 
 	if ok {
 		totalIncome = m.getMonthIncome(record)
-		totalExpenses, totalExpensesGroup = m.getMonthExpenses(record, m.AppData.Data.CategoryGroups)
+		totalExpenses, totalExpensesGroup = m.getMonthExpenses(record, m.Data.CategoryGroups)
 	}
 
 	balance := totalIncome - totalExpenses
@@ -169,7 +169,7 @@ func (m MonthlyModel) SetMonthYear(month time.Month, year int) MonthlyModel {
 
 	// Reset focus when month changes, back to group navigation
 	m.level = focusLevelGroups
-	if len(m.AppData.Data.CategoryGroups) > 0 {
+	if len(m.Data.CategoryGroups) > 0 {
 		m.focusedCategoryIndex = 0
 	} else {
 		m.focusedGroupIndex = -1

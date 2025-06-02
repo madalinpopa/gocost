@@ -15,23 +15,23 @@ func (m App) handleMonthlyViewKeys(key string) (tea.Model, tea.Cmd) {
 	case "ctrl+g":
 		if m.activeView == viewMonthlyOverview {
 			m.activeView = viewCategoryGroup
-			return m, m.categoryGroupModel.Init()
+			return m, m.CategoryGroupModel.Init()
 		}
 
 	case "h":
 		m.CurrentYear, m.CurrentMonth = ui.GetPreviousMonth(m.CurrentYear, m.CurrentMonth)
-		if m.monthlyModel != nil {
-			updatedModel := m.monthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
-			m.monthlyModel = &updatedModel
+		if m.MonthlyModel != nil {
+			updatedModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+			m.MonthlyModel = &updatedModel
 		}
 
 		return m, nil
 
 	case "l":
 		m.CurrentYear, m.CurrentMonth = ui.GetNextMonth(m.CurrentYear, m.CurrentMonth)
-		if m.monthlyModel != nil {
-			updatedModel := m.monthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
-			m.monthlyModel = &updatedModel
+		if m.MonthlyModel != nil {
+			updatedModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+			m.MonthlyModel = &updatedModel
 		}
 
 		return m, nil

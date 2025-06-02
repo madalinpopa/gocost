@@ -112,7 +112,7 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.handleGroupAddMsg(msg)
 
 	case ui.GroupDeleteMsg:
-		return m.handleGroupDeleteMsg()
+		return m.handleGroupDeleteMsg(msg)
 
 	case ui.GroupUpdateMsg:
 		return m.handleGroupUpdateMsg()

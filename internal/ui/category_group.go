@@ -26,7 +26,7 @@ type GroupManageCategoriesMsg struct {
 }
 
 type CategoryGroupModel struct {
-	Data
+	AppData
 	WindowSize
 
 	cursor int
@@ -43,8 +43,8 @@ func NewCategoryGroupModel(data *data.DataRoot) *CategoryGroupModel {
 	ti.CharLimit = 30
 	ti.Width = 30
 	return &CategoryGroupModel{
-		Data: Data{
-			Root: data,
+		AppData: AppData{
+			Data: data,
 		},
 		groups:       data.CategoryGroups,
 		editInput:    ti,
@@ -209,7 +209,7 @@ func (m CategoryGroupModel) View() string {
 }
 
 func (m CategoryGroupModel) UpdateData(data *data.DataRoot) CategoryGroupModel {
-	m.Data.Root = data
+	m.AppData.Data = data
 	m.groups = data.CategoryGroups
 	if m.cursor >= len(m.groups) && len(m.groups) > 0 {
 		m.cursor = len(m.groups) - 1

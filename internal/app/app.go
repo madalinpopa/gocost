@@ -15,16 +15,12 @@ const (
 	viewCategoryGroup
 )
 
-type AppViews struct {
-	monthlyModel       *ui.MonthlyModel
-	categoryGroupModel *ui.CategoryGroupModel
-}
-
 type App struct {
 	ui.Data
 	ui.MonthYear
 	ui.WindowSize
-	AppViews
+	ui.AppViews
+
 	activeView currentView
 }
 
@@ -42,9 +38,9 @@ func New(initialData *data.DataRoot, dataFilePath string) App {
 			CurrentMonth: currentM,
 			CurrentYear:  currentY,
 		},
-		AppViews: AppViews{
-			monthlyModel:       ui.NewMonthlyModel(initialData, currentM, currentY),
-			categoryGroupModel: ui.NewCategoryGroupModel(initialData),
+		AppViews: ui.AppViews{
+			MonthlyModel:       ui.NewMonthlyModel(initialData, currentM, currentY),
+			CategoryGroupModel: ui.NewCategoryGroupModel(initialData),
 		},
 	}
 }
@@ -53,13 +49,13 @@ func (m App) Init() tea.Cmd {
 	switch m.activeView {
 
 	case viewMonthlyOverview:
-		if m.monthlyModel != nil {
-			return m.monthlyModel.Init()
+		if m.MonthlyModel != nil {
+			return m.MonthlyModel.Init()
 		}
 
 	case viewCategoryGroup:
-		if m.categoryGroupModel != nil {
-			return m.categoryGroupModel.Init()
+		if m.CategoryGroupModel != nil {
+			return m.CategoryGroupModel.Init()
 		}
 
 	}
@@ -79,10 +75,10 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if cmd != nil || updatedModel != m {
 				return updatedModel, cmd
 			}
-			if m.monthlyModel != nil {
-				updatedMonthlyModel, monthlyCmd := m.monthlyModel.Update(msg)
+			if m.MonthlyModel != nil {
+				updatedMonthlyModel, monthlyCmd := m.MonthlyModel.Update(msg)
 				if mo, ok := updatedMonthlyModel.(ui.MonthlyModel); ok {
-					m.monthlyModel = &mo
+					m.MonthlyModel = &mo
 				}
 				return m, monthlyCmd
 			}
@@ -92,10 +88,10 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if cmd != nil || updatedModel != m {
 				return updatedModel, cmd
 			}
-			if m.categoryGroupModel != nil {
-				updatedCategoryGroupModel, categoryCmd := m.categoryGroupModel.Update(msg)
+			if m.CategoryGroupModel != nil {
+				updatedCategoryGroupModel, categoryCmd := m.CategoryGroupModel.Update(msg)
 				if cgMo, ok := updatedCategoryGroupModel.(ui.CategoryGroupModel); ok {
-					m.categoryGroupModel = &cgMo
+					m.CategoryGroupModel = &cgMo
 				}
 				return m, categoryCmd
 			}
@@ -135,15 +131,15 @@ func (m App) View() string {
 	switch m.activeView {
 
 	case viewMonthlyOverview:
-		if m.monthlyModel != nil {
-			viewContent = m.monthlyModel.View()
+		if m.MonthlyModel != nil {
+			viewContent = m.MonthlyModel.View()
 		} else {
 			viewContent = "Monthly overview loading..."
 		}
 
 	case viewCategoryGroup:
-		if m.categoryGroupModel != nil {
-			viewContent = m.categoryGroupModel.View()
+		if m.CategoryGroupModel != nil {
+			viewContent = m.CategoryGroupModel.View()
 		} else {
 			viewContent = "Category groups loading..."
 		}
@@ -157,18 +153,18 @@ func (m App) View() string {
 func (m App) handleModelsWindowResize(msg tea.Msg) (tea.Model, []tea.Cmd) {
 	var cmds []tea.Cmd
 
-	if m.monthlyModel != nil {
-		updatedMonthlyModel, moCmd := m.monthlyModel.Update(msg)
+	if m.MonthlyModel != nil {
+		updatedMonthlyModel, moCmd := m.MonthlyModel.Update(msg)
 		if mo, ok := updatedMonthlyModel.(ui.MonthlyModel); ok {
-			m.monthlyModel = &mo
+			m.MonthlyModel = &mo
 		}
 		cmds = append(cmds, moCmd)
 	}
 
-	if m.categoryGroupModel != nil {
-		updatedCategoryGroupModel, cgCmd := m.categoryGroupModel.Update(msg)
+	if m.CategoryGroupModel != nil {
+		updatedCategoryGroupModel, cgCmd := m.CategoryGroupModel.Update(msg)
 		if cgMo, ok := updatedCategoryGroupModel.(ui.CategoryGroupModel); ok {
-			m.categoryGroupModel = &cgMo
+			m.CategoryGroupModel = &cgMo
 		}
 		cmds = append(cmds, cgCmd)
 	}

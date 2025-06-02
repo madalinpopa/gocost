@@ -100,6 +100,7 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // handleGroupUpdateMsg handles the update of a category group.
 func (m App) handleGroupUpdateMsg() (tea.Model, tea.Cmd) {
+
 	return m, nil
 }
 

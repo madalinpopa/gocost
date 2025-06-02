@@ -16,7 +16,7 @@ const (
 )
 
 type App struct {
-	ui.Data
+	ui.AppData
 	ui.MonthYear
 	ui.WindowSize
 	ui.AppViews
@@ -30,8 +30,8 @@ func New(initialData *data.DataRoot, dataFilePath string) App {
 	currentY := now.Year()
 
 	return App{
-		Data: ui.Data{
-			Root:     initialData,
+		AppData: ui.AppData{
+			Data:     initialData,
 			FilePath: dataFilePath,
 		},
 		MonthYear: ui.MonthYear{

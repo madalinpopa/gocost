@@ -45,12 +45,12 @@ func (m App) handleMonthlyViewMsg() (tea.Model, tea.Cmd) {
 func (m App) handleGroupAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(ui.GroupAddMsg); ok {
 
-		m.Data.Root.CategoryGroups = append(m.Data.Root.CategoryGroups, msg.Group)
+		m.AppData.Data.CategoryGroups = append(m.AppData.Data.CategoryGroups, msg.Group)
 
-		if err := data.SaveData(m.Data.FilePath, m.Data.Root); err != nil {
+		if err := data.SaveData(m.AppData.FilePath, m.AppData.Data); err != nil {
 			fmt.Printf("Error while saving data: %v", err)
 		} else {
-			updatedModel := m.CategoryGroupModel.UpdateData(m.Data.Root)
+			updatedModel := m.CategoryGroupModel.UpdateData(m.AppData.Data)
 			m.CategoryGroupModel = &updatedModel
 		}
 	}
@@ -64,7 +64,7 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		groupIndexToDelete := -1
 		var groupName string
 
-		for i, group := range m.Root.CategoryGroups {
+		for i, group := range m.Data.CategoryGroups {
 			if group.GroupID == msg.Group.GroupID {
 				groupIndexToDelete = i
 
@@ -80,8 +80,8 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		if canDelete && groupIndexToDelete != -1 {
-			m.Root.CategoryGroups = append(m.Root.CategoryGroups[:groupIndexToDelete], m.Root.CategoryGroups[groupIndexToDelete+1:]...)
-			if err := data.SaveData(m.FilePath, m.Root); err != nil {
+			m.Data.CategoryGroups = append(m.Data.CategoryGroups[:groupIndexToDelete], m.Data.CategoryGroups[groupIndexToDelete+1:]...)
+			if err := data.SaveData(m.FilePath, m.Data); err != nil {
 				// TODO: Need to set status message here
 			} else {
 				// TODO: Need to set status message here
@@ -90,7 +90,7 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if m.CategoryGroupModel != nil {
-			m.CategoryGroupModel.UpdateData(m.Root)
+			m.CategoryGroupModel.UpdateData(m.Data)
 		}
 	}
 	return m, nil

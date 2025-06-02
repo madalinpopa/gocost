@@ -45,12 +45,12 @@ func (m App) handleMonthlyViewMsg() (tea.Model, tea.Cmd) {
 func (m App) handleGroupAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(ui.GroupAddMsg); ok {
 
-		m.AppData.Data.CategoryGroups = append(m.AppData.Data.CategoryGroups, msg.Group)
+		m.Data.CategoryGroups = append(m.Data.CategoryGroups, msg.Group)
 
-		if err := data.SaveData(m.AppData.FilePath, m.AppData.Data); err != nil {
+		if err := data.SaveData(m.FilePath, m.Data); err != nil {
 			fmt.Printf("Error while saving data: %v", err)
 		} else {
-			updatedModel := m.CategoryGroupModel.UpdateData(m.AppData.Data)
+			updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
 			m.CategoryGroupModel = &updatedModel
 		}
 	}

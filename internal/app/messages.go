@@ -58,7 +58,41 @@ func (m App) handleGroupAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // handleGroupDeleteMsg handles the deletion of a category group.
-func (m App) handleGroupDeleteMsg() (tea.Model, tea.Cmd) {
+func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if msg, ok := msg.(ui.GroupAddMsg); ok {
+		canDelete := true
+		groupIndexToDelete := -1
+		var groupName string
+
+		for i, group := range m.Root.CategoryGroups {
+			if group.GroupID == msg.Group.GroupID {
+				groupIndexToDelete = i
+
+				// Check if group has any category. If so, you need to delete first
+				// the category before deleting the group.
+				if len(group.Categories) > 0 {
+					canDelete = false
+					// TODO: Need to set status message here
+					fmt.Printf("Cannot delete group '%s': contains categories.", group.GroupName)
+					break
+				}
+				break
+			}
+		}
+		if canDelete && groupIndexToDelete != -1 {
+			m.Root.CategoryGroups = append(m.Root.CategoryGroups[:groupIndexToDelete], m.Root.CategoryGroups[groupIndexToDelete+1:]...)
+			if err := data.SaveData(m.FilePath, m.Root); err != nil {
+				// TODO: Need to set status message here
+			} else {
+				// TODO: Need to set status message here
+				fmt.Println("Delete group: ", groupName)
+			}
+		}
+
+		if m.CategoryGroupModel != nil {
+			m.CategoryGroupModel.UpdateData(m.Root)
+		}
+	}
 	return m, nil
 }
 

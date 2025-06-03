@@ -72,32 +72,35 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "enter":
 				groupName := strings.TrimSpace(m.editInput.Value())
 				if groupName != "" {
-					newGroupId := GenerateID()
-					newGroup := data.CategoryGroup{
-						GroupID:    newGroupId,
-						GroupName:  groupName,
-						Categories: make([]data.Category, 0),
-					}
-					return m.blurInput(), func() tea.Msg {
-						return GroupAddMsg{Group: newGroup}
-					}
-
-				} else {
-					updatedGroup := m.groups[m.editingIndex]
-					updatedGroup.GroupName = groupName
-					return m.blurInput(), func() tea.Msg {
-						return GroupUpdateMsg{Group: updatedGroup}
+					if m.editingIndex == -1 {
+						newGroupId := GenerateID()
+						newGroup := data.CategoryGroup{
+							GroupID:    newGroupId,
+							GroupName:  groupName,
+							Categories: make([]data.Category, 0),
+						}
+						return m.blurInput(), func() tea.Msg {
+							return GroupAddMsg{Group: newGroup}
+						}
+					} else {
+						updatedGroup := m.groups[m.editingIndex]
+						updatedGroup.GroupName = groupName
+						return m.blurInput(), func() tea.Msg {
+							return GroupUpdateMsg{Group: updatedGroup}
+						}
 					}
 
 				}
 
 			case "esc":
+				updatedModel := m.blurInput()
 				m.editInput.SetValue("")
+				return updatedModel, nil
 			}
 		}
 		m.editInput, cmd = m.editInput.Update(msg)
 		cmds = append(cmds, cmd)
-		return m.blurInput(), tea.Batch(cmds...)
+		return m, tea.Batch(cmds...)
 	}
 
 	switch msg := msg.(type) {

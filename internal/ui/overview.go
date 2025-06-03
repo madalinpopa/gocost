@@ -84,8 +84,10 @@ func (m MonthlyModel) View() string {
 	// columnSpacer := "  " // Two spaces
 
 	header := m.getHeader(totalIncome)
+	footer := m.getFooter()
 
 	b.WriteString(header)
+	b.WriteString(footer)
 
 	return AppStyle.Render(b.String())
 
@@ -132,6 +134,23 @@ func (m MonthlyModel) getHeader(totalIncome float64) string {
 func (m MonthlyModel) getCurrentMonth() string {
 	monthKey := fmt.Sprintf("%s-%d", m.CurrentMonth.String(), m.CurrentYear)
 	return monthKey
+}
+
+func (m MonthlyModel) getFooter() string {
+	var b bytes.Buffer
+
+	footerStyle := lipgloss.NewStyle().
+		Border(lipgloss.NormalBorder(), true, false, false, false).
+		BorderForeground(ColorSubtleBorder).
+		Width(m.Width - AppStyle.GetHorizontalPadding()).
+		PaddingTop(1)
+
+	keyHints := "j/k: Nav | Ent: Select/Edit | i: Inc | Ctrl+G: Grps"
+
+	b.WriteString("\n\n")
+	b.WriteString(footerStyle.Render(lipgloss.JoinVertical(lipgloss.Left, MutedText.Render(keyHints))))
+
+	return b.String()
 }
 
 func (m MonthlyModel) getMonthIncome(monthRecord data.MonthlyRecord) float64 {

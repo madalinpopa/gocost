@@ -84,10 +84,6 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case viewCategoryGroup:
-			updatedModel, cmd := m.handleCategoryGroupViewKeys(msg.String())
-			if cmd != nil || updatedModel != m {
-				return updatedModel, cmd
-			}
 			if m.CategoryGroupModel != nil {
 				updatedCategoryGroupModel, categoryCmd := m.CategoryGroupModel.Update(msg)
 				if cgMo, ok := updatedCategoryGroupModel.(ui.CategoryGroupModel); ok {

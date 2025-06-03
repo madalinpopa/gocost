@@ -39,12 +39,3 @@ func (m App) handleMonthlyViewKeys(key string) (tea.Model, tea.Cmd) {
 
 	return m, nil
 }
-
-func (m App) handleCategoryGroupViewKeys(key string) (tea.Model, tea.Cmd) {
-	switch key {
-	case "esc", "q":
-		m.activeView = viewMonthlyOverview
-		return m, nil
-	}
-	return m, nil
-}

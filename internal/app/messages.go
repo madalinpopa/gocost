@@ -50,10 +50,11 @@ func (m App) handleGroupAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Data.CategoryGroups = append(m.Data.CategoryGroups, msg.Group)
 
 		if err := data.SaveData(m.FilePath, m.Data); err != nil {
-			fmt.Printf("Error while saving data: %v", err)
+			return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
 		} else {
 			updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
 			m.CategoryGroupModel = &updatedModel
+			return m.SetSuccessStatus(fmt.Sprintf("Group '%s' added successfully", msg.Group.GroupName))
 		}
 	}
 	return m, nil
@@ -69,25 +70,40 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		for i, group := range m.Data.CategoryGroups {
 			if group.GroupID == msg.GroupID {
 				groupIndexToDelete = i
+				groupName = group.GroupName
 
 				// Check if group has any category. If so, you need to delete first
 				// the category before deleting the group.
 				if len(group.Categories) > 0 {
 					canDelete = false
-					// TODO: Need to set status message here
-					fmt.Printf("Cannot delete group '%s': contains categories.", group.GroupName)
 					break
 				}
 				break
 			}
 		}
+		
+		if !canDelete {
+			if m.CategoryGroupModel != nil {
+				updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
+				m.CategoryGroupModel = &updatedModel
+			}
+			return m.SetErrorStatus(fmt.Sprintf("Cannot delete group '%s': contains categories", groupName))
+		}
+		
 		if canDelete && groupIndexToDelete != -1 {
 			m.Data.CategoryGroups = slices.Delete(m.Data.CategoryGroups, groupIndexToDelete, groupIndexToDelete+1)
 			if err := data.SaveData(m.FilePath, m.Data); err != nil {
-				// TODO: Need to set status message here
+				if m.CategoryGroupModel != nil {
+					updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
+					m.CategoryGroupModel = &updatedModel
+				}
+				return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
 			} else {
-				// TODO: Need to set status message here
-				fmt.Println("Delete group: ", groupName)
+				if m.CategoryGroupModel != nil {
+					updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
+					m.CategoryGroupModel = &updatedModel
+				}
+				return m.SetSuccessStatus(fmt.Sprintf("Group '%s' deleted successfully", groupName))
 			}
 		}
 
@@ -102,7 +118,9 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 // handleGroupUpdateMsg handles the update of a category group.
 func (m App) handleGroupUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	found := false
+	var groupName string
 	if msg, ok := msg.(ui.GroupUpdateMsg); ok {
+		groupName = msg.Group.GroupName
 		for i, group := range m.Data.CategoryGroups {
 
 			if group.GroupID == msg.Group.GroupID {
@@ -115,14 +133,17 @@ func (m App) handleGroupUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	if found {
 		if err := data.SaveData(m.FilePath, m.Data); err != nil {
-			// Set status message
+			if m.CategoryGroupModel != nil {
+				updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
+				m.CategoryGroupModel = &updatedModel
+			}
+			return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
 		} else {
-			// Set status message
-		}
-
-		if m.CategoryGroupModel != nil {
-			updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
-			m.CategoryGroupModel = &updatedModel
+			if m.CategoryGroupModel != nil {
+				updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
+				m.CategoryGroupModel = &updatedModel
+			}
+			return m.SetSuccessStatus(fmt.Sprintf("Group '%s' updated successfully", groupName))
 		}
 	}
 	return m, nil

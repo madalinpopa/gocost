@@ -21,7 +21,8 @@ type App struct {
 	ui.WindowSize
 	ui.AppViews
 
-	activeView currentView
+	activeView    currentView
+	statusMessage string // To display feedback/errors to the user
 }
 
 func New(initialData *data.DataRoot, dataFilePath string) App {
@@ -115,6 +116,9 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case ui.GroupManageCategoriesMsg:
 		return m.handleGroupManageCategoriesMsg()
+
+	case StatusClearMsg:
+		return m.ClearStatus(), nil
 	}
 
 	return m, nil
@@ -141,6 +145,11 @@ func (m App) View() string {
 		}
 	default:
 		viewContent = "Error: View not found or not initialized"
+	}
+
+	// Add status message at the bottom if present
+	if m.HasStatus() {
+		viewContent += "\n\n" + m.GetStatusMessage()
 	}
 
 	return viewContent

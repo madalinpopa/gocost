@@ -106,7 +106,7 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return updatedModel, tea.Batch(cmds...)
 
 	case ui.MonthlyViewMsg:
-		return m.handleMonthlyViewMsg()
+		return m.handleMonthlyViewMsg(msg)
 
 	case ui.GroupAddMsg:
 		return m.handleGroupAddMsg(msg)

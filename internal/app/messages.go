@@ -99,8 +99,31 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // handleGroupUpdateMsg handles the update of a category group.
-func (m App) handleGroupUpdateMsg() (tea.Model, tea.Cmd) {
+func (m App) handleGroupUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+	found := false
+	if msg, ok := msg.(ui.GroupUpdateMsg); ok {
+		for i, group := range m.Data.CategoryGroups {
 
+			if group.GroupID == msg.Group.GroupID {
+				found = true
+				m.Data.CategoryGroups[i] = msg.Group
+				break
+			}
+
+		}
+	}
+	if found {
+		if err := data.SaveData(m.FilePath, m.Data); err != nil {
+			// Set status message
+		} else {
+			// Set status message
+		}
+
+		if m.CategoryGroupModel != nil {
+			updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
+			m.CategoryGroupModel = &updatedModel
+		}
+	}
 	return m, nil
 }
 

@@ -34,14 +34,12 @@ func (m App) handleModelsWindowResize(msg tea.Msg) (tea.Model, []tea.Cmd) {
 // handleMonthlyViewMsg switches the active view to the monthly overview and updates the MonthlyModel
 // with the current month and year, if it exists.
 func (m App) handleMonthlyViewMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(ui.MonthlyViewMsg); ok {
-		m.activeView = viewMonthlyOverview
-		if m.MonthlyModel != nil {
-			updatedModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
-			m.MonthlyModel = &updatedModel
-		}
-		fmt.Println(msg)
+	m.activeView = viewMonthlyOverview
+	if m.MonthlyModel != nil {
+		updatedModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+		m.MonthlyModel = &updatedModel
 	}
+	fmt.Println(msg)
 	return m, nil
 }
 

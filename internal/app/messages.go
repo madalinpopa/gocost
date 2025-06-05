@@ -21,6 +21,14 @@ func (m App) handleModelsWindowResize(msg tea.Msg) (tea.Model, []tea.Cmd) {
 		cmds = append(cmds, moCmd)
 	}
 
+	if m.IncomeModel != nil {
+		updatedIncomeModel, moCmd := m.IncomeModel.Update(msg)
+		if mo, ok := updatedIncomeModel.(ui.IncomeModel); ok {
+			m.IncomeModel = &mo
+		}
+		cmds = append(cmds, moCmd)
+	}
+
 	if m.CategoryGroupModel != nil {
 		updatedCategoryGroupModel, cgCmd := m.CategoryGroupModel.Update(msg)
 		if cgMo, ok := updatedCategoryGroupModel.(ui.CategoryGroupModel); ok {
@@ -81,7 +89,7 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 		}
-		
+
 		if !canDelete {
 			if m.CategoryGroupModel != nil {
 				updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
@@ -89,7 +97,7 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m.SetErrorStatus(fmt.Sprintf("Cannot delete group '%s': contains categories", groupName))
 		}
-		
+
 		if canDelete && groupIndexToDelete != -1 {
 			m.Data.CategoryGroups = slices.Delete(m.Data.CategoryGroups, groupIndexToDelete, groupIndexToDelete+1)
 			if err := data.SaveData(m.FilePath, m.Data); err != nil {

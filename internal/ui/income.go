@@ -1,8 +1,19 @@
 package ui
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/madalinpopa/gocost/internal/data"
+)
 
-type IncomeModel struct{}
+type IncomeModel struct {
+	data *data.DataRoot
+}
+
+func NewIncomeModel(initialData *data.DataRoot) *IncomeModel {
+	return &IncomeModel{
+		data: initialData,
+	}
+}
 
 func (m IncomeModel) Init() tea.Cmd {
 	return nil

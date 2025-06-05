@@ -91,15 +91,6 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case viewIncome:
-			switch msg.String() {
-			case "ctrl+c", "q":
-				return m, tea.Quit
-			case "esc", "ctrl+m":
-				// Go back to monthly overview
-				m.activeView = viewMonthlyOverview
-				return m, nil
-			}
-
 			if m.IncomeModel != nil {
 				updatedIncomeModel, incomeCmd := m.IncomeModel.Update(msg)
 				if inMo, ok := updatedIncomeModel.(ui.IncomeModel); ok {

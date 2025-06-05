@@ -158,6 +158,7 @@ func (m App) View() string {
 		} else {
 			viewContent = "Income loading..."
 		}
+
 	case viewCategoryGroup:
 		if m.CategoryGroupModel != nil {
 			viewContent = m.CategoryGroupModel.View()

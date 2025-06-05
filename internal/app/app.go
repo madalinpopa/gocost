@@ -42,7 +42,7 @@ func New(initialData *data.DataRoot, dataFilePath string) App {
 		},
 		AppViews: ui.AppViews{
 			MonthlyModel:       ui.NewMonthlyModel(initialData, currentM, currentY),
-			IncomeModel:        ui.NewIncomeModel(initialData),
+			IncomeModel:        ui.NewIncomeModel(initialData, currentM, currentY),
 			CategoryGroupModel: ui.NewCategoryGroupModel(initialData),
 		},
 	}

@@ -12,13 +12,13 @@ func (m App) handleMonthlyViewKeys(key string) (tea.Model, tea.Cmd) {
 	case "ctrl+c", "q":
 		return m, tea.Quit
 
-	case "ctrl+i":
+	case "i":
 		if m.activeView == viewMonthlyOverview && m.IncomeModel != nil {
 			m.activeView = viewIncome
 			return m, m.IncomeModel.Init()
 		}
 
-	case "ctrl+g":
+	case "g":
 		if m.activeView == viewMonthlyOverview && m.CategoryGroupModel != nil {
 			m.activeView = viewCategoryGroup
 			return m, m.CategoryGroupModel.Init()

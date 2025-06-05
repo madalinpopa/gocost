@@ -162,12 +162,11 @@ func (m IncomeModel) View() string {
 	return viewStr
 }
 
-func (m IncomeModel) SetMonthYear(updatedData *data.DataRoot, month time.Month, year int) tea.Model {
+func (m IncomeModel) SetMonthYear(month time.Month, year int) IncomeModel {
 
 	m.CurrentMonth = month
 	m.CurrentYear = year
 	m.monthKey = GetMonthKey(month, year)
-	m.Data = updatedData
 
 	if monthRecord, ok := m.Data.MonthlyData[m.monthKey]; ok {
 		m.incomeEntries = monthRecord.Incomes

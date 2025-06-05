@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/madalinpopa/gocost/internal/config"
 	"github.com/madalinpopa/gocost/internal/data"
+	"github.com/shopspring/decimal"
 	"github.com/spf13/viper"
 )
 
@@ -61,9 +62,9 @@ func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m MonthlyModel) View() string {
 	var b strings.Builder
 
-	var totalExpenses float64
-	var totalExpensesGroup map[string]float64
-	var totalIncome float64
+	var totalExpenses decimal.Decimal
+	var totalExpensesGroup map[string]decimal.Decimal
+	var totalIncome decimal.Decimal
 
 	monthKey := m.getCurrentMonth()
 	record, ok := m.Data.MonthlyData[monthKey]
@@ -73,7 +74,7 @@ func (m MonthlyModel) View() string {
 		totalExpenses, totalExpensesGroup = m.getMonthExpenses(record, m.Data.CategoryGroups)
 	}
 
-	balance := totalIncome - totalExpenses
+	balance := totalIncome.Sub(totalExpenses)
 
 	_, _ = balance, totalExpensesGroup
 
@@ -93,7 +94,7 @@ func (m MonthlyModel) View() string {
 
 }
 
-func (m MonthlyModel) getHeader(totalIncome float64) string {
+func (m MonthlyModel) getHeader(totalIncome decimal.Decimal) string {
 	var b bytes.Buffer
 
 	headerLeft := fmt.Sprintf("Month: %s %d", m.CurrentMonth.String(), m.CurrentYear)
@@ -125,7 +126,7 @@ func (m MonthlyModel) getHeader(totalIncome float64) string {
 	b.WriteString("\n")
 
 	defaultCurrency := viper.GetString(config.CurrencyField)
-	income := fmt.Sprintf("Total Income: %.2f %s", totalIncome, defaultCurrency)
+	income := fmt.Sprintf("Total Income: %s %s", totalIncome.String(), defaultCurrency)
 
 	b.WriteString(MutedText.Render(income))
 	return b.String()
@@ -153,26 +154,29 @@ func (m MonthlyModel) getFooter() string {
 	return b.String()
 }
 
-func (m MonthlyModel) getMonthIncome(monthRecord data.MonthlyRecord) float64 {
-	var totalIncome float64
+func (m MonthlyModel) getMonthIncome(monthRecord data.MonthlyRecord) decimal.Decimal {
+	var totalIncome decimal.Decimal
 	for _, income := range monthRecord.Incomes {
-		totalIncome += income.Amount
+		amount := decimal.NewFromFloat(income.Amount)
+		totalIncome.Add(amount)
 	}
 	return totalIncome
 }
 
-func (m MonthlyModel) getMonthExpenses(mr data.MonthlyRecord, g []data.CategoryGroup) (float64, map[string]float64) {
-	var expenseTotals float64
-	groupTotals := make(map[string]float64)
+func (m MonthlyModel) getMonthExpenses(mr data.MonthlyRecord, g []data.CategoryGroup) (decimal.Decimal, map[string]decimal.Decimal) {
+	var expenseTotals decimal.Decimal
+	groupTotals := make(map[string]decimal.Decimal)
 
 	for _, expense := range mr.Expenses {
-		expenseTotals += expense.Amount
+		expenseDecimal := decimal.NewFromFloat(expense.Amount)
+		expenseTotals.Add(expenseDecimal)
 
 		for _, group := range g {
 
 			for _, cat := range group.Categories {
 				if cat.CatID == expense.CatID {
-					groupTotals[group.GroupID] += expense.Amount
+					amount := decimal.NewFromFloat(expense.Amount)
+					groupTotals[group.GroupID].Add(amount)
 					break
 				}
 			}

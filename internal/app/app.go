@@ -148,9 +148,10 @@ func (m App) View() string {
 	}
 
 	// Add status message at the bottom if present
+	statusLine := "\n\n"
 	if m.HasStatus() {
-		viewContent += "\n\n" + m.GetStatusMessage()
+		statusLine += m.GetStatusMessage()
 	}
-
+	viewContent += statusLine
 	return viewContent
 }

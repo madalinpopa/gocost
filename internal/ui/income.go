@@ -158,6 +158,6 @@ func (m IncomeModel) View() string {
 	keyHints := "(j/k: Nav, a/n: Add, e/Enter: Edit, d: Delete, Esc/q: Back)"
 	b.WriteString(MutedText.Render(keyHints))
 
-	viewStr := AppStyle.Width(m.Width).Height(m.Height - 1).Render(b.String())
+	viewStr := AppStyle.Width(m.Width).Height(m.Height - 3).Render(b.String())
 	return viewStr
 }

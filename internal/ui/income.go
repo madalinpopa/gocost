@@ -11,6 +11,20 @@ import (
 	"github.com/spf13/viper"
 )
 
+type AddIncomeMsg struct {
+	MonthKey string
+}
+
+type EditIncomeMsg struct {
+	MonthKey     string
+	IncomeRecord data.IncomeRecord
+}
+
+type DeleteIncomeMsg struct {
+	MonthKey     string
+	IncomeRecord data.IncomeRecord
+}
+
 type IncomeModel struct {
 	AppData
 	WindowSize
@@ -56,6 +70,56 @@ func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Width = msg.Width
 		m.Height = msg.Height
 		return m, nil
+
+	case tea.KeyMsg:
+		switch msg.String() {
+
+		case "q", "esc":
+			return m, func() tea.Msg { return MonthlyViewMsg{} }
+
+		case "j", "down":
+			if len(m.incomeEntries) > 0 {
+				m.cursor++
+				if m.cursor >= len(m.incomeEntries) {
+					m.cursor = 0
+				}
+			}
+
+		case "k", "up":
+			if len(m.incomeEntries) > 0 {
+				m.cursor--
+				if m.cursor < 0 {
+					m.cursor = len(m.incomeEntries) - 1
+				}
+			}
+
+		case "a", "n":
+			return m, func() tea.Msg {
+				return AddIncomeMsg{MonthKey: m.monthKey}
+			}
+
+		case "e", "enter":
+			if len(m.incomeEntries) > 0 && m.cursor >= 0 && m.cursor < len(m.incomeEntries) {
+				incomeRecord := m.incomeEntries[m.cursor]
+				return m, func() tea.Msg {
+					return EditIncomeMsg{
+						MonthKey:     m.monthKey,
+						IncomeRecord: incomeRecord,
+					}
+				}
+			}
+
+		case "d":
+			if len(m.incomeEntries) > 0 && m.cursor >= 0 && m.cursor < len(m.incomeEntries) {
+				incomeRecord := m.incomeEntries[m.cursor]
+				return m, func() tea.Msg {
+					return DeleteIncomeMsg{
+						MonthKey:     m.monthKey,
+						IncomeRecord: incomeRecord,
+					}
+				}
+			}
+		}
 
 	}
 

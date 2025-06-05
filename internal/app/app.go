@@ -93,8 +93,8 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case viewIncome:
 			if m.IncomeModel != nil {
 				updatedIncomeModel, incomeCmd := m.IncomeModel.Update(msg)
-				if inMo, ok := updatedIncomeModel.(ui.CategoryGroupModel); ok {
-					m.CategoryGroupModel = &inMo
+				if inMo, ok := updatedIncomeModel.(ui.IncomeModel); ok {
+					m.IncomeModel = &inMo
 				}
 				return m, incomeCmd
 			}

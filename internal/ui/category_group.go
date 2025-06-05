@@ -214,7 +214,7 @@ func (m CategoryGroupModel) View() string {
 		b.WriteString(MutedText.Render(keyHints))
 	}
 
-	viewStr := AppStyle.Width(m.Width).Height(m.Height - 1).Render(b.String())
+	viewStr := AppStyle.Width(m.Width).Height(m.Height - 3).Render(b.String())
 	return viewStr
 }
 

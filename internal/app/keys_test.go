@@ -67,7 +67,7 @@ func TestHandleMonthlyViewKeys_SwitchToCategoryGroup(t *testing.T) {
 	app := createTestApp()
 	app.activeView = viewMonthlyOverview
 
-	model, cmd := app.handleMonthlyViewKeys("ctrl+g")
+	model, cmd := app.handleMonthlyViewKeys("g")
 
 	resultApp, ok := model.(App)
 	if !ok {
@@ -87,7 +87,7 @@ func TestHandleMonthlyViewKeys_SwitchToCategoryGroup_WrongView(t *testing.T) {
 	app := createTestApp()
 	app.activeView = viewCategoryGroup // Not in monthly overview
 
-	model, cmd := app.handleMonthlyViewKeys("ctrl+g")
+	model, cmd := app.handleMonthlyViewKeys("g")
 
 	if model != app {
 		t.Errorf("Expected model to be unchanged when not in monthly overview")

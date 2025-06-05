@@ -30,6 +30,10 @@ func (m App) handleMonthlyViewKeys(key string) (tea.Model, tea.Cmd) {
 			updatedModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 			m.MonthlyModel = &updatedModel
 		}
+		if m.IncomeModel != nil {
+			updatedModel := m.IncomeModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+			m.IncomeModel = &updatedModel
+		}
 
 		return m, nil
 
@@ -39,7 +43,10 @@ func (m App) handleMonthlyViewKeys(key string) (tea.Model, tea.Cmd) {
 			updatedModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 			m.MonthlyModel = &updatedModel
 		}
-
+		if m.IncomeModel != nil {
+			updatedModel := m.IncomeModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+			m.IncomeModel = &updatedModel
+		}
 		return m, nil
 	}
 

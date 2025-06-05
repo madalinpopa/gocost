@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -46,6 +47,11 @@ func GetNextMonth(year int, month time.Month) (int, time.Month) {
 	currentTime := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
 	nextMonthTime := currentTime.AddDate(0, 1, 0)
 	return nextMonthTime.Year(), nextMonthTime.Month()
+}
+
+// GetMonthKey returns the current month key
+func GetMonthKey(month time.Month, year int) string {
+	return fmt.Sprintf("%s-%d", month.String(), year)
 }
 
 // GenerateID generates a unique ID.

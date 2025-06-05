@@ -6,12 +6,15 @@ import (
 )
 
 type IncomeModel struct {
-	data *data.DataRoot
+	AppData
+	WindowSize
 }
 
 func NewIncomeModel(initialData *data.DataRoot) *IncomeModel {
 	return &IncomeModel{
-		data: initialData,
+		AppData: AppData{
+			Data: initialData,
+		},
 	}
 }
 

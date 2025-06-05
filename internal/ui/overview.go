@@ -145,7 +145,7 @@ func (m MonthlyModel) getFooter() string {
 		Width(m.Width - AppStyle.GetHorizontalPadding()).
 		PaddingTop(1)
 
-	keyHints := "j/k: Nav | Ent: Select/Edit | i: Inc | Ctrl+G: Grps"
+	keyHints := "j/k: Nav | Ent: Select/Edit | Ctrl+i: Income | Ctrl+g: Groups"
 
 	b.WriteString("\n\n")
 	b.WriteString(footerStyle.Render(lipgloss.JoinVertical(lipgloss.Left, MutedText.Render(keyHints))))

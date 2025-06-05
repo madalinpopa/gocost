@@ -29,6 +29,10 @@ func NewIncomeModel(initialData *data.DataRoot, month time.Month, year int) *Inc
 
 	return &IncomeModel{
 		incomeEntries: incomeEntries,
+		MonthYear: MonthYear{
+			CurrentMonth: month,
+			CurrentYear:  year,
+		},
 		AppData: AppData{
 			Data: initialData,
 		},

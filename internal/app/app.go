@@ -12,6 +12,7 @@ type currentView int
 
 const (
 	viewMonthlyOverview currentView = iota
+	viewIncome
 	viewCategoryGroup
 )
 
@@ -55,6 +56,10 @@ func (m App) Init() tea.Cmd {
 			return m.MonthlyModel.Init()
 		}
 
+	case viewIncome:
+		if m.IncomeModel != nil {
+			return m.IncomeModel.Init()
+		}
 	case viewCategoryGroup:
 		if m.CategoryGroupModel != nil {
 			return m.CategoryGroupModel.Init()
@@ -138,6 +143,12 @@ func (m App) View() string {
 			viewContent = "Monthly overview loading..."
 		}
 
+	case viewIncome:
+		if m.IncomeModel != nil {
+			viewContent = m.IncomeModel.View()
+		} else {
+			viewContent = "Income loading..."
+		}
 	case viewCategoryGroup:
 		if m.CategoryGroupModel != nil {
 			viewContent = m.CategoryGroupModel.View()

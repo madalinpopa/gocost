@@ -161,3 +161,20 @@ func (m IncomeModel) View() string {
 	viewStr := AppStyle.Width(m.Width).Height(m.Height - 3).Render(b.String())
 	return viewStr
 }
+
+func (m IncomeModel) SetMonthYear(updatedData *data.DataRoot, month time.Month, year int) tea.Model {
+
+	m.CurrentMonth = month
+	m.CurrentYear = year
+	m.monthKey = GetMonthKey(month, year)
+	m.Data = updatedData
+
+	if monthRecord, ok := m.Data.MonthlyData[m.monthKey]; ok {
+		m.incomeEntries = monthRecord.Incomes
+	} else {
+		m.incomeEntries = make([]data.IncomeRecord, 0)
+	}
+	m.cursor = 0 // Reset cursor
+
+	return m
+}

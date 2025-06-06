@@ -130,7 +130,7 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ui.MonthlyViewMsg:
 		return m.handleMonthlyViewMsg(msg)
 
-	case ui.AddIncomeMsg:
+	case ui.AddIncomeFormMsg:
 		return m.handleAddIncomeFormMsg(msg)
 
 	case ui.GroupAddMsg:
@@ -170,6 +170,13 @@ func (m App) View() string {
 			viewContent = m.IncomeModel.View()
 		} else {
 			viewContent = "Income loading..."
+		}
+
+	case viewIncomeForm:
+		if m.IncomeFormModel != nil {
+			viewContent = m.IncomeFormModel.View()
+		} else {
+			viewContent = "Income form loading.."
 		}
 
 	case viewCategoryGroup:

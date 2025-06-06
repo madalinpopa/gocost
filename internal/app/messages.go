@@ -163,9 +163,10 @@ func (m App) handleGroupManageCategoriesMsg() (tea.Model, tea.Cmd) {
 }
 
 func (m App) handleAddIncomeFormMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(ui.AddIncomeFormMsg); ok {
-		fmt.Println("Heiiiiii")
-		fmt.Println(msg)
+	if _, ok := msg.(ui.AddIncomeFormMsg); ok {
+		incomeModelForm := ui.NewIncomeFormModel(m.CurrentMonth, m.CurrentYear, nil)
+		m.IncomeFormModel = &incomeModelForm
+		m.activeView = viewIncomeForm
 	}
 	return m, nil
 }

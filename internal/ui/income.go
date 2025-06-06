@@ -11,6 +11,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+type AddIncomeFormMsg struct {
+	MonthKey string
+}
+
 type AddIncomeMsg struct {
 	MonthKey string
 }
@@ -95,7 +99,7 @@ func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "a", "n":
 			return m, func() tea.Msg {
-				return AddIncomeMsg{MonthKey: m.monthKey}
+				return AddIncomeFormMsg{MonthKey: m.monthKey}
 			}
 
 		case "e", "enter":

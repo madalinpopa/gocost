@@ -3,11 +3,13 @@ package ui
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/madalinpopa/gocost/internal/data"
+	"github.com/shopspring/decimal"
 )
 
 const (
@@ -24,10 +26,57 @@ type IncomeFormModel struct {
 	MonthKey     string
 	IncomeRecord data.IncomeRecord
 
+	incomeId         string
 	descriptionInput textinput.Model
 	amountInput      textinput.Model
 
 	focusIndex int
+}
+
+func NewIncomeFormModel(currentMonth time.Month, year int, income *data.IncomeRecord) IncomeFormModel {
+
+	monthKey := GetMonthKey(currentMonth, year)
+
+	descInput := textinput.New()
+	descInput.Placeholder = "e.g., Salary, Freelance Project"
+	descInput.Focus()
+	descInput.CharLimit = 50
+	descInput.Width = 30
+
+	amountInput := textinput.New()
+	amountInput.Placeholder = "0.00"
+	amountInput.CharLimit = 10
+	amountInput.Width = 20
+
+	newEntry := true
+	originalEntryId := ""
+
+	var incomeAmount decimal.Decimal
+	if income != nil {
+		newEntry = false
+		incomeAmount = decimal.NewFromFloat(income.Amount)
+		originalEntryId = income.IncomeID
+		descInput.SetValue(income.Description)
+		amountInput.SetValue(incomeAmount.String())
+
+	}
+
+	m := IncomeFormModel{
+		incomeId:         originalEntryId,
+		NewEntry:         newEntry,
+		MonthKey:         monthKey,
+		descriptionInput: descInput,
+		amountInput:      amountInput,
+		WindowSize: WindowSize{
+			Width:  50,
+			Height: 10,
+		},
+	}
+
+	descInput.Width = m.Width - 10
+	amountInput.Width = m.Width - 10
+
+	return m
 }
 
 func (m IncomeFormModel) Init() tea.Cmd {

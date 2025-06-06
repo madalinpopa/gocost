@@ -13,6 +13,7 @@ type currentView int
 const (
 	viewMonthlyOverview currentView = iota
 	viewIncome
+	viewIncomeForm
 	viewCategoryGroup
 )
 
@@ -99,6 +100,15 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, incomeCmd
 			}
 
+		case viewIncomeForm:
+			if m.IncomeFormModel != nil {
+				updatedIncomeModelForm, incomeCmd := m.IncomeFormModel.Update(msg)
+				if inFoMo, ok := updatedIncomeModelForm.(ui.IncomeFormModel); ok {
+					m.IncomeFormModel = &inFoMo
+				}
+				return m, incomeCmd
+			}
+
 		case viewCategoryGroup:
 			if m.CategoryGroupModel != nil {
 				updatedCategoryGroupModel, categoryCmd := m.CategoryGroupModel.Update(msg)
@@ -119,6 +129,9 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case ui.MonthlyViewMsg:
 		return m.handleMonthlyViewMsg(msg)
+
+	case ui.AddIncomeMsg:
+		return m.handleAddIncomeFormMsg(msg)
 
 	case ui.GroupAddMsg:
 		return m.handleGroupAddMsg(msg)

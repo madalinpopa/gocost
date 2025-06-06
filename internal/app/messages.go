@@ -161,3 +161,11 @@ func (m App) handleGroupUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m App) handleGroupManageCategoriesMsg() (tea.Model, tea.Cmd) {
 	return m, nil
 }
+
+func (m App) handleAddIncomeFormMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if msg, ok := msg.(ui.AddIncomeFormMsg); ok {
+		fmt.Println("Heiiiiii")
+		fmt.Println(msg)
+	}
+	return m, nil
+}

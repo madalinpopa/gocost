@@ -173,8 +173,7 @@ func (m App) handleGroupManageCategoriesMsg() (tea.Model, tea.Cmd) {
 // handleAddIncomeFormMsg handles the display of the income form.
 func (m App) handleAddIncomeFormMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if _, ok := msg.(ui.AddIncomeFormMsg); ok {
-		incomeModelForm := ui.NewIncomeFormModel(m.CurrentMonth, m.CurrentYear, nil)
-		m.IncomeFormModel = &incomeModelForm
+		m.IncomeFormModel = ui.NewIncomeFormModel(m.CurrentMonth, m.CurrentYear, nil)
 		m.activeView = viewIncomeForm
 	}
 	return m, nil
@@ -233,6 +232,15 @@ func (m App) handleSaveIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.SetSuccessStatus(successMsg)
 		}
 
+	}
+	return m, nil
+}
+
+func (m App) handleEditIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+
+	if msg, ok := msg.(ui.EditIncomeMsg); ok {
+		m.IncomeFormModel = ui.NewIncomeFormModel(m.CurrentMonth, m.CurrentYear, &msg.IncomeRecord)
+		m.activeView = viewIncomeForm
 	}
 	return m, nil
 }

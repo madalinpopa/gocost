@@ -189,3 +189,50 @@ func (m App) handleIncomeViewMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	return m, nil
 }
+
+func (m App) handleSaveIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+
+	if msg, ok := msg.(ui.SaveIncomeMsg); ok {
+
+		// Get month record, if not exists, create a new one with the income record
+		monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]
+		if !ok {
+			monthRecord = data.MonthlyRecord{
+				Incomes:  make([]data.IncomeRecord, 0),
+				Expenses: make([]data.ExpenseRecord, 0),
+			}
+		}
+
+		// check if income exists
+		found := false
+		for i, income := range monthRecord.Incomes {
+			if income.IncomeID == msg.Income.IncomeID {
+				monthRecord.Incomes[i] = msg.Income
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			monthRecord.Incomes = append(monthRecord.Incomes, msg.Income)
+		}
+
+		m.Data.MonthlyData[msg.MonthKey] = monthRecord
+		m.IncomeModel = ui.NewIncomeModel(m.Data, m.CurrentMonth, m.CurrentYear)
+		m.activeView = viewIncome
+
+		// save data to file
+		err := data.SaveData(m.FilePath, m.Data)
+		if err != nil {
+			return m.SetErrorStatus("Failed to save income")
+		} else {
+			successMsg := "Income was added"
+			if found {
+				successMsg = "Income was updated"
+			}
+			return m.SetSuccessStatus(successMsg)
+		}
+
+	}
+	return m, nil
+}

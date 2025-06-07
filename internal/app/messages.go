@@ -170,3 +170,12 @@ func (m App) handleAddIncomeFormMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	return m, nil
 }
+
+func (m App) handleIncomeViewMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+
+	if _, ok := msg.(ui.IncomeViewMsg); ok {
+		m.activeView = viewIncome
+	}
+
+	return m, nil
+}

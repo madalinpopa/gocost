@@ -244,3 +244,34 @@ func (m App) handleEditIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	return m, nil
 }
+
+func (m App) handleDeleteIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+
+	if msg, ok := msg.(ui.DeleteIncomeMsg); ok {
+
+		monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]
+		if ok {
+
+			var updatedIncomes []data.IncomeRecord
+			for _, income := range monthRecord.Incomes {
+				if income.IncomeID != msg.IncomeRecord.IncomeID {
+					updatedIncomes = append(updatedIncomes, income)
+				}
+			}
+
+			monthRecord.Incomes = updatedIncomes
+			m.Data.MonthlyData[msg.MonthKey] = monthRecord
+			m.IncomeModel = ui.NewIncomeModel(m.Data, m.CurrentMonth, m.CurrentYear)
+
+			err := data.SaveData(m.FilePath, m.Data)
+			if err != nil {
+				return m.SetErrorStatus("Failed to delete income")
+			} else {
+				return m.SetSuccessStatus("Income was deleted")
+			}
+		}
+
+	}
+
+	return m, nil
+}

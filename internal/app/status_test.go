@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/madalinpopa/gocost/internal/data"
+	"github.com/madalinpopa/gocost/internal/ui"
 )
 
 func createTestAppForStatus() App {
@@ -118,7 +119,7 @@ func TestStatusClearMsg(t *testing.T) {
 	app.statusMessage = "Test message"
 
 	// Test that StatusClearMsg clears the status
-	updatedModel, cmd := app.Update(StatusClearMsg{})
+	updatedModel, cmd := app.Update(ui.StatusClearMsg{})
 
 	if cmd != nil {
 		t.Errorf("Expected nil command, got %v", cmd)

@@ -153,7 +153,7 @@ func (m IncomeFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, textinput.Blink)
 	}
 
-	return m, cmd
+	return m, tea.Batch(cmds...)
 }
 
 func (m IncomeFormModel) View() string {

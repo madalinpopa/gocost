@@ -148,7 +148,7 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ui.GroupManageCategoriesMsg:
 		return m.handleGroupManageCategoriesMsg()
 
-	case StatusClearMsg:
+	case ui.StatusClearMsg:
 		return m.ClearStatus(), nil
 	}
 

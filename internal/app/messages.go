@@ -39,6 +39,27 @@ func (m App) handleModelsWindowResize(msg tea.Msg) (tea.Model, []tea.Cmd) {
 	return m, cmds
 }
 
+func (m App) handleErrorStatusMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+
+	if msg, ok := msg.(ui.ErrorStatusMsg); ok {
+
+		m.SetErrorStatus(msg.Text)
+
+		switch msg.Model.(type) {
+
+		case ui.IncomeFormModel:
+			m.activeView = viewIncomeForm
+			return m.SetErrorStatus(msg.Text)
+
+		default:
+			m.activeView = viewMonthlyOverview
+			return m.SetErrorStatus(msg.Text)
+		}
+
+	}
+	return m, nil
+}
+
 // handleMonthlyViewMsg switches the active view to the monthly overview and updates the MonthlyModel
 // with the current month and year, if it exists.
 func (m App) handleMonthlyViewMsg(msg tea.Msg) (tea.Model, tea.Cmd) {

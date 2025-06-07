@@ -11,6 +11,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+type IncomeViewMsg struct{}
+
 type AddIncomeFormMsg struct {
 	MonthKey string
 }

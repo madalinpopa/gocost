@@ -33,9 +33,8 @@ type AppViews struct {
 	IncomeFormModel    *IncomeFormModel
 }
 
-type StatusClearMsg struct{}
 
-type UpdateStatusMsg struct {
+type ErrorStatusMsg struct {
 	Text  string
 	Model tea.Model
 }

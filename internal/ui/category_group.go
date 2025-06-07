@@ -9,22 +9,6 @@ import (
 	"github.com/madalinpopa/gocost/internal/data"
 )
 
-type GroupDeleteMsg struct {
-	GroupID string
-}
-
-type GroupAddMsg struct {
-	Group data.CategoryGroup
-}
-
-type GroupUpdateMsg struct {
-	Group data.CategoryGroup
-}
-
-type GroupManageCategoriesMsg struct {
-	Group data.CategoryGroup
-}
-
 type CategoryGroupModel struct {
 	AppData
 	WindowSize

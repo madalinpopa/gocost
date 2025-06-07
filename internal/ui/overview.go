@@ -55,7 +55,17 @@ func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Width = msg.Width
 		m.Height = msg.Height
 
+	case tea.Msg:
+		switch m.level {
+
+		case focusLevelGroups:
+			return m.handleGroupNavigation(msg)
+		case focusLevelCategories:
+			return m.handleCategoryNavigation(msg)
+
+		}
 	}
+
 	return m, nil
 }
 
@@ -86,9 +96,11 @@ func (m MonthlyModel) View() string {
 	// columnSpacer := "  " // Two spaces
 
 	header := m.getHeader(totalIncome, defaultCurrency)
+	content := m.getContent(totalExpensesGroup, defaultCurrency)
 	footer := m.getFooter(totalExpenses, balance, defaultCurrency)
 
 	b.WriteString(header)
+	b.WriteString(content)
 	b.WriteString(footer)
 
 	return AppStyle.Render(b.String())
@@ -127,8 +139,9 @@ func (m MonthlyModel) getHeader(totalIncome decimal.Decimal, defaultCurrency str
 	b.WriteString("\n")
 
 	income := fmt.Sprintf("Total Income: %s %s", totalIncome.String(), defaultCurrency)
-
 	b.WriteString(MutedText.Render(income))
+	b.WriteString("\n\n")
+
 	return b.String()
 }
 
@@ -153,6 +166,37 @@ func (m MonthlyModel) getFooter(totalExpenses, balance decimal.Decimal, defaultC
 	b.WriteString("\n\n")
 	b.WriteString(footerStyle.Render(lipgloss.JoinVertical(lipgloss.Left, footerSummary, MutedText.Render(keyHints))))
 
+	return b.String()
+}
+
+func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, currency string) string {
+	var b strings.Builder
+
+	if len(m.Data.CategoryGroups) == 0 {
+		b.WriteString(MutedText.Render("No category groups. (g)"))
+		b.WriteString("\n")
+	}
+	var expenseSectionContent []string
+	for groupIdx, group := range m.Data.CategoryGroups {
+		groupStyle := NormalListItem
+		groupPrefix := "  "
+
+		if m.level == focusLevelGroups && groupIdx == m.focusedGroupIndex {
+			groupStyle = FocusedListItem
+			groupPrefix = "> "
+		} else if m.level == focusLevelCategories && groupIdx == m.focusedGroupIndex {
+			groupStyle = HeaderText.Bold(false).Foreground(lipgloss.Color("220"))
+			groupPrefix = ">>"
+		}
+		groupTotal := totalGroupExpenses[group.GroupID]
+		groupNameRender := groupStyle.Render(fmt.Sprintf("%s %s", groupPrefix, group.GroupName))
+		groupTotalRender := groupStyle.Render(fmt.Sprintf("Total: %s %s", groupTotal.String(), currency))
+
+		groupHeaderSpacerWidth := max(m.Width - lipgloss.Width(groupNameRender) - lipgloss.Width(groupTotalRender) - AppStyle.GetHorizontalPadding())
+		expenseSectionContent = append(expenseSectionContent, lipgloss.JoinHorizontal(lipgloss.Left, groupNameRender, lipgloss.NewStyle().Width(groupHeaderSpacerWidth).Render(""), groupTotalRender))
+	}
+
+	b.WriteString(strings.Join(expenseSectionContent, "\n"))
 	return b.String()
 }
 
@@ -186,6 +230,14 @@ func (m MonthlyModel) getMonthExpenses(mr data.MonthlyRecord, g []data.CategoryG
 		}
 	}
 	return expenseTotals, groupTotals
+}
+
+func (m MonthlyModel) handleGroupNavigation(msg tea.Msg) (tea.Model, tea.Cmd) {
+	return m, nil
+}
+
+func (m MonthlyModel) handleCategoryNavigation(msg tea.Msg) (tea.Model, tea.Cmd) {
+	return m, nil
 }
 
 func (m MonthlyModel) SetMonthYear(month time.Month, year int) MonthlyModel {

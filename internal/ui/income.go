@@ -17,8 +17,9 @@ type AddIncomeFormMsg struct {
 	MonthKey string
 }
 
-type AddIncomeMsg struct {
+type SaveIncomeMsg struct {
 	MonthKey string
+	Income   data.IncomeRecord
 }
 
 type EditIncomeMsg struct {

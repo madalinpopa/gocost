@@ -124,11 +124,25 @@ func (m IncomeFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "enter":
 			if m.focusIndex == editFocusSave {
-				fmt.Println("focus save")
+				if m.NewEntry {
+
+					// // Validate
+					// amount, err := ValidAmount(amountInput.Value())
+					// if err != nil {
+					// 	return m, func() tea.Msg {}
+					// }
+
+					// newIncome := data.IncomeRecord{
+					// 	IncomeID:    GenerateID(),
+					// 	Description: m.descriptionInput.Value(),
+					// 	m.Amount:    m.amountInput.Value(),
+					// }
+				}
+				return m, func() tea.Msg { return SaveIncomeMsg{} }
 			} else if m.focusIndex == editFocusCancel {
 				return m, func() tea.Msg { return IncomeViewMsg{} }
 			}
-			
+
 		default:
 			// Handle regular typing
 			if m.descriptionInput.Focused() {

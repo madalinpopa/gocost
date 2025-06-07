@@ -84,6 +84,17 @@ func (m IncomeFormModel) Init() tea.Cmd {
 }
 
 func (m IncomeFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
+	switch msg := msg.(type) {
+
+	case tea.KeyMsg:
+
+		switch msg.String() {
+		case "q", "esc":
+			return m, func() tea.Msg { return MonthlyViewMsg{} }
+		}
+	}
+
 	return m, nil
 }
 

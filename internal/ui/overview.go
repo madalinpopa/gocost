@@ -55,7 +55,7 @@ func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Width = msg.Width
 		m.Height = msg.Height
 
-	case tea.Msg:
+	case tea.KeyMsg:
 		switch m.level {
 
 		case focusLevelGroups:
@@ -232,7 +232,35 @@ func (m MonthlyModel) getMonthExpenses(mr data.MonthlyRecord, g []data.CategoryG
 	return expenseTotals, groupTotals
 }
 
-func (m MonthlyModel) handleGroupNavigation(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m MonthlyModel) handleGroupNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+
+	numGroups := len(m.Data.CategoryGroups)
+
+	switch msg.String() {
+
+	case "j", "down":
+		if numGroups > 0 {
+			m.focusedGroupIndex = (m.focusedGroupIndex + 1) % numGroups
+		}
+	case "k", "up":
+		if numGroups > 0 {
+			m.focusedGroupIndex--
+			if m.focusedGroupIndex < 0 {
+				m.focusedGroupIndex = numGroups - 1
+			}
+		}
+	case "enter":
+		if numGroups > 0 {
+			if m.focusedGroupIndex >= 0 && m.focusedGroupIndex < numGroups {
+				selectedGroup := m.Data.CategoryGroups[m.focusedGroupIndex]
+				if len(selectedGroup.Categories) > 0 {
+					m.level = focusLevelCategories
+					m.focusedCategoryIndex = 0
+				}
+			}
+		}
+
+	}
 	return m, nil
 }
 

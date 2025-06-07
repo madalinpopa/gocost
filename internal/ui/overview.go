@@ -62,6 +62,8 @@ func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m MonthlyModel) View() string {
 	var b strings.Builder
 
+	defaultCurrency := viper.GetString(config.CurrencyField)
+
 	var totalExpenses decimal.Decimal
 	var totalExpensesGroup map[string]decimal.Decimal
 	var totalIncome decimal.Decimal
@@ -84,8 +86,8 @@ func (m MonthlyModel) View() string {
 
 	// columnSpacer := "  " // Two spaces
 
-	header := m.getHeader(totalIncome)
-	footer := m.getFooter()
+	header := m.getHeader(totalIncome, defaultCurrency)
+	footer := m.getFooter(totalExpenses, defaultCurrency)
 
 	b.WriteString(header)
 	b.WriteString(footer)
@@ -94,7 +96,7 @@ func (m MonthlyModel) View() string {
 
 }
 
-func (m MonthlyModel) getHeader(totalIncome decimal.Decimal) string {
+func (m MonthlyModel) getHeader(totalIncome decimal.Decimal, defaultCurrency string) string {
 	var b bytes.Buffer
 
 	headerLeft := fmt.Sprintf("Month: %s %d", m.CurrentMonth.String(), m.CurrentYear)
@@ -125,7 +127,6 @@ func (m MonthlyModel) getHeader(totalIncome decimal.Decimal) string {
 	b.WriteString(bottomBorder)
 	b.WriteString("\n")
 
-	defaultCurrency := viper.GetString(config.CurrencyField)
 	income := fmt.Sprintf("Total Income: %s %s", totalIncome.String(), defaultCurrency)
 
 	b.WriteString(MutedText.Render(income))
@@ -137,7 +138,7 @@ func (m MonthlyModel) getCurrentMonth() string {
 	return monthKey
 }
 
-func (m MonthlyModel) getFooter() string {
+func (m MonthlyModel) getFooter(totalExpenses decimal.Decimal, defaultCurrency string) string {
 	var b bytes.Buffer
 
 	footerStyle := lipgloss.NewStyle().
@@ -147,9 +148,16 @@ func (m MonthlyModel) getFooter() string {
 		PaddingTop(1)
 
 	keyHints := "j/k: Nav | Ent: Select/Edit | i: Income | g: Groups"
+	totalExpensesStr := fmt.Sprintf("Total Expenses: %s %s", totalExpenses.String(), defaultCurrency)
+
+	balanceStr := "Balance: 6000"
+	footerSummarySpacerWidth := max(m.Width-lipgloss.Width(totalExpensesStr)-lipgloss.Width(balanceStr)-AppStyle.GetHorizontalPadding(), 0)
+
+	space := lipgloss.NewStyle().Width(footerSummarySpacerWidth).Render("")
+	footerSummary := lipgloss.JoinHorizontal(lipgloss.Top, totalExpensesStr, space, balanceStr)
 
 	b.WriteString("\n\n")
-	b.WriteString(footerStyle.Render(lipgloss.JoinVertical(lipgloss.Left, MutedText.Render(keyHints))))
+	b.WriteString(footerStyle.Render(lipgloss.JoinVertical(lipgloss.Left, footerSummary, MutedText.Render(keyHints))))
 
 	return b.String()
 }

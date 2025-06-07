@@ -128,16 +128,18 @@ func (m IncomeFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else if m.focusIndex == editFocusCancel {
 				return m, func() tea.Msg { return IncomeViewMsg{} }
 			}
+			
+		default:
+			// Handle regular typing
+			if m.descriptionInput.Focused() {
+				m.descriptionInput, cmd = m.descriptionInput.Update(msg)
+				cmds = append(cmds, cmd)
+			} else if m.amountInput.Focused() {
+				m.amountInput, cmd = m.amountInput.Update(msg)
+				cmds = append(cmds, cmd)
+			}
 		}
 
-	default:
-		if m.descriptionInput.Focused() {
-			m.descriptionInput, cmd = m.descriptionInput.Update(msg)
-			cmds = append(cmds, cmd)
-		} else if m.amountInput.Focused() {
-			m.amountInput, cmd = m.amountInput.Update(msg)
-			cmds = append(cmds, cmd)
-		}
 	}
 
 	// Manage blink for focused input

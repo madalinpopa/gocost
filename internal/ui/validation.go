@@ -1,13 +1,20 @@
 package ui
 
 import (
-	"github.com/shopspring/decimal"
+	"errors"
+	"strconv"
 )
 
-func ValidAmount(v string) (decimal.Decimal, error) {
-	d, err := decimal.NewFromString(v)
+func ValidAmount(v string) (float64, error) {
+
+	floatValue, err := strconv.ParseFloat(v, 64)
 	if err != nil {
-		return decimal.Decimal{}, err
+		return 0, err
 	}
-	return d, nil
+
+	if floatValue == 0 {
+		return 0.0, errors.New("amount cannot be zero")
+	}
+
+	return floatValue, nil
 }

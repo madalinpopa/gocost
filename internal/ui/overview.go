@@ -21,8 +21,6 @@ const (
 	focusLevelCategories
 )
 
-type MonthlyViewMsg struct{}
-
 type MonthlyModel struct {
 	AppData
 	MonthYear

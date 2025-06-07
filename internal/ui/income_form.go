@@ -85,17 +85,62 @@ func (m IncomeFormModel) Init() tea.Cmd {
 
 func (m IncomeFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
+	var cmds []tea.Cmd
+	var cmd tea.Cmd
+
 	switch msg := msg.(type) {
 
 	case tea.KeyMsg:
 
 		switch msg.String() {
+
 		case "esc":
 			return m, func() tea.Msg { return IncomeViewMsg{} }
+
+		case "tab", "shift+tab", "up", "down":
+			if msg.String() == "shift+tab" || msg.String() == "up" {
+				m.focusIndex--
+			} else {
+				m.focusIndex++
+			}
+
+			if m.focusIndex > editFocusCancel {
+				m.focusIndex = editFocusDescription
+			} else if m.focusIndex < editFocusDescription {
+				m.focusIndex = editFocusCancel
+			}
+
+			m.descriptionInput.Blur()
+			m.amountInput.Blur()
+
+			switch m.focusIndex {
+			case editFocusDescription:
+				m.descriptionInput.Focus()
+				cmds = append(cmds, textinput.Blink)
+			case editFocusAmount:
+				m.amountInput.Focus()
+				cmds = append(cmds, textinput.Blink)
+			}
+
+		case "enter":
+			if m.focusIndex == editFocusSave {
+				fmt.Println("focus save")
+			} else if m.focusIndex == editFocusCancel {
+				return m, func() tea.Msg { return IncomeViewMsg{} }
+			}
+		}
+
+	default:
+		if m.descriptionInput.Focused() {
+			m.descriptionInput, cmd = m.descriptionInput.Update(msg)
+			cmds = append(cmds, cmd)
+		} else if m.amountInput.Focused() {
+			m.amountInput, cmd = m.amountInput.Update(msg)
+			cmds = append(cmds, cmd)
 		}
 	}
 
-	return m, nil
+	return m, cmd
 }
 
 func (m IncomeFormModel) View() string {

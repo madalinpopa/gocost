@@ -140,6 +140,19 @@ func (m IncomeFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	// Manage blink for focused input
+	isBlinking := false
+	for _, c := range cmds {
+		if c != nil && fmt.Sprintf("%p", c) == fmt.Sprintf("%p", textinput.Blink) {
+			isBlinking = true
+			break
+		}
+	}
+
+	if (m.descriptionInput.Focused() || m.amountInput.Focused()) && !isBlinking {
+		cmds = append(cmds, textinput.Blink)
+	}
+
 	return m, cmd
 }
 

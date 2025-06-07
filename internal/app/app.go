@@ -139,6 +139,9 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ui.SaveIncomeMsg:
 		return m.handleSaveIncomeMsg(msg)
 
+	case ui.EditIncomeMsg:
+		return m.handleEditIncomeMsg(msg)
+
 	case ui.GroupAddMsg:
 		return m.handleGroupAddMsg(msg)
 

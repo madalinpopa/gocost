@@ -39,23 +39,10 @@ func (m App) handleModelsWindowResize(msg tea.Msg) (tea.Model, []tea.Cmd) {
 	return m, cmds
 }
 
-func (m App) handleErrorStatusMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-
-	if msg, ok := msg.(ui.ErrorStatusMsg); ok {
-
-		m.SetErrorStatus(msg.Text)
-
-		switch msg.Model.(type) {
-
-		case ui.IncomeFormModel:
-			m.activeView = viewIncomeForm
-			return m.SetErrorStatus(msg.Text)
-
-		default:
-			m.activeView = viewMonthlyOverview
-			return m.SetErrorStatus(msg.Text)
-		}
-
+// handleViewErrorMsg handles the display of error messages.
+func (m App) handleViewErrorMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if msg, ok := msg.(ui.ViewErrorMsg); ok {
+		return m.SetErrorStatus(msg.Text)
 	}
 	return m, nil
 }
@@ -183,6 +170,7 @@ func (m App) handleGroupManageCategoriesMsg() (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// handleAddIncomeFormMsg handles the display of the income form.
 func (m App) handleAddIncomeFormMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if _, ok := msg.(ui.AddIncomeFormMsg); ok {
 		incomeModelForm := ui.NewIncomeFormModel(m.CurrentMonth, m.CurrentYear, nil)
@@ -192,6 +180,7 @@ func (m App) handleAddIncomeFormMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// handleIncomeViewMsg handles the display of income data.
 func (m App) handleIncomeViewMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if _, ok := msg.(ui.IncomeViewMsg); ok {

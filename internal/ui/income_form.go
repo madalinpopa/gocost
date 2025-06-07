@@ -126,7 +126,7 @@ func (m IncomeFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					amount, err := ValidAmount(m.amountInput.Value())
 					if err != nil {
 						return m, func() tea.Msg {
-							return UpdateStatusMsg{
+							return ErrorStatusMsg{
 								Text:  "Please provide a valid amount",
 								Model: m,
 							}
@@ -151,7 +151,7 @@ func (m IncomeFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					amount, err := ValidAmount(m.amountInput.Value())
 					if err != nil {
 						return m, func() tea.Msg {
-							return UpdateStatusMsg{
+							return ErrorStatusMsg{
 								Text:  "Please provide a valid amount",
 								Model: m,
 							}

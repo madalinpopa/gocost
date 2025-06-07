@@ -31,3 +31,44 @@ type AppViews struct {
 	IncomeModel        *IncomeModel
 	IncomeFormModel    *IncomeFormModel
 }
+
+type StatusClearMsg struct{}
+
+type MonthlyViewMsg struct{}
+
+type GroupDeleteMsg struct {
+	GroupID string
+}
+
+type GroupAddMsg struct {
+	Group data.CategoryGroup
+}
+
+type GroupUpdateMsg struct {
+	Group data.CategoryGroup
+}
+
+type GroupManageCategoriesMsg struct {
+	Group data.CategoryGroup
+}
+
+type IncomeViewMsg struct{}
+
+type AddIncomeFormMsg struct {
+	MonthKey string
+}
+
+type SaveIncomeMsg struct {
+	MonthKey string
+	Income   data.IncomeRecord
+}
+
+type EditIncomeMsg struct {
+	MonthKey     string
+	IncomeRecord data.IncomeRecord
+}
+
+type DeleteIncomeMsg struct {
+	MonthKey     string
+	IncomeRecord data.IncomeRecord
+}

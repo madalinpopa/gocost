@@ -90,8 +90,8 @@ func (m IncomeFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 
 		switch msg.String() {
-		case "q", "esc":
-			return m, func() tea.Msg { return MonthlyViewMsg{} }
+		case "esc":
+			return m, func() tea.Msg { return IncomeViewMsg{} }
 		}
 	}
 

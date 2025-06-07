@@ -3,6 +3,7 @@ package ui
 import (
 	"time"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/madalinpopa/gocost/internal/data"
 )
 
@@ -33,6 +34,11 @@ type AppViews struct {
 }
 
 type StatusClearMsg struct{}
+
+type UpdateStatusMsg struct {
+	Text  string
+	Model tea.Model
+}
 
 type MonthlyViewMsg struct{}
 

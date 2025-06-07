@@ -32,7 +32,7 @@ type IncomeFormModel struct {
 	focusIndex int
 }
 
-func NewIncomeFormModel(currentMonth time.Month, year int, income *data.IncomeRecord) IncomeFormModel {
+func NewIncomeFormModel(currentMonth time.Month, year int, income *data.IncomeRecord) *IncomeFormModel {
 
 	monthKey := GetMonthKey(currentMonth, year)
 
@@ -72,7 +72,7 @@ func NewIncomeFormModel(currentMonth time.Month, year int, income *data.IncomeRe
 	descInput.Width = m.Width - 10
 	amountInput.Width = m.Width - 10
 
-	return m
+	return &m
 }
 
 func (m IncomeFormModel) Init() tea.Cmd {

@@ -86,7 +86,7 @@ func (m MonthlyModel) View() string {
 	// columnSpacer := "  " // Two spaces
 
 	header := m.getHeader(totalIncome, defaultCurrency)
-	footer := m.getFooter(totalExpenses, defaultCurrency)
+	footer := m.getFooter(totalExpenses, balance, defaultCurrency)
 
 	b.WriteString(header)
 	b.WriteString(footer)
@@ -132,7 +132,7 @@ func (m MonthlyModel) getHeader(totalIncome decimal.Decimal, defaultCurrency str
 	return b.String()
 }
 
-func (m MonthlyModel) getFooter(totalExpenses decimal.Decimal, defaultCurrency string) string {
+func (m MonthlyModel) getFooter(totalExpenses, balance decimal.Decimal, defaultCurrency string) string {
 	var b bytes.Buffer
 
 	footerStyle := lipgloss.NewStyle().
@@ -144,7 +144,7 @@ func (m MonthlyModel) getFooter(totalExpenses decimal.Decimal, defaultCurrency s
 	keyHints := "j/k: Nav | Ent: Select/Edit | i: Income | g: Groups"
 	totalExpensesStr := fmt.Sprintf("Total Expenses: %s %s", totalExpenses.String(), defaultCurrency)
 
-	balanceStr := "Balance: 6000"
+	balanceStr := fmt.Sprintf("Balance: %s %s", balance.String(), defaultCurrency)
 	footerSummarySpacerWidth := max(m.Width-lipgloss.Width(totalExpensesStr)-lipgloss.Width(balanceStr)-AppStyle.GetHorizontalPadding(), 0)
 
 	space := lipgloss.NewStyle().Width(footerSummarySpacerWidth).Render("")
@@ -171,14 +171,14 @@ func (m MonthlyModel) getMonthExpenses(mr data.MonthlyRecord, g []data.CategoryG
 
 	for _, expense := range mr.Expenses {
 		expenseDecimal := decimal.NewFromFloat(expense.Amount)
-		expenseTotals.Add(expenseDecimal)
+		expenseTotals = expenseTotals.Add(expenseDecimal)
 
 		for _, group := range g {
 
 			for _, cat := range group.Categories {
 				if cat.CatID == expense.CatID {
 					amount := decimal.NewFromFloat(expense.Amount)
-					groupTotals[group.GroupID].Add(amount)
+					groupTotals[group.GroupID] = groupTotals[group.GroupID].Add(amount)
 					break
 				}
 			}

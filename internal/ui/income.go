@@ -11,27 +11,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type IncomeViewMsg struct{}
-
-type AddIncomeFormMsg struct {
-	MonthKey string
-}
-
-type SaveIncomeMsg struct {
-	MonthKey string
-	Income   data.IncomeRecord
-}
-
-type EditIncomeMsg struct {
-	MonthKey     string
-	IncomeRecord data.IncomeRecord
-}
-
-type DeleteIncomeMsg struct {
-	MonthKey     string
-	IncomeRecord data.IncomeRecord
-}
-
 type IncomeModel struct {
 	AppData
 	WindowSize

@@ -68,9 +68,8 @@ func (m MonthlyModel) View() string {
 	var totalExpensesGroup map[string]decimal.Decimal
 	var totalIncome decimal.Decimal
 
-	monthKey := m.getCurrentMonth()
+	monthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
 	record, ok := m.Data.MonthlyData[monthKey]
-
 	if ok {
 		totalIncome = m.getMonthIncome(record)
 		totalExpenses, totalExpensesGroup = m.getMonthExpenses(record, m.Data.CategoryGroups)
@@ -133,11 +132,6 @@ func (m MonthlyModel) getHeader(totalIncome decimal.Decimal, defaultCurrency str
 	return b.String()
 }
 
-func (m MonthlyModel) getCurrentMonth() string {
-	monthKey := fmt.Sprintf("%s-%d", m.CurrentMonth.String(), m.CurrentYear)
-	return monthKey
-}
-
 func (m MonthlyModel) getFooter(totalExpenses decimal.Decimal, defaultCurrency string) string {
 	var b bytes.Buffer
 
@@ -166,7 +160,7 @@ func (m MonthlyModel) getMonthIncome(monthRecord data.MonthlyRecord) decimal.Dec
 	var totalIncome decimal.Decimal
 	for _, income := range monthRecord.Incomes {
 		amount := decimal.NewFromFloat(income.Amount)
-		totalIncome.Add(amount)
+		totalIncome = totalIncome.Add(amount)
 	}
 	return totalIncome
 }

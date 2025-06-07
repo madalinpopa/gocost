@@ -14,6 +14,8 @@ const (
 	StatusError
 )
 
+type StatusClearMsg struct{}
+
 type Status struct {
 	Message string
 	Type    StatusType
@@ -23,7 +25,7 @@ type Status struct {
 func (m App) SetStatus(message string, statusType StatusType) (App, tea.Cmd) {
 	m.statusMessage = message
 	return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-		return ui.StatusClearMsg{}
+		return StatusClearMsg{}
 	})
 }
 

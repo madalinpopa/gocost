@@ -130,6 +130,9 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ui.MonthlyViewMsg:
 		return m.handleMonthlyViewMsg(msg)
 
+	case ui.IncomeViewMsg:
+		return m.handleIncomeViewMsg(msg)
+
 	case ui.AddIncomeFormMsg:
 		return m.handleAddIncomeFormMsg(msg)
 

@@ -33,8 +33,7 @@ type AppViews struct {
 	IncomeFormModel    *IncomeFormModel
 }
 
-
-type ErrorStatusMsg struct {
+type ViewErrorMsg struct {
 	Text  string
 	Model tea.Model
 }

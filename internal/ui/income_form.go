@@ -9,7 +9,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/madalinpopa/gocost/internal/data"
-	"github.com/shopspring/decimal"
 )
 
 const (
@@ -51,14 +50,11 @@ func NewIncomeFormModel(currentMonth time.Month, year int, income *data.IncomeRe
 	newEntry := true
 	originalEntryId := ""
 
-	var incomeAmount decimal.Decimal
 	if income != nil {
 		newEntry = false
-		incomeAmount = decimal.NewFromFloat(income.Amount)
 		originalEntryId = income.IncomeID
 		descInput.SetValue(income.Description)
-		amountInput.SetValue(incomeAmount.String())
-
+		amountInput.SetValue(fmt.Sprintf("%.2f", income.Amount))
 	}
 
 	m := IncomeFormModel{
@@ -126,19 +122,52 @@ func (m IncomeFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.focusIndex == editFocusSave {
 				if m.NewEntry {
 
-					// // Validate
-					// amount, err := ValidAmount(amountInput.Value())
-					// if err != nil {
-					// 	return m, func() tea.Msg {}
-					// }
+					// amount cannot be 0 or invalid
+					amount, err := ValidAmount(m.amountInput.Value())
+					if err != nil {
+						return m, func() tea.Msg {
+							return UpdateStatusMsg{
+								Text:  "Please provide a valid amount",
+								Model: m,
+							}
+						}
+					}
 
-					// newIncome := data.IncomeRecord{
-					// 	IncomeID:    GenerateID(),
-					// 	Description: m.descriptionInput.Value(),
-					// 	m.Amount:    m.amountInput.Value(),
-					// }
+					newIncome := data.IncomeRecord{
+						IncomeID:    GenerateID(),
+						Description: m.descriptionInput.Value(),
+						Amount:      amount,
+					}
+
+					return m, func() tea.Msg {
+						return SaveIncomeMsg{
+							MonthKey: m.MonthKey,
+							Income:   newIncome,
+						}
+					}
+				} else {
+
+					// amount cannot be 0 or invalid
+					amount, err := ValidAmount(m.amountInput.Value())
+					if err != nil {
+						return m, func() tea.Msg {
+							return UpdateStatusMsg{
+								Text:  "Please provide a valid amount",
+								Model: m,
+							}
+						}
+					}
+
+					m.IncomeRecord.Amount = amount
+					m.IncomeRecord.IncomeID = m.incomeId
+					m.IncomeRecord.Description = m.descriptionInput.Value()
+					return m, func() tea.Msg {
+						return SaveIncomeMsg{
+							MonthKey: m.MonthKey,
+							Income:   m.IncomeRecord,
+						}
+					}
 				}
-				return m, func() tea.Msg { return SaveIncomeMsg{} }
 			} else if m.focusIndex == editFocusCancel {
 				return m, func() tea.Msg { return IncomeViewMsg{} }
 			}

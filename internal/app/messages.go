@@ -320,6 +320,7 @@ func (m App) handleCategoryDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			monthRecord.Categories = updatedCategories
 			m.Data.MonthlyData[msg.MonthKey] = monthRecord
 			m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
+			m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
 
 			err := data.SaveData(m.FilePath, m.Data)
 			if err != nil {

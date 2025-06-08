@@ -31,8 +31,8 @@ type MonthlyModel struct {
 	focusedCategoryIndex int
 }
 
-func NewMonthlyModel(data *data.DataRoot, month time.Month, year int) *MonthlyModel {
-	return &MonthlyModel{
+func NewMonthlyModel(data *data.DataRoot, month time.Month, year int) MonthlyModel {
+	return MonthlyModel{
 		AppData: AppData{
 			Data: data,
 		},

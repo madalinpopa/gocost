@@ -27,7 +27,7 @@ type WindowSize struct {
 
 // AppViews holds all the models used by App
 type AppViews struct {
-	MonthlyModel       *MonthlyModel
+	MonthlyModel       MonthlyModel
 	CategoryGroupModel *CategoryGroupModel
 	CategoryModel      *CategoryModel
 	IncomeModel        *IncomeModel

@@ -123,7 +123,7 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.isEditingName = false
 					m.editInput.Blur()
 					return m, func() tea.Msg {
-						return CategoryUpdateMsg{Category: updatedCategory}
+						return CategoryUpdateMsg{MonthKey: m.MonthKey, Category: updatedCategory}
 					}
 				}
 

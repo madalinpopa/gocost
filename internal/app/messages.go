@@ -78,6 +78,8 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(ui.GroupDeleteMsg); ok {
 		canDelete := true
 
+		// TODO: Add category check for group
+
 		if !canDelete {
 			m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
 			return m.SetErrorStatus(fmt.Sprintf("Cannot delete group '%s': contains categories", msg.Group.GroupName))
@@ -88,39 +90,32 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			if err := data.SaveData(m.FilePath, m.Data); err != nil {
 				return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
-			} else {
-				m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
-				return m.SetSuccessStatus(fmt.Sprintf("Group '%s' deleted successfully", msg.Group.GroupName))
 			}
+			m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
+			return m.SetSuccessStatus(fmt.Sprintf("Group '%s' deleted successfully", msg.Group.GroupName))
 		}
-		m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
 	}
 	return m, nil
 }
 
 // handleGroupUpdateMsg handles the update of a category group.
 func (m App) handleGroupUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	found := false
-	var groupName string
 	if msg, ok := msg.(ui.GroupUpdateMsg); ok {
-		groupName = msg.Group.GroupName
-		for i, group := range m.Data.CategoryGroups {
+		groupId := msg.Group.GroupID
+		groupName := msg.Group.GroupName
 
-			if group.GroupID == msg.Group.GroupID {
-				found = true
-				m.Data.CategoryGroups[i] = msg.Group
-				break
-			}
-
+		_, existing := m.Data.CategoryGroups[groupId]
+		if !existing {
+			return m.SetErrorStatus(fmt.Sprintf("Failed to update group. Group not found: %s", groupName))
 		}
-	}
-	if found {
+
+		m.Data.CategoryGroups[groupId] = msg.Group
+
 		if err := data.SaveData(m.FilePath, m.Data); err != nil {
 			return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
-		} else {
-			m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
-			return m.SetSuccessStatus(fmt.Sprintf("Group '%s' updated successfully", groupName))
 		}
+		m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
+		return m.SetSuccessStatus(fmt.Sprintf("Group '%s' updated successfully", groupName))
 	}
 	return m, nil
 }

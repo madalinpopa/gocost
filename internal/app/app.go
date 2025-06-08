@@ -16,6 +16,7 @@ const (
 	viewIncomeForm
 	viewCategoryGroup
 	viewCategory
+	viewExpense
 )
 
 type App struct {
@@ -47,6 +48,7 @@ func New(initialData *data.DataRoot, dataFilePath string) App {
 			IncomeModel:        ui.NewIncomeModel(initialData, currentM, currentY),
 			CategoryModel:      ui.NewCategoryModel(initialData, currentM, currentY),
 			CategoryGroupModel: ui.NewCategoryGroupModel(initialData),
+			ExpenseModel:       ui.NewExpenseModel(initialData, data.Category{}),
 		},
 	}
 }
@@ -65,6 +67,9 @@ func (m App) Init() tea.Cmd {
 
 	case viewCategory:
 		return m.CategoryModel.Init()
+
+	case viewExpense:
+		return m.ExpenseModel.Init()
 	}
 	return nil
 }
@@ -140,6 +145,13 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CategoryModel = cgMo
 			}
 			return m, categoryCmd
+
+		case viewExpense:
+			updatedExpenseModel, expenseCmd := m.ExpenseModel.Update(msg)
+			if expMo, ok := updatedExpenseModel.(ui.ExpenseModel); ok {
+				m.ExpenseModel = expMo
+			}
+			return m, expenseCmd
 		}
 
 	case tea.WindowSizeMsg:
@@ -226,6 +238,9 @@ func (m App) View() string {
 	case viewCategory:
 		viewContent = m.CategoryModel.View()
 
+	case viewExpense:
+		viewContent = m.ExpenseModel.View()
+
 	default:
 		viewContent = "Error: View not found or not initialized"
 	}
@@ -237,43 +252,4 @@ func (m App) View() string {
 	}
 	viewContent += statusLine
 	return viewContent
-}
-
-func (m App) handlePopulateCategoriesMsg(msg ui.PopulateCategoriesMsg) (App, tea.Cmd) {
-	// Check if previous month has data
-	prevRecord, exists := m.Data.MonthlyData[msg.PreviousMonthKey]
-	if !exists || len(prevRecord.Categories) == 0 {
-		// No categories found in previous month
-		return m.SetErrorStatus("No categories found in previous month")
-	}
-
-	// Copy categories from previous month but reset expenses
-	var newCategories []data.Category
-	for _, category := range prevRecord.Categories {
-		newCategory := data.Category{
-			CatID:        category.CatID,
-			GroupID:      category.GroupID,
-			CategoryName: category.CategoryName,
-			Expense:      make(map[string]data.ExpenseRecord), // Reset expenses
-		}
-		newCategories = append(newCategories, newCategory)
-	}
-
-	// Create or update current month record
-	currentRecord := data.MonthlyRecord{
-		Incomes:    []data.IncomeRecord{}, // Start with empty incomes
-		Categories: newCategories,
-	}
-	
-	// If current month record exists, preserve incomes
-	if existingRecord, exists := m.Data.MonthlyData[msg.CurrentMonthKey]; exists {
-		currentRecord.Incomes = existingRecord.Incomes
-	}
-
-	m.Data.MonthlyData[msg.CurrentMonthKey] = currentRecord
-
-	// Reset focus to first group in monthly model
-	m.MonthlyModel = m.MonthlyModel.ResetFocus()
-
-	return m.SetSuccessStatus("Categories populated from previous month")
 }

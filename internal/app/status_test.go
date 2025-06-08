@@ -8,7 +8,7 @@ import (
 
 func createTestAppForStatus() App {
 	initialData := &data.DataRoot{
-		CategoryGroups: []data.CategoryGroup{},
+		CategoryGroups: map[string]data.CategoryGroup{},
 	}
 	return New(initialData, "test.json")
 }

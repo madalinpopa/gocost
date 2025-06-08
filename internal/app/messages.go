@@ -18,29 +18,24 @@ func (m App) handleModelsWindowResize(msg tea.Msg) (tea.Model, []tea.Cmd) {
 	}
 	cmds = append(cmds, moCmd)
 
-	if m.IncomeModel != nil {
-		updatedIncomeModel, moCmd := m.IncomeModel.Update(msg)
-		if mo, ok := updatedIncomeModel.(ui.IncomeModel); ok {
-			m.IncomeModel = &mo
-		}
-		cmds = append(cmds, moCmd)
+	updatedIncomeModel, moCmd := m.IncomeModel.Update(msg)
+	if mo, ok := updatedIncomeModel.(ui.IncomeModel); ok {
+		m.IncomeModel = mo
 	}
+	cmds = append(cmds, moCmd)
 
-	if m.CategoryGroupModel != nil {
-		updatedCategoryGroupModel, cgCmd := m.CategoryGroupModel.Update(msg)
-		if cgMo, ok := updatedCategoryGroupModel.(ui.CategoryGroupModel); ok {
-			m.CategoryGroupModel = &cgMo
-		}
-		cmds = append(cmds, cgCmd)
+	updatedCategoryGroupModel, cgCmd := m.CategoryGroupModel.Update(msg)
+	if cgMo, ok := updatedCategoryGroupModel.(ui.CategoryGroupModel); ok {
+		m.CategoryGroupModel = cgMo
 	}
+	cmds = append(cmds, cgCmd)
 
-	if m.CategoryModel != nil {
-		updatedCategoryModel, cgCmd := m.CategoryModel.Update(msg)
-		if cgMo, ok := updatedCategoryModel.(ui.CategoryModel); ok {
-			m.CategoryModel = &cgMo
-		}
-		cmds = append(cmds, cgCmd)
+	updatedCategoryModel, cgCmd := m.CategoryModel.Update(msg)
+	if cgMo, ok := updatedCategoryModel.(ui.CategoryModel); ok {
+		m.CategoryModel = cgMo
 	}
+	cmds = append(cmds, cgCmd)
+
 	return m, cmds
 }
 
@@ -71,8 +66,7 @@ func (m App) handleGroupAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if err := data.SaveData(m.FilePath, m.Data); err != nil {
 			return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
 		} else {
-			updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
-			m.CategoryGroupModel = &updatedModel
+			m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
 			return m.SetSuccessStatus(fmt.Sprintf("Group '%s' added successfully", msg.Group.GroupName))
 		}
 	}
@@ -85,10 +79,7 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		canDelete := true
 
 		if !canDelete {
-			if m.CategoryGroupModel != nil {
-				updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
-				m.CategoryGroupModel = &updatedModel
-			}
+			m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
 			return m.SetErrorStatus(fmt.Sprintf("Cannot delete group '%s': contains categories", msg.Group.GroupName))
 		}
 
@@ -96,24 +87,13 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			delete(m.Data.CategoryGroups, msg.Group.GroupID)
 
 			if err := data.SaveData(m.FilePath, m.Data); err != nil {
-				if m.CategoryGroupModel != nil {
-					updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
-					m.CategoryGroupModel = &updatedModel
-				}
 				return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
 			} else {
-				if m.CategoryGroupModel != nil {
-					updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
-					m.CategoryGroupModel = &updatedModel
-				}
+				m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
 				return m.SetSuccessStatus(fmt.Sprintf("Group '%s' deleted successfully", msg.Group.GroupName))
 			}
 		}
-
-		if m.CategoryGroupModel != nil {
-			updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
-			m.CategoryGroupModel = &updatedModel
-		}
+		m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
 	}
 	return m, nil
 }
@@ -136,16 +116,9 @@ func (m App) handleGroupUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	if found {
 		if err := data.SaveData(m.FilePath, m.Data); err != nil {
-			if m.CategoryGroupModel != nil {
-				updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
-				m.CategoryGroupModel = &updatedModel
-			}
 			return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
 		} else {
-			if m.CategoryGroupModel != nil {
-				updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
-				m.CategoryGroupModel = &updatedModel
-			}
+			m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
 			return m.SetSuccessStatus(fmt.Sprintf("Group '%s' updated successfully", groupName))
 		}
 	}
@@ -263,13 +236,8 @@ func (m App) handleDeleteIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m App) handleSelectGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if _, ok := msg.(ui.SelectGroupMsg); ok {
-
-		if m.CategoryGroupModel != nil {
-			updatedCategoryGroup := m.CategoryGroupModel.SelectGroup()
-			m.CategoryGroupModel = &updatedCategoryGroup
-			m.activeView = viewCategoryGroup
-		}
-
+		m.CategoryGroupModel = m.CategoryGroupModel.SelectGroup()
+		m.activeView = viewCategoryGroup
 	}
 	return m, nil
 }
@@ -277,13 +245,8 @@ func (m App) handleSelectGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m App) handleSelectedGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	if msg, ok := msg.(ui.SelectedGroupMsg); ok {
-
-		if m.CategoryModel != nil {
-			updatedCategoryModel, cgMoCmd := m.CategoryModel.AddCategory(msg.Group)
-			m.CategoryModel = &updatedCategoryModel
-			cmd = cgMoCmd
-			m.activeView = viewCategory
-		}
+		m.CategoryModel, cmd = m.CategoryModel.AddCategory(msg.Group)
+		m.activeView = viewCategory
 	}
 	return m, cmd
 }
@@ -308,8 +271,7 @@ func (m App) handleCategoryAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Update model
-		updatedModel := m.CategoryModel.UpdateData(m.Data)
-		m.CategoryModel = &updatedModel
+		m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
 
 		return m.SetSuccessStatus("Category name was saved")
 	}

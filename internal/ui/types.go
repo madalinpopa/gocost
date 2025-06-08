@@ -57,6 +57,15 @@ type GroupManageCategoriesMsg struct {
 	Group data.CategoryGroup
 }
 
+type CategoryAddMsg struct {
+	MonthKey string
+	Category data.Category
+}
+
+type CategoryUpdateMsg struct {
+	Category data.Category
+}
+
 type IncomeViewMsg struct{}
 
 type AddIncomeFormMsg struct {

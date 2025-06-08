@@ -19,6 +19,9 @@ type CategoryModel struct {
 	cursor     int
 	categories []data.Category
 
+	addCategory   bool               // When adding a new category
+	selectedGroup data.CategoryGroup // Selected group
+
 	isEditingName bool
 	editInput     textinput.Model
 	editingIndex  int
@@ -181,6 +184,12 @@ func (m CategoryModel) View() string {
 
 	viewStr := AppStyle.Width(m.Width).Height(m.Height - 3).Render(b.String())
 	return viewStr
+}
+
+func (m CategoryModel) AddCategory(group data.CategoryGroup) CategoryModel {
+	m.addCategory = true
+	m.selectedGroup = group
+	return m
 }
 
 func (m CategoryModel) focusInput() (tea.Model, tea.Cmd) {

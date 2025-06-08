@@ -89,8 +89,8 @@ func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				incomeRecord := m.incomeEntries[m.cursor]
 				return m, func() tea.Msg {
 					return EditIncomeMsg{
-						MonthKey:     m.monthKey,
-						IncomeRecord: incomeRecord,
+						MonthKey: m.monthKey,
+						Income:   incomeRecord,
 					}
 				}
 			}
@@ -100,8 +100,8 @@ func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				incomeRecord := m.incomeEntries[m.cursor]
 				return m, func() tea.Msg {
 					return DeleteIncomeMsg{
-						MonthKey:     m.monthKey,
-						IncomeRecord: incomeRecord,
+						MonthKey: m.monthKey,
+						Income:   incomeRecord,
 					}
 				}
 			}

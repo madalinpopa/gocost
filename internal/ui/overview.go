@@ -82,7 +82,7 @@ func (m MonthlyModel) View() string {
 	record, ok := m.Data.MonthlyData[monthKey]
 	if ok {
 		totalIncome = m.getMonthIncome(record)
-		//totalExpenses, totalExpensesGroup = m.getMonthExpenses(record, m.Data.CategoryGroups)
+		totalExpenses, totalExpensesGroup = m.getMonthExpenses(record)
 	}
 
 	balance := totalIncome.Sub(totalExpenses)
@@ -154,7 +154,13 @@ func (m MonthlyModel) getFooter(totalExpenses, balance decimal.Decimal, defaultC
 		Width(m.Width - AppStyle.GetHorizontalPadding()).
 		PaddingTop(1)
 
-	keyHints := "j/k: Nav | Ent: Select/Edit | i: Income | c: Categories | g: Groups"
+	var keyHints string
+	switch m.level {
+	case focusLevelGroups:
+		keyHints = "j/k: Nav | Ent: Select | i: Income | c: Categories | g: Groups | h/l: Month"
+	case focusLevelCategories:
+		keyHints = "j/k: Nav | Ent: Select | Esc: Back | i: Income | c: Categories | g: Groups | h/l: Month"
+	}
 	totalExpensesStr := fmt.Sprintf("Total Expenses: %s %s", totalExpenses.String(), defaultCurrency)
 
 	balanceStr := fmt.Sprintf("Balance: %s %s", balance.String(), defaultCurrency)
@@ -175,29 +181,99 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 	if len(m.Data.CategoryGroups) == 0 {
 		b.WriteString(MutedText.Render("No category groups. (g)"))
 		b.WriteString("\n")
+		return b.String()
 	}
+
+	monthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
+	record, ok := m.Data.MonthlyData[monthKey]
+	if !ok {
+		b.WriteString(MutedText.Render("No data for this month"))
+		b.WriteString("\n")
+		return b.String()
+	}
+
+	// Group categories by their GroupID
+	categoriesByGroup := make(map[string][]data.Category)
+	for _, category := range record.Categories {
+		categoriesByGroup[category.GroupID] = append(categoriesByGroup[category.GroupID], category)
+	}
+
+	// Get ordered list of groups
+	orderedGroups := m.getOrderedGroups()
+
 	var expenseSectionContent []string
-	// for groupIdx, group := range m.Data.CategoryGroups {
-	// 	groupStyle := NormalListItem
-	// 	groupPrefix := "  "
+	for groupIdx, group := range orderedGroups {
+		groupStyle := NormalListItem
+		groupPrefix := "  "
 
-	// 	if m.level == focusLevelGroups && groupIdx == m.focusedGroupIndex {
-	// 		groupStyle = FocusedListItem
-	// 		groupPrefix = "> "
-	// 	} else if m.level == focusLevelCategories && groupIdx == m.focusedGroupIndex {
-	// 		groupStyle = HeaderText.Bold(false).Foreground(lipgloss.Color("220"))
-	// 		groupPrefix = ">>"
-	// 	}
-	// 	groupTotal := totalGroupExpenses[group.GroupID]
-	// 	groupNameRender := groupStyle.Render(fmt.Sprintf("%s %s", groupPrefix, group.GroupName))
-	// 	groupTotalRender := groupStyle.Render(fmt.Sprintf("Total: %s %s", groupTotal.String(), currency))
+		if m.level == focusLevelGroups && groupIdx == m.focusedGroupIndex {
+			groupStyle = FocusedListItem
+			groupPrefix = "> "
+		} else if m.level == focusLevelCategories && groupIdx == m.focusedGroupIndex {
+			groupStyle = HeaderText.Bold(false).Foreground(lipgloss.Color("220"))
+			groupPrefix = ">> "
+		}
 
-	//groupHeaderSpacerWidth := max(m.Width - lipgloss.Width(groupNameRender) - lipgloss.Width(groupTotalRender) - AppStyle.GetHorizontalPadding())
-	//expenseSectionContent = append(expenseSectionContent, lipgloss.JoinHorizontal(lipgloss.Left, groupNameRender, lipgloss.NewStyle().Width(groupHeaderSpacerWidth).Render(""), groupTotalRender))
-	//}
+		var groupTotal decimal.Decimal
+		if totalGroupExpenses != nil {
+			groupTotal = totalGroupExpenses[group.GroupID]
+		}
+		groupNameRender := groupStyle.Render(fmt.Sprintf("%s%s", groupPrefix, group.GroupName))
+		groupTotalRender := groupStyle.Render(fmt.Sprintf("Total: %s %s", groupTotal.String(), currency))
+
+		groupHeaderSpacerWidth := max(m.Width-lipgloss.Width(groupNameRender)-lipgloss.Width(groupTotalRender)-AppStyle.GetHorizontalPadding(), 0)
+		groupHeader := lipgloss.JoinHorizontal(lipgloss.Left, groupNameRender, lipgloss.NewStyle().Width(groupHeaderSpacerWidth).Render(""), groupTotalRender)
+		expenseSectionContent = append(expenseSectionContent, groupHeader)
+
+		// Display categories within this group if we're in category navigation mode and this is the focused group
+		if m.level == focusLevelCategories && groupIdx == m.focusedGroupIndex {
+			categories := categoriesByGroup[group.GroupID]
+			for catIdx, category := range categories {
+				catStyle := NormalListItem
+				catPrefix := "    "
+				
+				if catIdx == m.focusedCategoryIndex {
+					catStyle = FocusedListItem
+					catPrefix = "  > "
+				}
+
+				// Calculate category total
+				var categoryTotal decimal.Decimal
+				for _, expense := range category.Expense {
+					amount := decimal.NewFromFloat(expense.Amount)
+					categoryTotal = categoryTotal.Add(amount)
+				}
+
+				catNameRender := catStyle.Render(fmt.Sprintf("%s%s", catPrefix, category.CategoryName))
+				catTotalRender := catStyle.Render(fmt.Sprintf("%s %s", categoryTotal.String(), currency))
+				
+				catSpacerWidth := max(m.Width-lipgloss.Width(catNameRender)-lipgloss.Width(catTotalRender)-AppStyle.GetHorizontalPadding(), 0)
+				categoryLine := lipgloss.JoinHorizontal(lipgloss.Left, catNameRender, lipgloss.NewStyle().Width(catSpacerWidth).Render(""), catTotalRender)
+				expenseSectionContent = append(expenseSectionContent, categoryLine)
+			}
+		}
+	}
 
 	b.WriteString(strings.Join(expenseSectionContent, "\n"))
 	return b.String()
+}
+
+func (m MonthlyModel) getOrderedGroups() []data.CategoryGroup {
+	var orderedGroups []data.CategoryGroup
+	for _, group := range m.Data.CategoryGroups {
+		orderedGroups = append(orderedGroups, group)
+	}
+	
+	// Sort groups by order field
+	for i := 0; i < len(orderedGroups)-1; i++ {
+		for j := i + 1; j < len(orderedGroups); j++ {
+			if orderedGroups[i].Order > orderedGroups[j].Order {
+				orderedGroups[i], orderedGroups[j] = orderedGroups[j], orderedGroups[i]
+			}
+		}
+	}
+	
+	return orderedGroups
 }
 
 func (m MonthlyModel) getMonthIncome(monthRecord data.MonthlyRecord) decimal.Decimal {
@@ -209,20 +285,19 @@ func (m MonthlyModel) getMonthIncome(monthRecord data.MonthlyRecord) decimal.Dec
 	return totalIncome
 }
 
-func (m MonthlyModel) getMonthExpenses(mr data.MonthlyRecord, g []data.CategoryGroup) (decimal.Decimal, map[string]decimal.Decimal) {
+func (m MonthlyModel) getMonthExpenses(mr data.MonthlyRecord) (decimal.Decimal, map[string]decimal.Decimal) {
 	var expenseTotals decimal.Decimal
 	groupTotals := make(map[string]decimal.Decimal)
 
-	// TODO: Need to redo this
-	// for _, expense := range mr.Expenses {
-	// 	expenseDecimal := decimal.NewFromFloat(expense.Amount)
-	// 	expenseTotals = expenseTotals.Add(expenseDecimal)
-
-	// 	if cat.CatID == expense.CatID {
-	// 		amount := decimal.NewFromFloat(expense.Amount)
-	// 		groupTotals[group.GroupID] = groupTotals[group.GroupID].Add(amount)
-	// 		break
-	// 	}
+	for _, category := range mr.Categories {
+		var categoryTotal decimal.Decimal
+		for _, expense := range category.Expense {
+			amount := decimal.NewFromFloat(expense.Amount)
+			categoryTotal = categoryTotal.Add(amount)
+		}
+		expenseTotals = expenseTotals.Add(categoryTotal)
+		groupTotals[category.GroupID] = groupTotals[category.GroupID].Add(categoryTotal)
+	}
 
 	return expenseTotals, groupTotals
 }
@@ -245,13 +320,29 @@ func (m MonthlyModel) handleGroupNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd)
 			}
 		}
 	case "enter":
-		if numGroups > 0 {
-			if m.focusedGroupIndex >= 0 && m.focusedGroupIndex < numGroups {
-				//selectedGroup := m.Data.CategoryGroups[m.focusedGroupIndex]
-				// if len(selectedGroup.Categories) > 0 {
-				// 	m.level = focusLevelCategories
-				// 	m.focusedCategoryIndex = 0
-				// }
+		if numGroups > 0 && m.focusedGroupIndex >= 0 && m.focusedGroupIndex < numGroups {
+			// Get the selected group and check if it has categories
+			monthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
+			if record, ok := m.Data.MonthlyData[monthKey]; ok {
+				// Get ordered list of groups to find the correct group
+				orderedGroups := m.getOrderedGroups()
+
+				if m.focusedGroupIndex < len(orderedGroups) {
+					selectedGroup := orderedGroups[m.focusedGroupIndex]
+					
+					// Count categories in this group
+					var categoryCount int
+					for _, category := range record.Categories {
+						if category.GroupID == selectedGroup.GroupID {
+							categoryCount++
+						}
+					}
+					
+					if categoryCount > 0 {
+						m.level = focusLevelCategories
+						m.focusedCategoryIndex = 0
+					}
+				}
 			}
 		}
 
@@ -259,7 +350,58 @@ func (m MonthlyModel) handleGroupNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd)
 	return m, nil
 }
 
-func (m MonthlyModel) handleCategoryNavigation(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m MonthlyModel) handleCategoryNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	
+	monthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
+	record, ok := m.Data.MonthlyData[monthKey]
+	if !ok {
+		return m, nil
+	}
+
+	// Get the currently focused group
+	orderedGroups := m.getOrderedGroups()
+
+	if m.focusedGroupIndex >= len(orderedGroups) {
+		return m, nil
+	}
+
+	selectedGroup := orderedGroups[m.focusedGroupIndex]
+	
+	// Get categories for this group
+	var categoriesInGroup []data.Category
+	for _, category := range record.Categories {
+		if category.GroupID == selectedGroup.GroupID {
+			categoriesInGroup = append(categoriesInGroup, category)
+		}
+	}
+
+	numCategories := len(categoriesInGroup)
+
+	switch msg.String() {
+
+	case "j", "down":
+		if numCategories > 0 {
+			m.focusedCategoryIndex = (m.focusedCategoryIndex + 1) % numCategories
+		}
+	case "k", "up":
+		if numCategories > 0 {
+			m.focusedCategoryIndex--
+			if m.focusedCategoryIndex < 0 {
+				m.focusedCategoryIndex = numCategories - 1
+			}
+		}
+	case "enter":
+		if numCategories > 0 && m.focusedCategoryIndex >= 0 && m.focusedCategoryIndex < numCategories {
+			// TODO: Navigate to expense view for selected category
+			// selectedCategory := categoriesInGroup[m.focusedCategoryIndex]
+			// Could emit a message to switch to expense management view
+		}
+	case "esc":
+		// Go back to group navigation
+		m.level = focusLevelGroups
+		m.focusedCategoryIndex = 0
+
+	}
 	return m, nil
 }
 
@@ -270,7 +412,7 @@ func (m MonthlyModel) SetMonthYear(month time.Month, year int) MonthlyModel {
 	// Reset focus when month changes, back to group navigation
 	m.level = focusLevelGroups
 	if len(m.Data.CategoryGroups) > 0 {
-		m.focusedCategoryIndex = 0
+		m.focusedGroupIndex = 0
 	} else {
 		m.focusedGroupIndex = -1
 	}

@@ -53,6 +53,8 @@ type GroupUpdateMsg struct {
 	Group data.CategoryGroup
 }
 
+type SelectGroupMsg struct{}
+
 type CategoryAddMsg struct {
 	MonthKey string
 	Category data.Category

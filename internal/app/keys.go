@@ -18,6 +18,12 @@ func (m App) handleMonthlyViewKeys(key string) (tea.Model, tea.Cmd) {
 			return m, m.IncomeModel.Init()
 		}
 
+	case "c":
+		if m.activeView == viewMonthlyOverview && m.CategoryModel != nil {
+			m.activeView = viewCategory
+			return m, m.CategoryModel.Init()
+		}
+
 	case "g":
 		if m.activeView == viewMonthlyOverview && m.CategoryGroupModel != nil {
 			m.activeView = viewCategoryGroup

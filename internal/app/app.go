@@ -189,6 +189,9 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ui.CategoryUpdateMsg:
 		return m.handleCategoryUpdateMsg(msg)
 
+	case ui.CategoryDeleteMsg:
+		return m.handleCategoryDeleteMsg(msg)
+
 	case ui.ViewErrorMsg:
 		return m.handleViewErrorMsg(msg)
 

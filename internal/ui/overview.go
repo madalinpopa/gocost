@@ -3,6 +3,7 @@ package ui
 import (
 	"bytes"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -264,14 +265,9 @@ func (m MonthlyModel) getOrderedGroups() []data.CategoryGroup {
 		orderedGroups = append(orderedGroups, group)
 	}
 
-	// Sort groups by order field
-	for i := 0; i < len(orderedGroups)-1; i++ {
-		for j := i + 1; j < len(orderedGroups); j++ {
-			if orderedGroups[i].Order > orderedGroups[j].Order {
-				orderedGroups[i], orderedGroups[j] = orderedGroups[j], orderedGroups[i]
-			}
-		}
-	}
+	sort.Slice(orderedGroups, func(i, j int) bool {
+		return orderedGroups[i].Order < orderedGroups[j].Order
+	})
 
 	return orderedGroups
 }

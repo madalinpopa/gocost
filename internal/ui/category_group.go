@@ -17,7 +17,8 @@ type CategoryGroupModel struct {
 	cursor int
 	groups []data.CategoryGroup
 
-	addCategory   bool
+	selectGroup bool
+
 	isEditingName bool            // True if currently editing a group name or adding new one
 	editInput     textinput.Model // Text input for the group name
 	editingIndex  int             // Index of the group being edited, -1 for new group
@@ -57,6 +58,21 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
+	if m.selectGroup {
+
+		switch msg := msg.(type) {
+
+		case tea.KeyMsg:
+
+			switch msg.String() {
+
+			case "enter":
+				selectedGroup := m.groups[m.cursor]
+				return m, func() tea.Msg { return SelectedGroupMsg{Group: selectedGroup} }
+			}
+		}
+	}
+
 	if m.isEditingName {
 
 		// Handle actions when editing
@@ -67,7 +83,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case "enter":
 				groupName := strings.TrimSpace(m.editInput.Value())
-				if groupName != ""  {
+				if groupName != "" {
 					if m.editingIndex == -1 {
 						newGroupId := GenerateID()
 
@@ -178,7 +194,7 @@ func (m CategoryGroupModel) View() string {
 	var b strings.Builder
 
 	title := "Manage Category Groups"
-	if m.addCategory {
+	if m.selectGroup {
 		title = "Select group"
 	}
 	b.WriteString(HeaderText.Render(title))
@@ -206,7 +222,7 @@ func (m CategoryGroupModel) View() string {
 		}
 		b.WriteString("\n\n")
 		keyHints := "(j/k: Nav, a/n: Add, e: Edit, d: Delete, Esc/q: Back)"
-		if m.addCategory {
+		if m.selectGroup {
 			keyHints = "(j/k: Nav, Enter: Select, Esc/q: Back)"
 		}
 		b.WriteString(MutedText.Render(keyHints))
@@ -249,7 +265,7 @@ func (m CategoryGroupModel) blurInput() tea.Model {
 	return m
 }
 
-func (m CategoryGroupModel) AddCategory() CategoryGroupModel {
-	m.addCategory = true
+func (m CategoryGroupModel) SelectGroup() CategoryGroupModel {
+	m.selectGroup = true
 	return m
 }

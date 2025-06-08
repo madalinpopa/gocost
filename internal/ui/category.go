@@ -129,6 +129,12 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			return m, nil
+
+		case "a", "n":
+			return m, func() tea.Msg { return SelectGroupMsg{} }
+		case "e":
+		case "d":
+
 		}
 	}
 

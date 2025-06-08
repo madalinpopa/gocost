@@ -204,7 +204,6 @@ func (m CategoryModel) View() string {
 			b.WriteString(MutedText.Render("No category defined yet."))
 		} else {
 			for i, item := range m.categories {
-				_, _ = i, item
 				style := NormalListItem
 				prefix := " "
 				if i == m.cursor {
@@ -217,7 +216,7 @@ func (m CategoryModel) View() string {
 				if ok {
 					groupName = group.GroupName
 				}
-				line := fmt.Sprintf("%s%s - %s", prefix, item.CategoryName, groupName)
+				line := fmt.Sprintf("%s %s - %s", prefix, item.CategoryName, groupName)
 				b.WriteString(style.Render(line))
 				b.WriteString("\n")
 			}

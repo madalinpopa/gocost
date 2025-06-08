@@ -131,17 +131,15 @@ func (m App) handleAddIncomeFormMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // handleIncomeViewMsg handles the display of income data.
 func (m App) handleIncomeViewMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	if _, ok := msg.(ui.IncomeViewMsg); ok {
+		m.IncomeModel = ui.NewIncomeModel(m.Data, m.CurrentMonth, m.CurrentYear)
 		m.activeView = viewIncome
 	}
-
 	return m, nil
 }
 
 // handleSaveIncomeMsg handles the saving of income data.
 func (m App) handleSaveIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	if msg, ok := msg.(ui.SaveIncomeMsg); ok {
 
 		// Get month record, if not exists, create a new one with the income record
@@ -175,21 +173,18 @@ func (m App) handleSaveIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		err := data.SaveData(m.FilePath, m.Data)
 		if err != nil {
 			return m.SetErrorStatus("Failed to save income")
-		} else {
-			successMsg := "Income was added"
-			if found {
-				successMsg = "Income was updated"
-			}
-			return m.SetSuccessStatus(successMsg)
 		}
-
+		successMsg := "Income was added"
+		if found {
+			successMsg = "Income was updated"
+		}
+		return m.SetSuccessStatus(successMsg)
 	}
 	return m, nil
 }
 
 // handleEditIncomeMsg handles the editing of income data.
 func (m App) handleEditIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	if msg, ok := msg.(ui.EditIncomeMsg); ok {
 		m.IncomeFormModel = ui.NewIncomeFormModel(m.CurrentMonth, m.CurrentYear, &msg.Income)
 		m.activeView = viewIncomeForm
@@ -199,13 +194,10 @@ func (m App) handleEditIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // handleDeleteIncomeMsg handles the deletion of income data.
 func (m App) handleDeleteIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	if msg, ok := msg.(ui.DeleteIncomeMsg); ok {
-
-		monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]
-		if ok {
-
+		if monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]; ok {
 			var updatedIncomes []data.IncomeRecord
+
 			for _, income := range monthRecord.Incomes {
 				if income.IncomeID != msg.Income.IncomeID {
 					updatedIncomes = append(updatedIncomes, income)
@@ -219,11 +211,9 @@ func (m App) handleDeleteIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			err := data.SaveData(m.FilePath, m.Data)
 			if err != nil {
 				return m.SetErrorStatus("Failed to delete income")
-			} else {
-				return m.SetSuccessStatus("Income was deleted")
 			}
+			return m.SetSuccessStatus("Income was deleted")
 		}
-
 	}
 
 	return m, nil
@@ -248,7 +238,6 @@ func (m App) handleSelectedGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m App) handleCategoryAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(ui.CategoryAddMsg); ok {
-
 		monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
 		if !exists {
 			monthRecord = data.MonthlyRecord{

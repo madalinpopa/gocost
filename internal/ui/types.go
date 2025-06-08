@@ -29,6 +29,7 @@ type WindowSize struct {
 type AppViews struct {
 	MonthlyModel       *MonthlyModel
 	CategoryGroupModel *CategoryGroupModel
+	CategoryModel      *CategoryModel
 	IncomeModel        *IncomeModel
 	IncomeFormModel    *IncomeFormModel
 }

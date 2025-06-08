@@ -213,22 +213,17 @@ func (m MonthlyModel) getMonthExpenses(mr data.MonthlyRecord, g []data.CategoryG
 	var expenseTotals decimal.Decimal
 	groupTotals := make(map[string]decimal.Decimal)
 
-	for _, expense := range mr.Expenses {
-		expenseDecimal := decimal.NewFromFloat(expense.Amount)
-		expenseTotals = expenseTotals.Add(expenseDecimal)
+	// TODO: Need to redo this
+	// for _, expense := range mr.Expenses {
+	// 	expenseDecimal := decimal.NewFromFloat(expense.Amount)
+	// 	expenseTotals = expenseTotals.Add(expenseDecimal)
 
-		for _, group := range g {
+	// 	if cat.CatID == expense.CatID {
+	// 		amount := decimal.NewFromFloat(expense.Amount)
+	// 		groupTotals[group.GroupID] = groupTotals[group.GroupID].Add(amount)
+	// 		break
+	// 	}
 
-			for _, cat := range group.Categories {
-				if cat.CatID == expense.CatID {
-					amount := decimal.NewFromFloat(expense.Amount)
-					groupTotals[group.GroupID] = groupTotals[group.GroupID].Add(amount)
-					break
-				}
-			}
-
-		}
-	}
 	return expenseTotals, groupTotals
 }
 
@@ -252,11 +247,11 @@ func (m MonthlyModel) handleGroupNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd)
 	case "enter":
 		if numGroups > 0 {
 			if m.focusedGroupIndex >= 0 && m.focusedGroupIndex < numGroups {
-				selectedGroup := m.Data.CategoryGroups[m.focusedGroupIndex]
-				if len(selectedGroup.Categories) > 0 {
-					m.level = focusLevelCategories
-					m.focusedCategoryIndex = 0
-				}
+				//selectedGroup := m.Data.CategoryGroups[m.focusedGroupIndex]
+				// if len(selectedGroup.Categories) > 0 {
+				// 	m.level = focusLevelCategories
+				// 	m.focusedCategoryIndex = 0
+				// }
 			}
 		}
 

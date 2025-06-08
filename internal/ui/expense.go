@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -26,8 +25,6 @@ type ExpenseModel struct {
 	WindowSize
 	MonthYear
 
-	MonthKey string
-
 	amountInput textinput.Model
 	budgetInput textinput.Model
 	notesInput  textarea.Model
@@ -42,9 +39,7 @@ type ExpenseModel struct {
 	existingExpense data.ExpenseRecord
 }
 
-func NewExpenseModel(category data.Category, month time.Month, year int) ExpenseModel {
-
-	monthKey := GetMonthKey(month, year)
+func NewExpenseModel(initialData *data.DataRoot, category data.Category) ExpenseModel {
 
 	ai := textinput.New()
 	ai.Placeholder = "0.00"
@@ -85,14 +80,14 @@ func NewExpenseModel(category data.Category, month time.Month, year int) Expense
 		statusIdx = 1
 	}
 	m := ExpenseModel{
-		MonthKey:        monthKey,
-		expenseCategory: category,
-		existingExpense: expenseRecord,
-		amountInput:     ai,
-		budgetInput:     bi,
-		notesInput:      ni,
-		statusOptions:   statusOpts,
-		statusCursor:    statusIdx,
+		AppData: AppData{
+			Data: initialData,
+		},
+		amountInput:   ai,
+		budgetInput:   bi,
+		notesInput:    ni,
+		statusOptions: statusOpts,
+		statusCursor:  statusIdx,
 		WindowSize: WindowSize{
 			Width:  50,
 			Height: 15,

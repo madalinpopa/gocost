@@ -55,9 +55,7 @@ func (m App) Init() tea.Cmd {
 	switch m.activeView {
 
 	case viewMonthlyOverview:
-		if m.MonthlyModel != nil {
-			return m.MonthlyModel.Init()
-		}
+		return m.MonthlyModel.Init()
 
 	case viewIncome:
 		if m.IncomeModel != nil {
@@ -89,13 +87,11 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if cmd != nil || updatedModel != m {
 				return updatedModel, cmd
 			}
-			if m.MonthlyModel != nil {
-				updatedMonthlyModel, monthlyCmd := m.MonthlyModel.Update(msg)
-				if mo, ok := updatedMonthlyModel.(ui.MonthlyModel); ok {
-					m.MonthlyModel = &mo
-				}
-				return m, monthlyCmd
+			updatedMonthlyModel, monthlyCmd := m.MonthlyModel.Update(msg)
+			if mo, ok := updatedMonthlyModel.(ui.MonthlyModel); ok {
+				m.MonthlyModel = mo
 			}
+			return m, monthlyCmd
 
 		case viewIncome:
 			if m.IncomeModel != nil {
@@ -198,11 +194,7 @@ func (m App) View() string {
 	switch m.activeView {
 
 	case viewMonthlyOverview:
-		if m.MonthlyModel != nil {
-			viewContent = m.MonthlyModel.View()
-		} else {
-			viewContent = "Monthly overview loading..."
-		}
+		viewContent = m.MonthlyModel.View()
 
 	case viewIncome:
 		if m.IncomeModel != nil {

@@ -257,4 +257,5 @@ func (m CategoryModel) UpdateData(updatedData *data.DataRoot) CategoryModel {
 	} else {
 		m.cursor = 0
 	}
+	return m
 }

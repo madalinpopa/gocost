@@ -295,8 +295,33 @@ func (m App) handleSelectedGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m App) handleCategoryAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(ui.CategoryAddMsg); ok {
-		_ = msg
-		fmt.Println(msg)
+
+		monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]
+		if ok {
+			monthRecord.Categories = append(monthRecord.Categories, msg.Category)
+		} else {
+			newMonthRecord := data.MonthlyRecord{
+				Incomes:    make([]data.IncomeRecord, 0),
+				Categories: make([]data.Category, 0),
+			}
+
+			newMonthRecord.Categories = append(newMonthRecord.Categories, msg.Category)
+			m.Data.MonthlyData[msg.MonthKey] = newMonthRecord
+		}
+
+		if err := data.SaveData(m.FilePath, m.Data); err != nil {
+			if m.CategoryModel != nil {
+				updatedModel := m.CategoryModel.UpdateData(m.Data)
+				m.CategoryModel = &updatedModel
+			}
+			return m.SetErrorStatus("Failed to save category")
+		} else {
+			if m.CategoryModel != nil {
+				updatedModel := m.CategoryModel.UpdateData(m.Data)
+				m.CategoryModel = &updatedModel
+			}
+			return m.SetSuccessStatus("Category name was saved")
+		}
 	}
 	return m, nil
 }

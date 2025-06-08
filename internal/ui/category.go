@@ -66,6 +66,46 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
+	if m.addCategory {
+
+		switch msg := msg.(type) {
+
+		case tea.KeyMsg:
+
+			switch msg.String() {
+
+			case "enter":
+				categoryName := strings.TrimSpace(m.editInput.Value())
+				if categoryName != "" {
+					newCategoryId := GenerateID()
+
+					newCategory := data.Category{
+						CatID:        newCategoryId,
+						CategoryName: categoryName,
+						GroupID:      m.selectedGroup.GroupID,
+					}
+
+					m.addCategory = false
+					m.editInput.Blur()
+
+					return m, func() tea.Msg {
+						return CategoryAddMsg{MonthKey: m.MonthKey, Category: newCategory}
+					}
+				}
+
+			case "esc":
+				m.addCategory = false
+				m.editInput.Blur()
+				m.editInput.SetValue("")
+				return m, nil
+			}
+		}
+
+		m.editInput, cmd = m.editInput.Update(msg)
+		cmds := append(cmds, cmd)
+		return m, tea.Batch(cmds...)
+	}
+
 	if m.isEditingName {
 
 		// Handle actions when editing
@@ -77,31 +117,20 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "enter":
 				categoryName := strings.TrimSpace(m.editInput.Value())
 				if categoryName != "" {
-					if m.editingIndex == -1 {
-						newCategoryId := GenerateID()
-
-						newCategory := data.Category{
-							CatID:        newCategoryId,
-							CategoryName: categoryName,
-						}
-
-						return m.blurInput(), func() tea.Msg {
-							return CategoryAddMsg{MonthKey: m.MonthKey, Category: newCategory}
-						}
-					} else {
-						updatedCategory := m.categories[m.editingIndex]
-						updatedCategory.CategoryName = categoryName
-						return m.blurInput(), func() tea.Msg {
-							return CategoryUpdateMsg{Category: updatedCategory}
-						}
+					updatedCategory := m.categories[m.editingIndex]
+					updatedCategory.CategoryName = categoryName
+					m.isEditingName = false
+					m.editInput.Blur()
+					return m, func() tea.Msg {
+						return CategoryUpdateMsg{Category: updatedCategory}
 					}
-
 				}
 
 			case "esc":
-				updatedModel := m.blurInput()
+				m.isEditingName = false
+				m.editInput.Blur()
 				m.editInput.SetValue("")
-				return updatedModel, nil
+				return m, nil
 			}
 		}
 		m.editInput, cmd = m.editInput.Update(msg)
@@ -136,8 +165,22 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "a", "n":
 			return m, func() tea.Msg { return SelectGroupMsg{} }
 		case "e":
-		case "d":
+			if len(m.categories) > 0 {
+				if m.cursor >= 0 && m.cursor < len(m.categories) {
+					m.editingIndex = m.cursor
+					m.editInput.SetValue(m.categories[m.cursor].CategoryName)
+					m.editInput.Placeholder = "Edit Category Name"
+					return m.focusInput()
+				}
+			}
 
+		case "d":
+			if len(m.categories) > 0 {
+				if m.cursor >= 0 && m.cursor < len(m.categories) {
+					selectedCategory := m.categories[m.cursor]
+					return m, func() tea.Msg { return CategoryDeleteMsg{Category: selectedCategory} }
+				}
+			}
 		}
 	}
 
@@ -150,7 +193,7 @@ func (m CategoryModel) View() string {
 	b.WriteString(HeaderText.Render("Manage Expense Categories"))
 	b.WriteString("\n\n")
 
-	if m.isEditingName {
+	if m.isEditingName || m.addCategory {
 		b.WriteString("Enter Category Name (Enter to save, Esc to cancel):\n")
 		b.WriteString(m.editInput.View())
 		b.WriteString("\n")
@@ -189,6 +232,7 @@ func (m CategoryModel) View() string {
 func (m CategoryModel) AddCategory(group data.CategoryGroup) CategoryModel {
 	m.addCategory = true
 	m.selectedGroup = group
+	m.editInput.Focus()
 	return m
 }
 
@@ -198,9 +242,9 @@ func (m CategoryModel) focusInput() (tea.Model, tea.Cmd) {
 	return m, textinput.Blink
 }
 
-func (m CategoryModel) blurInput() tea.Model {
-	m.isEditingName = false
-	m.editInput.Blur()
-	m.editingIndex = -1
-	return m
-}
+// func (m CategoryModel) blurInput() tea.Model {
+// 	m.isEditingName = false
+// 	m.editInput.Blur()
+// 	m.editingIndex = -1
+// 	return m
+// }

@@ -10,7 +10,7 @@ import (
 
 func createTestApp() App {
 	testData := &data.DataRoot{
-		CategoryGroups: []data.CategoryGroup{},
+		CategoryGroups: map[string]data.CategoryGroup{},
 	}
 
 	currentMonth := time.January

@@ -29,7 +29,7 @@ func LoadData(filePath string, currency string) (*DataRoot, error) {
 	}
 
 	if dataRoot.CategoryGroups == nil {
-		dataRoot.CategoryGroups = make([]CategoryGroup, 0)
+		dataRoot.CategoryGroups = make(map[string]CategoryGroup, 0)
 	}
 
 	if dataRoot.MonthlyData == nil {

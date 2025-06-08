@@ -57,10 +57,12 @@ func (m App) handleViewErrorMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 // handleMonthlyViewMsg switches the active view to the monthly overview and updates the MonthlyModel
 // with the current month and year, if it exists.
 func (m App) handleMonthlyViewMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	m.activeView = viewMonthlyOverview
-	if m.MonthlyModel != nil {
-		updatedModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
-		m.MonthlyModel = &updatedModel
+	if _, ok := msg.(ui.MonthlyViewMsg); ok {
+		if m.MonthlyModel != nil {
+			m.activeView = viewMonthlyOverview
+			updatedModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+			m.MonthlyModel = &updatedModel
+		}
 	}
 	return m, nil
 }

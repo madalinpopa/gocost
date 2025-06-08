@@ -172,6 +172,9 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ui.SelectGroupMsg:
 		return m.handleSelectGroupMsg(msg)
 
+	case ui.SelectedGroupMsg:
+		return m.handleSelectedGroupMsg(msg)
+
 	case ui.CategoryUpdateMsg:
 		return m.handleCategoryUpdateMsg(msg)
 

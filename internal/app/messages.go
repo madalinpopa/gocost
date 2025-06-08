@@ -12,13 +12,11 @@ import (
 func (m App) handleModelsWindowResize(msg tea.Msg) (tea.Model, []tea.Cmd) {
 	var cmds []tea.Cmd
 
-	if m.MonthlyModel != nil {
-		updatedMonthlyModel, moCmd := m.MonthlyModel.Update(msg)
-		if mo, ok := updatedMonthlyModel.(ui.MonthlyModel); ok {
-			m.MonthlyModel = &mo
-		}
-		cmds = append(cmds, moCmd)
+	updatedMonthlyModel, moCmd := m.MonthlyModel.Update(msg)
+	if mo, ok := updatedMonthlyModel.(ui.MonthlyModel); ok {
+		m.MonthlyModel = mo
 	}
+	cmds = append(cmds, moCmd)
 
 	if m.IncomeModel != nil {
 		updatedIncomeModel, moCmd := m.IncomeModel.Update(msg)
@@ -58,11 +56,8 @@ func (m App) handleViewErrorMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 // with the current month and year, if it exists.
 func (m App) handleMonthlyViewMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if _, ok := msg.(ui.MonthlyViewMsg); ok {
-		if m.MonthlyModel != nil {
-			m.activeView = viewMonthlyOverview
-			updatedModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
-			m.MonthlyModel = &updatedModel
-		}
+		m.MonthlyModel = m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+		m.activeView = viewMonthlyOverview
 	}
 	return m, nil
 }

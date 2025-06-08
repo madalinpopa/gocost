@@ -82,7 +82,7 @@ func (m MonthlyModel) View() string {
 	record, ok := m.Data.MonthlyData[monthKey]
 	if ok {
 		totalIncome = m.getMonthIncome(record)
-		totalExpenses, totalExpensesGroup = m.getMonthExpenses(record, m.Data.CategoryGroups)
+		//totalExpenses, totalExpensesGroup = m.getMonthExpenses(record, m.Data.CategoryGroups)
 	}
 
 	balance := totalIncome.Sub(totalExpenses)
@@ -177,24 +177,24 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 		b.WriteString("\n")
 	}
 	var expenseSectionContent []string
-	for groupIdx, group := range m.Data.CategoryGroups {
-		groupStyle := NormalListItem
-		groupPrefix := "  "
+	// for groupIdx, group := range m.Data.CategoryGroups {
+	// 	groupStyle := NormalListItem
+	// 	groupPrefix := "  "
 
-		if m.level == focusLevelGroups && groupIdx == m.focusedGroupIndex {
-			groupStyle = FocusedListItem
-			groupPrefix = "> "
-		} else if m.level == focusLevelCategories && groupIdx == m.focusedGroupIndex {
-			groupStyle = HeaderText.Bold(false).Foreground(lipgloss.Color("220"))
-			groupPrefix = ">>"
-		}
-		groupTotal := totalGroupExpenses[group.GroupID]
-		groupNameRender := groupStyle.Render(fmt.Sprintf("%s %s", groupPrefix, group.GroupName))
-		groupTotalRender := groupStyle.Render(fmt.Sprintf("Total: %s %s", groupTotal.String(), currency))
+	// 	if m.level == focusLevelGroups && groupIdx == m.focusedGroupIndex {
+	// 		groupStyle = FocusedListItem
+	// 		groupPrefix = "> "
+	// 	} else if m.level == focusLevelCategories && groupIdx == m.focusedGroupIndex {
+	// 		groupStyle = HeaderText.Bold(false).Foreground(lipgloss.Color("220"))
+	// 		groupPrefix = ">>"
+	// 	}
+	// 	groupTotal := totalGroupExpenses[group.GroupID]
+	// 	groupNameRender := groupStyle.Render(fmt.Sprintf("%s %s", groupPrefix, group.GroupName))
+	// 	groupTotalRender := groupStyle.Render(fmt.Sprintf("Total: %s %s", groupTotal.String(), currency))
 
-		groupHeaderSpacerWidth := max(m.Width - lipgloss.Width(groupNameRender) - lipgloss.Width(groupTotalRender) - AppStyle.GetHorizontalPadding())
-		expenseSectionContent = append(expenseSectionContent, lipgloss.JoinHorizontal(lipgloss.Left, groupNameRender, lipgloss.NewStyle().Width(groupHeaderSpacerWidth).Render(""), groupTotalRender))
-	}
+	//groupHeaderSpacerWidth := max(m.Width - lipgloss.Width(groupNameRender) - lipgloss.Width(groupTotalRender) - AppStyle.GetHorizontalPadding())
+	//expenseSectionContent = append(expenseSectionContent, lipgloss.JoinHorizontal(lipgloss.Left, groupNameRender, lipgloss.NewStyle().Width(groupHeaderSpacerWidth).Render(""), groupTotalRender))
+	//}
 
 	b.WriteString(strings.Join(expenseSectionContent, "\n"))
 	return b.String()

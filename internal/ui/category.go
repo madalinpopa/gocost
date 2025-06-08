@@ -180,7 +180,7 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if len(m.categories) > 0 {
 				if m.cursor >= 0 && m.cursor < len(m.categories) {
 					selectedCategory := m.categories[m.cursor]
-					return m, func() tea.Msg { return CategoryDeleteMsg{Category: selectedCategory} }
+					return m, func() tea.Msg { return CategoryDeleteMsg{MonthKey: m.MonthKey, Category: selectedCategory} }
 				}
 			}
 		}

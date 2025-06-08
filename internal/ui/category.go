@@ -229,11 +229,11 @@ func (m CategoryModel) View() string {
 	return viewStr
 }
 
-func (m CategoryModel) AddCategory(group data.CategoryGroup) CategoryModel {
+func (m CategoryModel) AddCategory(group data.CategoryGroup) (CategoryModel, tea.Cmd) {
 	m.addCategory = true
 	m.selectedGroup = group
 	m.editInput.Focus()
-	return m
+	return m, textinput.Blink
 }
 
 func (m CategoryModel) focusInput() (tea.Model, tea.Cmd) {

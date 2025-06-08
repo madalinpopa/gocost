@@ -265,8 +265,35 @@ func (m App) handleCategoryAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m App) handleCategoryUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(ui.CategoryUpdateMsg); ok {
-		_ = msg
+		monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
+		if !exists {
+			return m.SetErrorStatus("Failed to update category: month record not found")
+		}
 
+		// Find and update the category
+		found := false
+		for i, category := range monthRecord.Categories {
+			if category.CatID == msg.Category.CatID {
+				monthRecord.Categories[i] = msg.Category
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return m.SetErrorStatus("Failed to update category: category not found")
+		}
+
+		m.Data.MonthlyData[msg.MonthKey] = monthRecord
+
+		if err := data.SaveData(m.FilePath, m.Data); err != nil {
+			return m.SetErrorStatus("Failed to save category")
+		}
+
+		// Update model
+		m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
+
+		return m.SetSuccessStatus("Category was updated successfully")
 	}
 	return m, nil
 }

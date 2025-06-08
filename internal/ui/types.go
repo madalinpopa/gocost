@@ -42,7 +42,7 @@ type ViewErrorMsg struct {
 type MonthlyViewMsg struct{}
 
 type GroupDeleteMsg struct {
-	GroupID string
+	Group data.CategoryGroup
 }
 
 type GroupAddMsg struct {
@@ -69,11 +69,11 @@ type SaveIncomeMsg struct {
 }
 
 type EditIncomeMsg struct {
-	MonthKey     string
-	IncomeRecord data.IncomeRecord
+	MonthKey string
+	Income   data.IncomeRecord
 }
 
 type DeleteIncomeMsg struct {
-	MonthKey     string
-	IncomeRecord data.IncomeRecord
+	MonthKey string
+	Income   data.IncomeRecord
 }

@@ -28,10 +28,10 @@ type WindowSize struct {
 // AppViews holds all the models used by App
 type AppViews struct {
 	MonthlyModel       MonthlyModel
-	CategoryGroupModel *CategoryGroupModel
-	CategoryModel      *CategoryModel
-	IncomeModel        *IncomeModel
-	IncomeFormModel    *IncomeFormModel
+	CategoryGroupModel CategoryGroupModel
+	CategoryModel      CategoryModel
+	IncomeModel        IncomeModel
+	IncomeFormModel    IncomeFormModel
 }
 
 type ViewErrorMsg struct {

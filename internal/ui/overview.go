@@ -154,7 +154,7 @@ func (m MonthlyModel) getFooter(totalExpenses, balance decimal.Decimal, defaultC
 		Width(m.Width - AppStyle.GetHorizontalPadding()).
 		PaddingTop(1)
 
-	keyHints := "j/k: Nav | Ent: Select/Edit | i: Income | c: Expense Categories | g: Groups"
+	keyHints := "j/k: Nav | Ent: Select/Edit | i: Income | c: Categories | g: Groups"
 	totalExpensesStr := fmt.Sprintf("Total Expenses: %s %s", totalExpenses.String(), defaultCurrency)
 
 	balanceStr := fmt.Sprintf("Balance: %s %s", balance.String(), defaultCurrency)

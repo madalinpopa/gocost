@@ -99,3 +99,8 @@ type DeleteIncomeMsg struct {
 	MonthKey string
 	Income   data.IncomeRecord
 }
+
+type PopulateCategoriesMsg struct {
+	CurrentMonthKey  string
+	PreviousMonthKey string
+}

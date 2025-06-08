@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -104,21 +105,27 @@ func (m CategoryModel) View() string {
 		} else {
 			for i, item := range m.categories {
 				_, _ = i, item
-				// style := NormalListItem
-				// prefix := " "
-				// if i  == m.cursor {
-				// 	style = FocusedListItem
-				// 	prefix = "> "
-				// }
+				style := NormalListItem
+				prefix := " "
+				if i == m.cursor {
+					style = FocusedListItem
+					prefix = "> "
+				}
 
-				// var groupName string
-				// line := fmt.Sprintf("%s%s - %s", prefix, item.CategoryName, item.GroupID)
+				var groupName string
+				group, ok := m.Data.CategoryGroups[item.GroupID]
+				if ok {
+					groupName = group.GroupName
+				}
+				line := fmt.Sprintf("%s%s - %s", prefix, item.CategoryName, groupName)
+				b.WriteString(style.Render(line))
+				b.WriteString("\n")
 			}
 		}
+		b.WriteString("\n\n")
+		keyHints := "(j/k: Nav, a/n: Add, e: Edit, d: Delete, Esc/q: Back)"
+		b.WriteString(MutedText.Render(keyHints))
 	}
-
-	keyHints := "(j/k: Nav, a/n: Add, e: Edit, d: Delete, Esc/q: Back)"
-	b.WriteString(MutedText.Render(keyHints))
 
 	viewStr := AppStyle.Width(m.Width).Height(m.Height - 3).Render(b.String())
 	return viewStr

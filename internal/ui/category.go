@@ -60,6 +60,52 @@ func (m CategoryModel) Init() tea.Cmd {
 
 func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
+	if m.isEditingName {
+
+		// Handle actions when editing
+		switch msg := msg.(type) {
+
+		case tea.KeyMsg:
+			switch msg.String() {
+
+			case "enter":
+				categoryName := strings.TrimSpace(m.editInput.Value())
+				if categoryName != "" {
+					if m.editingIndex == -1 {
+						newCategoryId := GenerateID()
+
+						newCategory := data.Category{
+							CatID:        newCategoryId,
+							CategoryName: categoryName,
+						}
+
+						return m.blurInput(), func() tea.Msg {
+							return CategoryAddMsg{MonthKey: m.MonthKey, Category: newCategory}
+						}
+					} else {
+						updatedCategory := m.categories[m.editingIndex]
+						updatedCategory.CategoryName = categoryName
+						return m.blurInput(), func() tea.Msg {
+							return CategoryUpdateMsg{Category: updatedCategory}
+						}
+					}
+
+				}
+
+			case "esc":
+				updatedModel := m.blurInput()
+				m.editInput.SetValue("")
+				return updatedModel, nil
+			}
+		}
+		m.editInput, cmd = m.editInput.Update(msg)
+		cmds = append(cmds, cmd)
+		return m, tea.Batch(cmds...)
+	}
+
 	switch msg := msg.(type) {
 
 	case tea.KeyMsg:
@@ -129,4 +175,17 @@ func (m CategoryModel) View() string {
 
 	viewStr := AppStyle.Width(m.Width).Height(m.Height - 3).Render(b.String())
 	return viewStr
+}
+
+func (m CategoryModel) focusInput() (tea.Model, tea.Cmd) {
+	m.isEditingName = true
+	m.editInput.Focus()
+	return m, textinput.Blink
+}
+
+func (m CategoryModel) blurInput() tea.Model {
+	m.isEditingName = false
+	m.editInput.Blur()
+	m.editingIndex = -1
+	return m
 }

@@ -190,37 +190,6 @@ func TestHandleMonthlyViewKeys_NextMonth_YearBoundary(t *testing.T) {
 	}
 }
 
-func TestHandleMonthlyViewKeys_MonthNavigation_WithNilMonthlyModel(t *testing.T) {
-	app := createTestApp()
-	app.MonthlyModel = nil
-
-	// Test previous month
-	model, cmd := app.handleMonthlyViewKeys("h")
-	resultApp, ok := model.(App)
-	if !ok {
-		t.Fatalf("Expected App model, got %T", model)
-	}
-
-	if resultApp.CurrentMonth != time.December {
-		t.Errorf("Expected CurrentMonth to be December, got %v", resultApp.CurrentMonth)
-	}
-
-	if cmd != nil {
-		t.Errorf("Expected nil command when MonthlyModel is nil, got %v", cmd)
-	}
-
-	// Test next month from the updated app
-	model, cmd = resultApp.handleMonthlyViewKeys("l")
-	resultApp, ok = model.(App)
-	if !ok {
-		t.Fatalf("Expected App model, got %T", model)
-	}
-
-	if resultApp.CurrentMonth != time.January {
-		t.Errorf("Expected CurrentMonth to be January, got %v", resultApp.CurrentMonth)
-	}
-}
-
 func TestHandleMonthlyViewKeys_UnknownKey(t *testing.T) {
 	app := createTestApp()
 

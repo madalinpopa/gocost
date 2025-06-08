@@ -21,7 +21,7 @@ type IncomeModel struct {
 	incomeEntries []data.IncomeRecord
 }
 
-func NewIncomeModel(initialData *data.DataRoot, month time.Month, year int) *IncomeModel {
+func NewIncomeModel(initialData *data.DataRoot, month time.Month, year int) IncomeModel {
 	monthKey := GetMonthKey(month, year)
 	var incomeEntries []data.IncomeRecord
 
@@ -31,7 +31,7 @@ func NewIncomeModel(initialData *data.DataRoot, month time.Month, year int) *Inc
 		incomeEntries = make([]data.IncomeRecord, 0)
 	}
 
-	return &IncomeModel{
+	return IncomeModel{
 		incomeEntries: incomeEntries,
 		monthKey:      monthKey,
 		MonthYear: MonthYear{

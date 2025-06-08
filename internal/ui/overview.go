@@ -231,7 +231,7 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 			for catIdx, category := range categories {
 				catStyle := NormalListItem
 				catPrefix := "    "
-				
+
 				if catIdx == m.focusedCategoryIndex {
 					catStyle = FocusedListItem
 					catPrefix = "  > "
@@ -246,7 +246,7 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 
 				catNameRender := catStyle.Render(fmt.Sprintf("%s%s", catPrefix, category.CategoryName))
 				catTotalRender := catStyle.Render(fmt.Sprintf("%s %s", categoryTotal.String(), currency))
-				
+
 				catSpacerWidth := max(m.Width-lipgloss.Width(catNameRender)-lipgloss.Width(catTotalRender)-AppStyle.GetHorizontalPadding(), 0)
 				categoryLine := lipgloss.JoinHorizontal(lipgloss.Left, catNameRender, lipgloss.NewStyle().Width(catSpacerWidth).Render(""), catTotalRender)
 				expenseSectionContent = append(expenseSectionContent, categoryLine)
@@ -263,7 +263,7 @@ func (m MonthlyModel) getOrderedGroups() []data.CategoryGroup {
 	for _, group := range m.Data.CategoryGroups {
 		orderedGroups = append(orderedGroups, group)
 	}
-	
+
 	// Sort groups by order field
 	for i := 0; i < len(orderedGroups)-1; i++ {
 		for j := i + 1; j < len(orderedGroups); j++ {
@@ -272,7 +272,7 @@ func (m MonthlyModel) getOrderedGroups() []data.CategoryGroup {
 			}
 		}
 	}
-	
+
 	return orderedGroups
 }
 
@@ -329,7 +329,7 @@ func (m MonthlyModel) handleGroupNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd)
 
 				if m.focusedGroupIndex < len(orderedGroups) {
 					selectedGroup := orderedGroups[m.focusedGroupIndex]
-					
+
 					// Count categories in this group
 					var categoryCount int
 					for _, category := range record.Categories {
@@ -337,7 +337,7 @@ func (m MonthlyModel) handleGroupNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd)
 							categoryCount++
 						}
 					}
-					
+
 					if categoryCount > 0 {
 						m.level = focusLevelCategories
 						m.focusedCategoryIndex = 0
@@ -351,7 +351,7 @@ func (m MonthlyModel) handleGroupNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd)
 }
 
 func (m MonthlyModel) handleCategoryNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	
+
 	monthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
 	record, ok := m.Data.MonthlyData[monthKey]
 	if !ok {
@@ -366,7 +366,7 @@ func (m MonthlyModel) handleCategoryNavigation(msg tea.KeyMsg) (tea.Model, tea.C
 	}
 
 	selectedGroup := orderedGroups[m.focusedGroupIndex]
-	
+
 	// Get categories for this group
 	var categoriesInGroup []data.Category
 	for _, category := range record.Categories {

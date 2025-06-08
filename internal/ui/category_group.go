@@ -67,8 +67,12 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch msg.String() {
 
 			case "enter":
-				selectedGroup := m.groups[m.cursor]
-				return m, func() tea.Msg { return SelectedGroupMsg{Group: selectedGroup} }
+				if len(m.groups) > 0 {
+					if m.cursor >= 0 && m.cursor < len(m.groups) {
+						selectedGroup := m.groups[m.cursor]
+						return m, func() tea.Msg { return SelectedGroupMsg{Group: selectedGroup} }
+					}
+				}
 			}
 		}
 	}

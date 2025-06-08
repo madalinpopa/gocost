@@ -81,8 +81,9 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 					newCategory := data.Category{
 						CatID:        newCategoryId,
-						CategoryName: categoryName,
 						GroupID:      m.selectedGroup.GroupID,
+						CategoryName: categoryName,
+						Expense:      make(map[string]data.ExpenseRecord, 0),
 					}
 
 					m.addCategory = false
@@ -240,4 +241,20 @@ func (m CategoryModel) focusInput() (tea.Model, tea.Cmd) {
 	m.isEditingName = true
 	m.editInput.Focus()
 	return m, textinput.Blink
+}
+
+func (m CategoryModel) UpdateData(updatedData *data.DataRoot) CategoryModel {
+	m.Data = updatedData
+
+	var categories []data.Category
+	if record, ok := m.Data.MonthlyData[m.MonthKey]; ok {
+		categories = record.Categories
+	}
+
+	m.categories = categories
+	if m.cursor >= len(m.categories) && len(m.categories) > 0 {
+		m.cursor = len(m.categories) - 1
+	} else {
+		m.cursor = 0
+	}
 }

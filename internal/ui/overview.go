@@ -209,18 +209,25 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 		categoriesByGroup[category.GroupID] = append(categoriesByGroup[category.GroupID], category)
 	}
 
-	// Get ordered list of groups
+	// Get ordered list of groups and filter for visible ones
 	orderedGroups := m.getOrderedGroups()
+	visibleGroups := m.getVisibleGroups(orderedGroups, categoriesByGroup)
+
+	if len(visibleGroups) == 0 {
+		b.WriteString(MutedText.Render("No categories for this month"))
+		b.WriteString("\n")
+		return b.String()
+	}
 
 	var expenseSectionContent []string
-	for groupIdx, group := range orderedGroups {
+	for visibleIdx, group := range visibleGroups {
 		groupStyle := NormalListItem
 		groupPrefix := "  "
 
-		if m.Level == focusLevelGroups && groupIdx == m.focusedGroupIndex {
+		if m.Level == focusLevelGroups && visibleIdx == m.focusedGroupIndex {
 			groupStyle = FocusedListItem
 			groupPrefix = "> "
-		} else if m.Level == focusLevelCategories && groupIdx == m.focusedGroupIndex {
+		} else if m.Level == focusLevelCategories && visibleIdx == m.focusedGroupIndex {
 			groupStyle = HeaderText.Bold(false).Foreground(lipgloss.Color("220"))
 			groupPrefix = ">> "
 		}
@@ -237,7 +244,7 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 		expenseSectionContent = append(expenseSectionContent, groupHeader)
 
 		// Display categories within this group if we're in category navigation mode and this is the focused group
-		if m.Level == focusLevelCategories && groupIdx == m.focusedGroupIndex {
+		if m.Level == focusLevelCategories && visibleIdx == m.focusedGroupIndex {
 			categories := categoriesByGroup[group.GroupID]
 			for catIdx, category := range categories {
 				catStyle := NormalListItem
@@ -282,6 +289,16 @@ func (m MonthlyModel) getOrderedGroups() []data.CategoryGroup {
 	return orderedGroups
 }
 
+func (m MonthlyModel) getVisibleGroups(orderedGroups []data.CategoryGroup, categoriesByGroup map[string][]data.Category) []data.CategoryGroup {
+	var visibleGroups []data.CategoryGroup
+	for _, group := range orderedGroups {
+		if _, hasCategories := categoriesByGroup[group.GroupID]; hasCategories {
+			visibleGroups = append(visibleGroups, group)
+		}
+	}
+	return visibleGroups
+}
+
 func (m MonthlyModel) getMonthIncome(monthRecord data.MonthlyRecord) decimal.Decimal {
 	var totalIncome decimal.Decimal
 	for _, income := range monthRecord.Incomes {
@@ -309,47 +326,42 @@ func (m MonthlyModel) getMonthExpenses(mr data.MonthlyRecord) (decimal.Decimal, 
 }
 
 func (m MonthlyModel) handleGroupNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	// Get visible groups for navigation
+	monthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
+	record, ok := m.Data.MonthlyData[monthKey]
+	if !ok {
+		return m, nil
+	}
 
-	numGroups := len(m.Data.CategoryGroups)
+	// Group categories by their GroupID
+	categoriesByGroup := make(map[string][]data.Category)
+	for _, category := range record.Categories {
+		categoriesByGroup[category.GroupID] = append(categoriesByGroup[category.GroupID], category)
+	}
+
+	// Get visible groups
+	orderedGroups := m.getOrderedGroups()
+	visibleGroups := m.getVisibleGroups(orderedGroups, categoriesByGroup)
+	numVisibleGroups := len(visibleGroups)
 
 	switch msg.String() {
 
 	case "j", "down":
-		if numGroups > 0 {
-			m.focusedGroupIndex = (m.focusedGroupIndex + 1) % numGroups
+		if numVisibleGroups > 0 {
+			m.focusedGroupIndex = (m.focusedGroupIndex + 1) % numVisibleGroups
 		}
 	case "k", "up":
-		if numGroups > 0 {
+		if numVisibleGroups > 0 {
 			m.focusedGroupIndex--
 			if m.focusedGroupIndex < 0 {
-				m.focusedGroupIndex = numGroups - 1
+				m.focusedGroupIndex = numVisibleGroups - 1
 			}
 		}
 	case "enter":
-		if numGroups > 0 && m.focusedGroupIndex >= 0 && m.focusedGroupIndex < numGroups {
-			// Get the selected group and check if it has categories
-			monthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
-			if record, ok := m.Data.MonthlyData[monthKey]; ok {
-				// Get ordered list of groups to find the correct group
-				orderedGroups := m.getOrderedGroups()
-
-				if m.focusedGroupIndex < len(orderedGroups) {
-					selectedGroup := orderedGroups[m.focusedGroupIndex]
-
-					// Count categories in this group
-					var categoryCount int
-					for _, category := range record.Categories {
-						if category.GroupID == selectedGroup.GroupID {
-							categoryCount++
-						}
-					}
-
-					if categoryCount > 0 {
-						m.Level = focusLevelCategories
-						m.focusedCategoryIndex = 0
-					}
-				}
-			}
+		if numVisibleGroups > 0 && m.focusedGroupIndex >= 0 && m.focusedGroupIndex < numVisibleGroups {
+			// The focused index now directly maps to visible groups
+			m.Level = focusLevelCategories
+			m.focusedCategoryIndex = 0
 		}
 
 	}
@@ -364,22 +376,24 @@ func (m MonthlyModel) handleCategoryNavigation(msg tea.KeyMsg) (tea.Model, tea.C
 		return m, nil
 	}
 
-	// Get the currently focused group
-	orderedGroups := m.getOrderedGroups()
+	// Group categories by their GroupID
+	categoriesByGroup := make(map[string][]data.Category)
+	for _, category := range record.Categories {
+		categoriesByGroup[category.GroupID] = append(categoriesByGroup[category.GroupID], category)
+	}
 
-	if m.focusedGroupIndex >= len(orderedGroups) {
+	// Get visible groups
+	orderedGroups := m.getOrderedGroups()
+	visibleGroups := m.getVisibleGroups(orderedGroups, categoriesByGroup)
+
+	if m.focusedGroupIndex >= len(visibleGroups) {
 		return m, nil
 	}
 
-	selectedGroup := orderedGroups[m.focusedGroupIndex]
+	selectedGroup := visibleGroups[m.focusedGroupIndex]
 
-	// Get categories for this group
-	var categoriesInGroup []data.Category
-	for _, category := range record.Categories {
-		if category.GroupID == selectedGroup.GroupID {
-			categoriesInGroup = append(categoriesInGroup, category)
-		}
-	}
+	// Get categories for this group (they already exist since this is a visible group)
+	categoriesInGroup := categoriesByGroup[selectedGroup.GroupID]
 
 	numCategories := len(categoriesInGroup)
 
@@ -440,11 +454,7 @@ func (m MonthlyModel) SetMonthYear(month time.Month, year int) MonthlyModel {
 
 func (m MonthlyModel) ResetFocus() MonthlyModel {
 	m.Level = focusLevelGroups
-	if len(m.Data.CategoryGroups) > 0 {
-		m.focusedGroupIndex = 0
-	} else {
-		m.focusedGroupIndex = -1
-	}
+	m.focusedGroupIndex = 0
 	m.focusedCategoryIndex = 0
 	return m
 }

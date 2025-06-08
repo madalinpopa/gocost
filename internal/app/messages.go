@@ -296,33 +296,29 @@ func (m App) handleSelectedGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m App) handleCategoryAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(ui.CategoryAddMsg); ok {
 
-		monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]
-		if ok {
-			monthRecord.Categories = append(monthRecord.Categories, msg.Category)
-		} else {
-			newMonthRecord := data.MonthlyRecord{
+		monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
+		if !exists {
+			monthRecord = data.MonthlyRecord{
 				Incomes:    make([]data.IncomeRecord, 0),
 				Categories: make([]data.Category, 0),
 			}
-
-			newMonthRecord.Categories = append(newMonthRecord.Categories, msg.Category)
-			m.Data.MonthlyData[msg.MonthKey] = newMonthRecord
 		}
+
+		monthRecord.Categories = append(monthRecord.Categories, msg.Category)
+
+		m.Data.MonthlyData[msg.MonthKey] = monthRecord
 
 		if err := data.SaveData(m.FilePath, m.Data); err != nil {
-			if m.CategoryModel != nil {
-				updatedModel := m.CategoryModel.UpdateData(m.Data)
-				m.CategoryModel = &updatedModel
-			}
 			return m.SetErrorStatus("Failed to save category")
-		} else {
-			if m.CategoryModel != nil {
-				updatedModel := m.CategoryModel.UpdateData(m.Data)
-				m.CategoryModel = &updatedModel
-			}
-			return m.SetSuccessStatus("Category name was saved")
 		}
+
+		// Update model
+		updatedModel := m.CategoryModel.UpdateData(m.Data)
+		m.CategoryModel = &updatedModel
+
+		return m.SetSuccessStatus("Category name was saved")
 	}
+
 	return m, nil
 }
 

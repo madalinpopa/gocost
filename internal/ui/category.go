@@ -27,7 +27,7 @@ type CategoryModel struct {
 	editingIndex  int
 }
 
-func NewCategoryModel(initialData *data.DataRoot, month time.Month, year int) *CategoryModel {
+func NewCategoryModel(initialData *data.DataRoot, month time.Month, year int) CategoryModel {
 
 	monthKey := GetMonthKey(month, year)
 
@@ -45,7 +45,7 @@ func NewCategoryModel(initialData *data.DataRoot, month time.Month, year int) *C
 		categories = make([]data.Category, 0)
 	}
 
-	m := CategoryModel{
+	return CategoryModel{
 		AppData: AppData{
 			Data: initialData,
 		},
@@ -54,7 +54,6 @@ func NewCategoryModel(initialData *data.DataRoot, month time.Month, year int) *C
 		editingIndex: -1,
 	}
 
-	return &m
 }
 
 func (m CategoryModel) Init() tea.Cmd {

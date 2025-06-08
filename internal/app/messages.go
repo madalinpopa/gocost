@@ -291,6 +291,14 @@ func (m App) handleSelectedGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+func (m App) handleCategoryAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if msg, ok := msg.(ui.CategoryAddMsg); ok {
+		_ = msg
+		fmt.Println(msg)
+	}
+	return m, nil
+}
+
 func (m App) handleCategoryUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(ui.CategoryUpdateMsg); ok {
 		_ = msg

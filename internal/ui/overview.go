@@ -458,3 +458,8 @@ func (m MonthlyModel) ResetFocus() MonthlyModel {
 	m.focusedCategoryIndex = 0
 	return m
 }
+
+func (m MonthlyModel) UpdateData(updatedData *data.DataRoot) MonthlyModel {
+	m.Data = updatedData
+	return m.ResetFocus()
+}

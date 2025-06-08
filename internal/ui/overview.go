@@ -27,7 +27,7 @@ type MonthlyModel struct {
 	MonthYear
 	WindowSize
 
-	level                focusLevel
+	Level                focusLevel
 	focusedGroupIndex    int
 	focusedCategoryIndex int
 }
@@ -57,7 +57,12 @@ func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Height = msg.Height
 
 	case tea.KeyMsg:
-		switch m.level {
+		// Handle populate command at any level - only if current month has no categories
+		if msg.String() == "p" && m.currentMonthHasNoCategories() {
+			return m.handlePopulateCategories()
+		}
+
+		switch m.Level {
 
 		case focusLevelGroups:
 			return m.handleGroupNavigation(msg)
@@ -156,11 +161,16 @@ func (m MonthlyModel) getFooter(totalExpenses, balance decimal.Decimal, defaultC
 		PaddingTop(1)
 
 	var keyHints string
-	switch m.level {
+	populateHint := ""
+	if m.currentMonthHasNoCategories() {
+		populateHint = " | p: Populate"
+	}
+	
+	switch m.Level {
 	case focusLevelGroups:
-		keyHints = "j/k: Nav | Ent: Select | i: Income | c: Categories | g: Groups | h/l: Month"
+		keyHints = "j/k: Nav | Ent: Select" + populateHint + " | i: Income | c: Categories | g: Groups | h/l: Month"
 	case focusLevelCategories:
-		keyHints = "j/k: Nav | Ent: Select | Esc: Back | i: Income | c: Categories | g: Groups | h/l: Month"
+		keyHints = "j/k: Nav | Ent: Select | Esc: Back" + populateHint + " | i: Income | c: Categories | g: Groups | h/l: Month"
 	}
 	totalExpensesStr := fmt.Sprintf("Total Expenses: %s %s", totalExpenses.String(), defaultCurrency)
 
@@ -207,10 +217,10 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 		groupStyle := NormalListItem
 		groupPrefix := "  "
 
-		if m.level == focusLevelGroups && groupIdx == m.focusedGroupIndex {
+		if m.Level == focusLevelGroups && groupIdx == m.focusedGroupIndex {
 			groupStyle = FocusedListItem
 			groupPrefix = "> "
-		} else if m.level == focusLevelCategories && groupIdx == m.focusedGroupIndex {
+		} else if m.Level == focusLevelCategories && groupIdx == m.focusedGroupIndex {
 			groupStyle = HeaderText.Bold(false).Foreground(lipgloss.Color("220"))
 			groupPrefix = ">> "
 		}
@@ -227,7 +237,7 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 		expenseSectionContent = append(expenseSectionContent, groupHeader)
 
 		// Display categories within this group if we're in category navigation mode and this is the focused group
-		if m.level == focusLevelCategories && groupIdx == m.focusedGroupIndex {
+		if m.Level == focusLevelCategories && groupIdx == m.focusedGroupIndex {
 			categories := categoriesByGroup[group.GroupID]
 			for catIdx, category := range categories {
 				catStyle := NormalListItem
@@ -335,7 +345,7 @@ func (m MonthlyModel) handleGroupNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd)
 					}
 
 					if categoryCount > 0 {
-						m.level = focusLevelCategories
+						m.Level = focusLevelCategories
 						m.focusedCategoryIndex = 0
 					}
 				}
@@ -394,11 +404,39 @@ func (m MonthlyModel) handleCategoryNavigation(msg tea.KeyMsg) (tea.Model, tea.C
 		}
 	case "esc":
 		// Go back to group navigation
-		m.level = focusLevelGroups
+		m.Level = focusLevelGroups
 		m.focusedCategoryIndex = 0
 
 	}
 	return m, nil
+}
+
+func (m MonthlyModel) handlePopulateCategories() (tea.Model, tea.Cmd) {
+	currentMonthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
+	prevMonth, prevYear := m.getPreviousMonth()
+	prevMonthKey := GetMonthKey(prevMonth, prevYear)
+	
+	return m, func() tea.Msg {
+		return PopulateCategoriesMsg{
+			CurrentMonthKey:  currentMonthKey,
+			PreviousMonthKey: prevMonthKey,
+		}
+	}
+}
+
+func (m MonthlyModel) currentMonthHasNoCategories() bool {
+	currentMonthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
+	if record, exists := m.Data.MonthlyData[currentMonthKey]; exists {
+		return len(record.Categories) == 0
+	}
+	return true // No record means no categories
+}
+
+func (m MonthlyModel) getPreviousMonth() (time.Month, int) {
+	if m.CurrentMonth == time.January {
+		return time.December, m.CurrentYear - 1
+	}
+	return m.CurrentMonth - 1, m.CurrentYear
 }
 
 func (m MonthlyModel) SetMonthYear(month time.Month, year int) MonthlyModel {
@@ -406,7 +444,7 @@ func (m MonthlyModel) SetMonthYear(month time.Month, year int) MonthlyModel {
 	m.CurrentYear = year
 
 	// Reset focus when month changes, back to group navigation
-	m.level = focusLevelGroups
+	m.Level = focusLevelGroups
 	if len(m.Data.CategoryGroups) > 0 {
 		m.focusedGroupIndex = 0
 	} else {
@@ -416,3 +454,15 @@ func (m MonthlyModel) SetMonthYear(month time.Month, year int) MonthlyModel {
 
 	return m
 }
+
+func (m MonthlyModel) ResetFocus() MonthlyModel {
+	m.Level = focusLevelGroups
+	if len(m.Data.CategoryGroups) > 0 {
+		m.focusedGroupIndex = 0
+	} else {
+		m.focusedGroupIndex = -1
+	}
+	m.focusedCategoryIndex = 0
+	return m
+}
+

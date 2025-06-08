@@ -74,6 +74,11 @@ type CategoryDeleteMsg struct {
 	Category data.Category
 }
 
+type CategoryDeleteMove struct {
+	MonthKey string
+	Category data.Category
+}
+
 type IncomeViewMsg struct{}
 
 type AddIncomeFormMsg struct {

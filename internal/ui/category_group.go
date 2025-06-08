@@ -67,7 +67,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case "enter":
 				groupName := strings.TrimSpace(m.editInput.Value())
-				if groupName != "" {
+				if groupName != ""  {
 					if m.editingIndex == -1 {
 						newGroupId := GenerateID()
 
@@ -177,10 +177,11 @@ func (m CategoryGroupModel) View() string {
 
 	var b strings.Builder
 
-	b.WriteString(HeaderText.Render("Manage Category Groups"))
+	title := "Manage Category Groups"
 	if m.addCategory {
-		b.WriteString(HeaderText.Render("Select group"))
+		title = "Select group"
 	}
+	b.WriteString(HeaderText.Render(title))
 	b.WriteString("\n\n")
 
 	if m.isEditingName {
@@ -245,5 +246,10 @@ func (m CategoryGroupModel) blurInput() tea.Model {
 	m.isEditingName = false
 	m.editInput.Blur()
 	m.editingIndex = -1
+	return m
+}
+
+func (m CategoryGroupModel) AddCategory() CategoryGroupModel {
+	m.addCategory = true
 	return m
 }

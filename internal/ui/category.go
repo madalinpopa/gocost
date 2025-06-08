@@ -79,5 +79,8 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m CategoryModel) View() string {
 	var b strings.Builder
 
+	b.WriteString(HeaderText.Render("Manage Expense Categories"))
+	b.WriteString("\n\n")
+
 	return b.String()
 }

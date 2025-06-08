@@ -19,10 +19,10 @@ type CategoryModel struct {
 	cursor     int
 	categories []data.Category
 
-	addCategory   bool               // When adding a new category
-	moveCategory  bool               // When moving a category to a new group
-	selectedGroup data.CategoryGroup // Selected group
-	movingCategory data.Category     // Category being moved
+	addCategory    bool               // When adding a new category
+	moveCategory   bool               // When moving a category to a new group
+	selectedGroup  data.CategoryGroup // Selected group
+	movingCategory data.Category      // Category being moved
 
 	isEditingName bool
 	editInput     textinput.Model
@@ -223,7 +223,7 @@ func (m CategoryModel) View() string {
 			b.WriteString(MutedText.Render(fmt.Sprintf("Select a new group for category '%s'", m.movingCategory.CategoryName)))
 			b.WriteString("\n\n")
 		}
-		
+
 		if len(m.categories) == 0 {
 			b.WriteString(MutedText.Render("No category defined yet."))
 		} else {
@@ -232,7 +232,7 @@ func (m CategoryModel) View() string {
 				prefix := " "
 				if i == m.cursor {
 					style = FocusedListItem
-					prefix = "> "
+					prefix = ">"
 				}
 
 				// Highlight the category being moved
@@ -273,12 +273,12 @@ func (m CategoryModel) AddCategory(group data.CategoryGroup) (CategoryModel, tea
 func (m CategoryModel) MoveCategory(group data.CategoryGroup) (CategoryModel, tea.Cmd) {
 	m.moveCategory = true
 	m.selectedGroup = group
-	
+
 	// Update the moving category's group ID
 	m.movingCategory.GroupID = group.GroupID
-	
+
 	m.moveCategory = false
-	
+
 	return m, func() tea.Msg {
 		return CategoryUpdateMsg{MonthKey: m.MonthKey, Category: m.movingCategory}
 	}
@@ -314,9 +314,9 @@ func (m CategoryModel) UpdateData(updatedData *data.DataRoot) CategoryModel {
 	} else {
 		m.cursor = 0
 	}
-	
+
 	// Reset move state when data is updated
 	m = m.ResetMoveState()
-	
+
 	return m
 }

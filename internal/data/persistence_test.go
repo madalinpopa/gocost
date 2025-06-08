@@ -9,9 +9,7 @@ import (
 )
 
 // mockDataRoot is a helper for test data
-var mockDataRoot = &DataRoot{
-	// Fill with representative fields if needed
-}
+var mockDataRoot = &DataRoot{}
 
 func writeTempFile(t *testing.T, content []byte) string {
 	t.Helper()
@@ -24,8 +22,9 @@ func writeTempFile(t *testing.T, content []byte) string {
 }
 
 func TestLoadData_FileDoesNotExist(t *testing.T) {
+	currency := "USD"
 	nonExistent := filepath.Join(t.TempDir(), "doesnotexist.json")
-	data, err := LoadData(nonExistent)
+	data, err := LoadData(nonExistent, currency)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -35,8 +34,9 @@ func TestLoadData_FileDoesNotExist(t *testing.T) {
 }
 
 func TestLoadData_EmptyFile(t *testing.T) {
+	currency := "USD"
 	tmpFile := writeTempFile(t, []byte{})
-	data, err := LoadData(tmpFile)
+	data, err := LoadData(tmpFile, currency)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -46,13 +46,14 @@ func TestLoadData_EmptyFile(t *testing.T) {
 }
 
 func TestLoadData_ValidJSON(t *testing.T) {
+	currency := "USD"
 	// Prepare a valid DataRoot JSON
 	jsonBytes, err := json.Marshal(mockDataRoot)
 	if err != nil {
 		t.Fatalf("failed to marshal mock data: %v", err)
 	}
 	tmpFile := writeTempFile(t, jsonBytes)
-	data, err := LoadData(tmpFile)
+	data, err := LoadData(tmpFile, currency)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -62,8 +63,9 @@ func TestLoadData_ValidJSON(t *testing.T) {
 }
 
 func TestLoadData_InvalidJSON(t *testing.T) {
+	currency := "USD"
 	tmpFile := writeTempFile(t, []byte("{invalid json"))
-	_, err := LoadData(tmpFile)
+	_, err := LoadData(tmpFile, currency)
 	if err == nil {
 		t.Fatalf("expected error for invalid JSON, got nil")
 	}

@@ -190,8 +190,9 @@ func (m App) handleSaveIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]
 		if !ok {
 			monthRecord = data.MonthlyRecord{
-				Incomes:  make([]data.IncomeRecord, 0),
-				Expenses: make([]data.ExpenseRecord, 0),
+				Incomes:    make([]data.IncomeRecord, 0),
+				Expenses:   make([]data.ExpenseRecord, 0),
+				Categories: make([]data.Category, 0),
 			}
 		}
 

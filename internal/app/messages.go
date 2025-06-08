@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"slices"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/madalinpopa/gocost/internal/data"
@@ -71,7 +70,7 @@ func (m App) handleMonthlyViewMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m App) handleGroupAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(ui.GroupAddMsg); ok {
 
-		m.Data.CategoryGroups = append(m.Data.CategoryGroups, msg.Group)
+		m.Data.CategoryGroups[msg.Group.GroupID] = msg.Group
 
 		if err := data.SaveData(m.FilePath, m.Data); err != nil {
 			return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
@@ -88,27 +87,18 @@ func (m App) handleGroupAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(ui.GroupDeleteMsg); ok {
 		canDelete := true
-		groupIndexToDelete := -1
-		var groupName string
-
-		for i, group := range m.Data.CategoryGroups {
-			if group.GroupID == msg.GroupID {
-				groupIndexToDelete = i
-				groupName = group.GroupName
-				break
-			}
-		}
 
 		if !canDelete {
 			if m.CategoryGroupModel != nil {
 				updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
 				m.CategoryGroupModel = &updatedModel
 			}
-			return m.SetErrorStatus(fmt.Sprintf("Cannot delete group '%s': contains categories", groupName))
+			return m.SetErrorStatus(fmt.Sprintf("Cannot delete group '%s': contains categories", msg.Group.GroupName))
 		}
 
-		if canDelete && groupIndexToDelete != -1 {
-			m.Data.CategoryGroups = slices.Delete(m.Data.CategoryGroups, groupIndexToDelete, groupIndexToDelete+1)
+		if canDelete {
+			delete(m.Data.CategoryGroups, msg.Group.GroupID)
+
 			if err := data.SaveData(m.FilePath, m.Data); err != nil {
 				if m.CategoryGroupModel != nil {
 					updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
@@ -120,7 +110,7 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 					updatedModel := m.CategoryGroupModel.UpdateData(m.Data)
 					m.CategoryGroupModel = &updatedModel
 				}
-				return m.SetSuccessStatus(fmt.Sprintf("Group '%s' deleted successfully", groupName))
+				return m.SetSuccessStatus(fmt.Sprintf("Group '%s' deleted successfully", msg.Group.GroupName))
 			}
 		}
 
@@ -241,7 +231,7 @@ func (m App) handleSaveIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m App) handleEditIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if msg, ok := msg.(ui.EditIncomeMsg); ok {
-		m.IncomeFormModel = ui.NewIncomeFormModel(m.CurrentMonth, m.CurrentYear, &msg.IncomeRecord)
+		m.IncomeFormModel = ui.NewIncomeFormModel(m.CurrentMonth, m.CurrentYear, &msg.Income)
 		m.activeView = viewIncomeForm
 	}
 	return m, nil
@@ -256,7 +246,7 @@ func (m App) handleDeleteIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			var updatedIncomes []data.IncomeRecord
 			for _, income := range monthRecord.Incomes {
-				if income.IncomeID != msg.IncomeRecord.IncomeID {
+				if income.IncomeID != msg.Income.IncomeID {
 					updatedIncomes = append(updatedIncomes, income)
 				}
 			}

@@ -9,7 +9,7 @@ type IncomeRecord struct {
 
 // ExpenseRecord represents an expense record
 type ExpenseRecord struct {
-	Budget string  `json:"budget"`
+	Budget float64 `json:"budget"`
 	Amount float64 `json:"amount"`
 	Status string  `json:"status"`
 	Notes  string  `json:"notes"`

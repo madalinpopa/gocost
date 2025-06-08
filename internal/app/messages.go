@@ -8,6 +8,43 @@ import (
 	"github.com/madalinpopa/gocost/internal/ui"
 )
 
+func (m App) handlePopulateCategoriesMsg(msg ui.PopulateCategoriesMsg) (App, tea.Cmd) {
+	prevRecord, exists := m.Data.MonthlyData[msg.PreviousMonthKey]
+	if !exists || len(prevRecord.Categories) == 0 {
+		// No categories found in previous month
+		return m.SetErrorStatus("No categories found in previous month")
+	}
+
+	var newCategories []data.Category
+	for _, category := range prevRecord.Categories {
+		newCategory := data.Category{
+			CatID:        category.CatID,
+			GroupID:      category.GroupID,
+			CategoryName: category.CategoryName,
+			Expense:      make(map[string]data.ExpenseRecord), // Reset expenses
+		}
+		newCategories = append(newCategories, newCategory)
+	}
+
+	// Create or update current month record
+	currentRecord := data.MonthlyRecord{
+		Incomes:    []data.IncomeRecord{}, // Start with empty incomes
+		Categories: newCategories,
+	}
+
+	// If current month record exists, preserve incomes
+	if existingRecord, exists := m.Data.MonthlyData[msg.CurrentMonthKey]; exists {
+		currentRecord.Incomes = existingRecord.Incomes
+	}
+
+	m.Data.MonthlyData[msg.CurrentMonthKey] = currentRecord
+
+	// Reset focus to first group in monthly model
+	m.MonthlyModel = m.MonthlyModel.ResetFocus()
+
+	return m.SetSuccessStatus("Categories populated from previous month")
+}
+
 // handleModelsWindowResize updates the width and height within views
 func (m App) handleModelsWindowResize(msg tea.Msg) (tea.Model, []tea.Cmd) {
 	var cmds []tea.Cmd
@@ -35,6 +72,12 @@ func (m App) handleModelsWindowResize(msg tea.Msg) (tea.Model, []tea.Cmd) {
 		m.CategoryModel = cgMo
 	}
 	cmds = append(cmds, cgCmd)
+
+	updatedExpenseModel, expCmd := m.ExpenseModel.Update(msg)
+	if expMo, ok := updatedExpenseModel.(ui.ExpenseModel); ok {
+		m.ExpenseModel = expMo
+	}
+	cmds = append(cmds, expCmd)
 
 	return m, cmds
 }

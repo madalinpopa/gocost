@@ -32,6 +32,7 @@ type AppViews struct {
 	CategoryModel      CategoryModel
 	IncomeModel        IncomeModel
 	IncomeFormModel    IncomeFormModel
+	ExpenseModel       ExpenseModel
 }
 
 type ViewErrorMsg struct {

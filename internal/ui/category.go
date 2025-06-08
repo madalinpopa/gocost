@@ -241,10 +241,3 @@ func (m CategoryModel) focusInput() (tea.Model, tea.Cmd) {
 	m.editInput.Focus()
 	return m, textinput.Blink
 }
-
-// func (m CategoryModel) blurInput() tea.Model {
-// 	m.isEditingName = false
-// 	m.editInput.Blur()
-// 	m.editingIndex = -1
-// 	return m
-// }

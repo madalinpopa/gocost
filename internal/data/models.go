@@ -39,14 +39,14 @@ type ExpenseRecord struct {
 // DataRoot represents the root data structure
 type DataRoot struct {
 	DefaultCurrency string                   `json:"defaultCurrency"`
-	CategoryGroups  []CategoryGroup          `json:"CategoryGroups"`
+	CategoryGroups  map[string]CategoryGroup `json:"CategoryGroups"`
 	MonthlyData     map[string]MonthlyRecord `json:"monthlyData"`
 }
 
 // NewDataRoot creates a new instance of DataRoot
 func NewDataRoot() *DataRoot {
 	return &DataRoot{
-		CategoryGroups: make([]CategoryGroup, 0),
-		MonthlyData:    make(map[string]MonthlyRecord),
+		CategoryGroups: make(map[string]CategoryGroup, 0),
+		MonthlyData:    make(map[string]MonthlyRecord, 0),
 	}
 }

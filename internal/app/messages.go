@@ -230,7 +230,15 @@ func (m App) handleSelectGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m App) handleSelectedGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	if msg, ok := msg.(ui.SelectedGroupMsg); ok {
-		m.CategoryModel, cmd = m.CategoryModel.AddCategory(msg.Group)
+		// Check if we're moving a category or adding a new one
+		if m.CategoryModel.IsMovingCategory() {
+			// Moving an existing category
+			m.CategoryModel, cmd = m.CategoryModel.MoveCategory(msg.Group)
+			m.CategoryModel = m.CategoryModel.ResetMoveState()
+		} else {
+			// Adding a new category
+			m.CategoryModel, cmd = m.CategoryModel.AddCategory(msg.Group)
+		}
 		m.activeView = viewCategory
 	}
 	return m, cmd

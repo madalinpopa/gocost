@@ -119,6 +119,7 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if categoryName != "" {
 					updatedCategory := m.categories[m.editingIndex]
 					updatedCategory.CategoryName = categoryName
+
 					m.isEditingName = false
 					m.editInput.Blur()
 					return m, func() tea.Msg {

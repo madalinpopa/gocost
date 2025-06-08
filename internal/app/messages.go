@@ -270,11 +270,23 @@ func (m App) handleSelectGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if _, ok := msg.(ui.SelectGroupMsg); ok {
 
 		if m.CategoryGroupModel != nil {
-			updatedCategoryGroup := m.CategoryGroupModel.AddCategory()
+			updatedCategoryGroup := m.CategoryGroupModel.SelectGroup()
 			m.CategoryGroupModel = &updatedCategoryGroup
 			m.activeView = viewCategoryGroup
 		}
 
+	}
+	return m, nil
+}
+
+func (m App) handleSelectedGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if msg, ok := msg.(ui.SelectedGroupMsg); ok {
+
+		if m.CategoryModel != nil {
+			updatedCategoryModel := m.CategoryModel.AddCategory(msg.Group)
+			m.CategoryModel = &updatedCategoryModel
+			m.activeView = viewCategory
+		}
 	}
 	return m, nil
 }

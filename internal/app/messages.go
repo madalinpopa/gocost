@@ -62,7 +62,6 @@ func (m App) handleMonthlyViewMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		updatedModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 		m.MonthlyModel = &updatedModel
 	}
-	fmt.Println(msg)
 	return m, nil
 }
 

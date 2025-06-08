@@ -16,21 +16,23 @@ type CategoryGroupModel struct {
 	cursor int
 	groups []data.CategoryGroup
 
+	addCategory   bool
 	isEditingName bool            // True if currently editing a group name or adding new one
 	editInput     textinput.Model // Text input for the group name
 	editingIndex  int             // Index of the group being edited, -1 for new group
 }
 
-func NewCategoryGroupModel(data *data.DataRoot) *CategoryGroupModel {
+func NewCategoryGroupModel(initialData *data.DataRoot) *CategoryGroupModel {
 	ti := textinput.New()
 	ti.Placeholder = "Group Name"
 	ti.CharLimit = 30
 	ti.Width = 30
+
 	return &CategoryGroupModel{
 		AppData: AppData{
-			Data: data,
+			Data: initialData,
 		},
-		groups:       data.CategoryGroups,
+		groups:       initialData.CategoryGroups,
 		editInput:    ti,
 		editingIndex: -1,
 	}
@@ -156,6 +158,9 @@ func (m CategoryGroupModel) View() string {
 	var b strings.Builder
 
 	b.WriteString(HeaderText.Render("Manage Category Groups"))
+	if m.addCategory {
+		b.WriteString(HeaderText.Render("Select group"))
+	}
 	b.WriteString("\n\n")
 
 	if m.isEditingName {
@@ -180,6 +185,9 @@ func (m CategoryGroupModel) View() string {
 		}
 		b.WriteString("\n\n")
 		keyHints := "(j/k: Nav, a/n: Add, e: Edit, d: Delete, Esc/q: Back)"
+		if m.addCategory {
+			keyHints = "(j/k: Nav, Enter: Select, Esc/q: Back)"
+		}
 		b.WriteString(MutedText.Render(keyHints))
 	}
 

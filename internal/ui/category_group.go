@@ -59,9 +59,8 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if m.editingIndex == -1 {
 						newGroupId := GenerateID()
 						newGroup := data.CategoryGroup{
-							GroupID:    newGroupId,
-							GroupName:  groupName,
-							Categories: make([]data.Category, 0),
+							GroupID:   newGroupId,
+							GroupName: groupName,
 						}
 						return m.blurInput(), func() tea.Msg {
 							return GroupAddMsg{Group: newGroup}
@@ -145,19 +144,6 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			}
-
-		case "enter": // Manage categories for selected group
-			if len(m.groups) > 0 {
-				if m.cursor >= 0 && m.cursor < len(m.groups) {
-					selectedGroup := m.groups[m.cursor]
-					return m, func() tea.Msg {
-						return GroupManageCategoriesMsg{
-							Group: selectedGroup,
-						}
-					}
-				}
-			}
-
 		}
 		return m, nil
 	}
@@ -187,14 +173,13 @@ func (m CategoryGroupModel) View() string {
 					style = FocusedListItem
 					prefix = "> "
 				}
-				totalCategories := len(item.Categories)
-				line := fmt.Sprintf("%s%s (ID: %s, Categories: %d)", prefix, item.GroupName, item.GroupID, totalCategories)
+				line := fmt.Sprintf("%s%s (ID: %s)", prefix, item.GroupName, item.GroupID)
 				b.WriteString(style.Render(line))
 				b.WriteString("\n")
 			}
 		}
 		b.WriteString("\n\n")
-		keyHints := "(j/k: Nav, a/n: Add, e: Edit, d: Delete, Enter: Manage Cat, Esc/q: Back)"
+		keyHints := "(j/k: Nav, a/n: Add, e: Edit, d: Delete, Esc/q: Back)"
 		b.WriteString(MutedText.Render(keyHints))
 	}
 

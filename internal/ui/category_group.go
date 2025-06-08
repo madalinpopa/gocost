@@ -24,7 +24,7 @@ type CategoryGroupModel struct {
 	editingIndex  int             // Index of the group being edited, -1 for new group
 }
 
-func NewCategoryGroupModel(initialData *data.DataRoot) *CategoryGroupModel {
+func NewCategoryGroupModel(initialData *data.DataRoot) CategoryGroupModel {
 	ti := textinput.New()
 	ti.Placeholder = "Group Name"
 	ti.CharLimit = 30
@@ -39,7 +39,7 @@ func NewCategoryGroupModel(initialData *data.DataRoot) *CategoryGroupModel {
 		return groups[i].Order < groups[j].Order
 	})
 
-	return &CategoryGroupModel{
+	return CategoryGroupModel{
 		AppData: AppData{
 			Data: initialData,
 		},

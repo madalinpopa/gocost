@@ -65,10 +65,12 @@ type CategoryAddMsg struct {
 }
 
 type CategoryUpdateMsg struct {
+	MonthKey string
 	Category data.Category
 }
 
 type CategoryDeleteMsg struct {
+	MonthKey string
 	Category data.Category
 }
 

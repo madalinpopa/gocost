@@ -265,3 +265,24 @@ func (m App) handleDeleteIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	return m, nil
 }
+
+func (m App) handleSelectGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if _, ok := msg.(ui.SelectGroupMsg); ok {
+
+		if m.CategoryGroupModel != nil {
+			updatedCategoryGroup := m.CategoryGroupModel.AddCategory()
+			m.CategoryGroupModel = &updatedCategoryGroup
+			m.activeView = viewCategoryGroup
+		}
+
+	}
+	return m, nil
+}
+
+func (m App) handleCategoryUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if msg, ok := msg.(ui.CategoryUpdateMsg); ok {
+		_ = msg
+
+	}
+	return m, nil
+}

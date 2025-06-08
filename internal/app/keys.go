@@ -32,10 +32,10 @@ func (m App) handleMonthlyViewKeys(key string) (tea.Model, tea.Cmd) {
 
 	case "h":
 		m.CurrentYear, m.CurrentMonth = ui.GetPreviousMonth(m.CurrentYear, m.CurrentMonth)
-		if m.MonthlyModel != nil {
-			updatedModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
-			m.MonthlyModel = &updatedModel
-		}
+
+		updatedMonthlyModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+		m.MonthlyModel = updatedMonthlyModel
+
 		if m.IncomeModel != nil {
 			updatedModel := m.IncomeModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 			m.IncomeModel = &updatedModel
@@ -45,10 +45,10 @@ func (m App) handleMonthlyViewKeys(key string) (tea.Model, tea.Cmd) {
 
 	case "l":
 		m.CurrentYear, m.CurrentMonth = ui.GetNextMonth(m.CurrentYear, m.CurrentMonth)
-		if m.MonthlyModel != nil {
-			updatedModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
-			m.MonthlyModel = &updatedModel
-		}
+
+		updatedMonthlyModel := m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+		m.MonthlyModel = updatedMonthlyModel
+
 		if m.IncomeModel != nil {
 			updatedModel := m.IncomeModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 			m.IncomeModel = &updatedModel

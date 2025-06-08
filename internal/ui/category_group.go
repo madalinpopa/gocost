@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -32,6 +33,10 @@ func NewCategoryGroupModel(initialData *data.DataRoot) *CategoryGroupModel {
 	for _, value := range initialData.CategoryGroups {
 		groups = append(groups, value)
 	}
+
+	sort.Slice(groups, func(i, j int) bool {
+		return groups[i].Order < groups[j].Order
+	})
 
 	return &CategoryGroupModel{
 		AppData: AppData{
@@ -65,10 +70,20 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if groupName != "" {
 					if m.editingIndex == -1 {
 						newGroupId := GenerateID()
+
+						maxOrder := 0
+						for _, group := range m.groups {
+							if group.Order > maxOrder {
+								maxOrder = group.Order
+							}
+						}
+
 						newGroup := data.CategoryGroup{
 							GroupID:   newGroupId,
 							GroupName: groupName,
+							Order:     maxOrder + 1,
 						}
+
 						return m.blurInput(), func() tea.Msg {
 							return GroupAddMsg{Group: newGroup}
 						}
@@ -183,7 +198,7 @@ func (m CategoryGroupModel) View() string {
 					style = FocusedListItem
 					prefix = "> "
 				}
-				line := fmt.Sprintf("%s%s (ID: %s)", prefix, item.GroupName, item.GroupID)
+				line := fmt.Sprintf("%s %d. %s (ID: %s)", prefix, item.Order, item.GroupName, item.GroupID)
 				b.WriteString(style.Render(line))
 				b.WriteString("\n")
 			}
@@ -205,6 +220,11 @@ func (m CategoryGroupModel) UpdateData(updatedData *data.DataRoot) CategoryGroup
 	for _, value := range m.Data.CategoryGroups {
 		groups = append(groups, value)
 	}
+
+	sort.Slice(groups, func(i int, j int) bool {
+		return groups[i].Order < groups[j].Order
+	})
+
 	m.Data = updatedData
 	m.groups = groups
 	if m.cursor >= len(m.groups) && len(m.groups) > 0 {

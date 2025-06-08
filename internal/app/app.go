@@ -15,6 +15,7 @@ const (
 	viewIncome
 	viewIncomeForm
 	viewCategoryGroup
+	viewCategory
 )
 
 type App struct {
@@ -44,6 +45,7 @@ func New(initialData *data.DataRoot, dataFilePath string) App {
 		AppViews: ui.AppViews{
 			MonthlyModel:       ui.NewMonthlyModel(initialData, currentM, currentY),
 			IncomeModel:        ui.NewIncomeModel(initialData, currentM, currentY),
+			CategoryModel:      ui.NewCategoryModel(initialData, currentM, currentY),
 			CategoryGroupModel: ui.NewCategoryGroupModel(initialData),
 		},
 	}
@@ -66,6 +68,10 @@ func (m App) Init() tea.Cmd {
 			return m.CategoryGroupModel.Init()
 		}
 
+	case viewCategory:
+		if m.CategoryModel != nil {
+			return m.CategoryModel.Init()
+		}
 	}
 	return nil
 }
@@ -114,6 +120,15 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				updatedCategoryGroupModel, categoryCmd := m.CategoryGroupModel.Update(msg)
 				if cgMo, ok := updatedCategoryGroupModel.(ui.CategoryGroupModel); ok {
 					m.CategoryGroupModel = &cgMo
+				}
+				return m, categoryCmd
+			}
+
+		case viewCategory:
+			if m.CategoryModel != nil {
+				updatedCategoryModel, categoryCmd := m.CategoryModel.Update(msg)
+				if cgMo, ok := updatedCategoryModel.(ui.CategoryModel); ok {
+					m.CategoryModel = &cgMo
 				}
 				return m, categoryCmd
 			}
@@ -200,6 +215,14 @@ func (m App) View() string {
 		} else {
 			viewContent = "Category groups loading..."
 		}
+
+	case viewCategory:
+		if m.CategoryModel != nil {
+			viewContent = m.CategoryModel.View()
+		} else {
+			viewContent = "Category loading..."
+		}
+
 	default:
 		viewContent = "Error: View not found or not initialized"
 	}

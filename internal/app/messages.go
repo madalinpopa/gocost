@@ -297,3 +297,29 @@ func (m App) handleCategoryUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	return m, nil
 }
+
+func (m App) handleCategoryDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if msg, ok := msg.(ui.CategoryDeleteMsg); ok {
+		if monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]; ok {
+			var updatedCategories []data.Category
+
+			for _, category := range monthRecord.Categories {
+				if category.CatID != msg.Category.CatID {
+					updatedCategories = append(updatedCategories, category)
+				}
+			}
+
+			monthRecord.Categories = updatedCategories
+			m.Data.MonthlyData[msg.MonthKey] = monthRecord
+			m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
+
+			err := data.SaveData(m.FilePath, m.Data)
+			if err != nil {
+				return m.SetErrorStatus("Failed to delete category")
+			}
+			return m.SetSuccessStatus("Category was deleted")
+		}
+	}
+
+	return m, nil
+}

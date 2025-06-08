@@ -68,6 +68,10 @@ type CategoryUpdateMsg struct {
 	Category data.Category
 }
 
+type CategoryDeleteMsg struct {
+	Category data.Category
+}
+
 type IncomeViewMsg struct{}
 
 type AddIncomeFormMsg struct {

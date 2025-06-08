@@ -19,7 +19,8 @@ func main() {
 	}
 
 	dataFilePath := viper.GetString(config.DataFileField)
-	initialData, err := data.LoadData(dataFilePath)
+	defaultCurrency := viper.GetString(config.CurrencyField)
+	initialData, err := data.LoadData(dataFilePath, defaultCurrency)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error loading data from %s: %v", dataFilePath, err)
 		os.Exit(1)

@@ -157,11 +157,6 @@ func (m App) handleGroupUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// handleGroupManageCategoriesMsg handles the management of categories within a group.
-func (m App) handleGroupManageCategoriesMsg() (tea.Model, tea.Cmd) {
-	return m, nil
-}
-
 // handleAddIncomeFormMsg handles the display of the income form.
 func (m App) handleAddIncomeFormMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if _, ok := msg.(ui.AddIncomeFormMsg); ok {
@@ -181,6 +176,7 @@ func (m App) handleIncomeViewMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// handleSaveIncomeMsg handles the saving of income data.
 func (m App) handleSaveIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if msg, ok := msg.(ui.SaveIncomeMsg); ok {
@@ -228,6 +224,7 @@ func (m App) handleSaveIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// handleEditIncomeMsg handles the editing of income data.
 func (m App) handleEditIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if msg, ok := msg.(ui.EditIncomeMsg); ok {
@@ -237,6 +234,7 @@ func (m App) handleEditIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// handleDeleteIncomeMsg handles the deletion of income data.
 func (m App) handleDeleteIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if msg, ok := msg.(ui.DeleteIncomeMsg); ok {

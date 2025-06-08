@@ -3,20 +3,21 @@ package data
 // Category represents the monthly expenses category
 type Category struct {
 	CatID        string `json:"catId"`
+	GroupID      string `json:"groupId"`
 	CategoryName string `json:"categoryName"`
 }
 
 // CategoryGroup holds one or more categories
 type CategoryGroup struct {
-	GroupID    string     `json:"groupId"`
-	GroupName  string     `json:"groupName"`
-	Categories []Category `json:"categories"`
+	GroupID   string `json:"groupId"`
+	GroupName string `json:"groupName"`
 }
 
 // MonthlyRecord holds one or more income and expense records
 type MonthlyRecord struct {
-	Incomes  []IncomeRecord  `json:"incomes"`
-	Expenses []ExpenseRecord `json:"expenses"`
+	Incomes    []IncomeRecord  `json:"incomes"`
+	Expenses   []ExpenseRecord `json:"expenses"`
+	Categories []Category      `json:"categories"`
 }
 
 // IncomeRecord represents an income record

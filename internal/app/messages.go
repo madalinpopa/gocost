@@ -36,6 +36,14 @@ func (m App) handleModelsWindowResize(msg tea.Msg) (tea.Model, []tea.Cmd) {
 		}
 		cmds = append(cmds, cgCmd)
 	}
+
+	if m.CategoryModel != nil {
+		updatedCategoryModel, cgCmd := m.CategoryModel.Update(msg)
+		if cgMo, ok := updatedCategoryModel.(ui.CategoryModel); ok {
+			m.CategoryModel = &cgMo
+		}
+		cmds = append(cmds, cgCmd)
+	}
 	return m, cmds
 }
 

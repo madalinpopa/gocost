@@ -165,7 +165,7 @@ func (m MonthlyModel) getFooter(totalExpenses, balance decimal.Decimal, defaultC
 	if m.currentMonthHasNoCategories() {
 		populateHint = " | p: Populate"
 	}
-	
+
 	switch m.Level {
 	case focusLevelGroups:
 		keyHints = "j/k: Nav | Ent: Select" + populateHint + " | i: Income | c: Categories | g: Groups | h/l: Month"
@@ -413,9 +413,9 @@ func (m MonthlyModel) handleCategoryNavigation(msg tea.KeyMsg) (tea.Model, tea.C
 
 func (m MonthlyModel) handlePopulateCategories() (tea.Model, tea.Cmd) {
 	currentMonthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
-	prevMonth, prevYear := m.getPreviousMonth()
+	prevYear, prevMonth := GetPreviousMonth(m.CurrentYear, m.CurrentMonth)
 	prevMonthKey := GetMonthKey(prevMonth, prevYear)
-	
+
 	return m, func() tea.Msg {
 		return PopulateCategoriesMsg{
 			CurrentMonthKey:  currentMonthKey,
@@ -429,30 +429,13 @@ func (m MonthlyModel) currentMonthHasNoCategories() bool {
 	if record, exists := m.Data.MonthlyData[currentMonthKey]; exists {
 		return len(record.Categories) == 0
 	}
-	return true // No record means no categories
-}
-
-func (m MonthlyModel) getPreviousMonth() (time.Month, int) {
-	if m.CurrentMonth == time.January {
-		return time.December, m.CurrentYear - 1
-	}
-	return m.CurrentMonth - 1, m.CurrentYear
+	return true
 }
 
 func (m MonthlyModel) SetMonthYear(month time.Month, year int) MonthlyModel {
 	m.CurrentMonth = month
 	m.CurrentYear = year
-
-	// Reset focus when month changes, back to group navigation
-	m.Level = focusLevelGroups
-	if len(m.Data.CategoryGroups) > 0 {
-		m.focusedGroupIndex = 0
-	} else {
-		m.focusedGroupIndex = -1
-	}
-	m.focusedCategoryIndex = -1
-
-	return m
+	return m.ResetFocus()
 }
 
 func (m MonthlyModel) ResetFocus() MonthlyModel {
@@ -465,4 +448,3 @@ func (m MonthlyModel) ResetFocus() MonthlyModel {
 	m.focusedCategoryIndex = 0
 	return m
 }
-

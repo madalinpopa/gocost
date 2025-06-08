@@ -87,13 +87,6 @@ func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if group.GroupID == msg.GroupID {
 				groupIndexToDelete = i
 				groupName = group.GroupName
-
-				// Check if group has any category. If so, you need to delete first
-				// the category before deleting the group.
-				if len(group.Categories) > 0 {
-					canDelete = false
-					break
-				}
 				break
 			}
 		}

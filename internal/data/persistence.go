@@ -8,7 +8,7 @@ import (
 )
 
 // LoadData loads data from a file.
-func LoadData(filePath string) (*DataRoot, error) {
+func LoadData(filePath string, currency string) (*DataRoot, error) {
 
 	fileData, err := os.ReadFile(filePath)
 	if err != nil {
@@ -27,6 +27,16 @@ func LoadData(filePath string) (*DataRoot, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if dataRoot.CategoryGroups == nil {
+		dataRoot.CategoryGroups = make([]CategoryGroup, 0)
+	}
+
+	if dataRoot.MonthlyData == nil {
+		dataRoot.MonthlyData = make(map[string]MonthlyRecord, 0)
+	}
+
+	dataRoot.DefaultCurrency = currency
 
 	return &dataRoot, nil
 }

@@ -28,11 +28,16 @@ func NewCategoryGroupModel(initialData *data.DataRoot) *CategoryGroupModel {
 	ti.CharLimit = 30
 	ti.Width = 30
 
+	var groups []data.CategoryGroup
+	for _, value := range initialData.CategoryGroups {
+		groups = append(groups, value)
+	}
+
 	return &CategoryGroupModel{
 		AppData: AppData{
 			Data: initialData,
 		},
-		groups:       initialData.CategoryGroups,
+		groups:       groups,
 		editInput:    ti,
 		editingIndex: -1,
 	}
@@ -138,10 +143,10 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "d": // Delete selected category group
 			if len(m.groups) > 0 {
 				if m.cursor >= 0 && m.cursor < len(m.groups) {
-					groupIDToDelete := m.groups[m.cursor].GroupID
+					groupToDelete := m.groups[m.cursor]
 					return m, func() tea.Msg {
 						return GroupDeleteMsg{
-							GroupID: groupIDToDelete,
+							Group: groupToDelete,
 						}
 					}
 				}
@@ -195,9 +200,13 @@ func (m CategoryGroupModel) View() string {
 	return viewStr
 }
 
-func (m CategoryGroupModel) UpdateData(data *data.DataRoot) CategoryGroupModel {
-	m.Data = data
-	m.groups = data.CategoryGroups
+func (m CategoryGroupModel) UpdateData(updatedData *data.DataRoot) CategoryGroupModel {
+	var groups []data.CategoryGroup
+	for _, value := range m.Data.CategoryGroups {
+		groups = append(groups, value)
+	}
+	m.Data = updatedData
+	m.groups = groups
 	if m.cursor >= len(m.groups) && len(m.groups) > 0 {
 		m.cursor = len(m.groups) - 1
 	} else {

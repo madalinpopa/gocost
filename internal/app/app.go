@@ -58,18 +58,13 @@ func (m App) Init() tea.Cmd {
 		return m.MonthlyModel.Init()
 
 	case viewIncome:
-		if m.IncomeModel != nil {
-			return m.IncomeModel.Init()
-		}
+		return m.IncomeModel.Init()
+
 	case viewCategoryGroup:
-		if m.CategoryGroupModel != nil {
-			return m.CategoryGroupModel.Init()
-		}
+		return m.CategoryGroupModel.Init()
 
 	case viewCategory:
-		if m.CategoryModel != nil {
-			return m.CategoryModel.Init()
-		}
+		return m.CategoryModel.Init()
 	}
 	return nil
 }
@@ -83,9 +78,34 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch m.activeView {
 
 		case viewMonthlyOverview:
-			updatedModel, cmd := m.handleMonthlyViewKeys(msg.String())
-			if cmd != nil || updatedModel != m {
-				return updatedModel, cmd
+			switch msg.String() {
+
+			case "ctrl+c", "q":
+				return m, tea.Quit
+
+			case "i":
+				m.activeView = viewIncome
+				return m, m.IncomeModel.Init()
+
+			case "c":
+				m.activeView = viewCategory
+				return m, m.CategoryModel.Init()
+
+			case "g":
+				m.activeView = viewCategoryGroup
+				return m, m.CategoryGroupModel.Init()
+
+			case "h":
+				m.CurrentYear, m.CurrentMonth = ui.GetPreviousMonth(m.CurrentYear, m.CurrentMonth)
+				m.MonthlyModel = m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+				m.IncomeModel = m.IncomeModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+				return m, nil
+
+			case "l":
+				m.CurrentYear, m.CurrentMonth = ui.GetNextMonth(m.CurrentYear, m.CurrentMonth)
+				m.MonthlyModel = m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+				m.IncomeModel = m.IncomeModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+				return m, nil
 			}
 			updatedMonthlyModel, monthlyCmd := m.MonthlyModel.Update(msg)
 			if mo, ok := updatedMonthlyModel.(ui.MonthlyModel); ok {
@@ -94,40 +114,32 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, monthlyCmd
 
 		case viewIncome:
-			if m.IncomeModel != nil {
-				updatedIncomeModel, incomeCmd := m.IncomeModel.Update(msg)
-				if inMo, ok := updatedIncomeModel.(ui.IncomeModel); ok {
-					m.IncomeModel = &inMo
-				}
-				return m, incomeCmd
+			updatedIncomeModel, incomeCmd := m.IncomeModel.Update(msg)
+			if inMo, ok := updatedIncomeModel.(ui.IncomeModel); ok {
+				m.IncomeModel = inMo
 			}
+			return m, incomeCmd
 
 		case viewIncomeForm:
-			if m.IncomeFormModel != nil {
-				updatedIncomeModelForm, incomeCmd := m.IncomeFormModel.Update(msg)
-				if inFoMo, ok := updatedIncomeModelForm.(ui.IncomeFormModel); ok {
-					m.IncomeFormModel = &inFoMo
-				}
-				return m, incomeCmd
+			updatedIncomeModelForm, incomeCmd := m.IncomeFormModel.Update(msg)
+			if inFoMo, ok := updatedIncomeModelForm.(ui.IncomeFormModel); ok {
+				m.IncomeFormModel = inFoMo
 			}
+			return m, incomeCmd
 
 		case viewCategoryGroup:
-			if m.CategoryGroupModel != nil {
-				updatedCategoryGroupModel, categoryCmd := m.CategoryGroupModel.Update(msg)
-				if cgMo, ok := updatedCategoryGroupModel.(ui.CategoryGroupModel); ok {
-					m.CategoryGroupModel = &cgMo
-				}
-				return m, categoryCmd
+			updatedCategoryGroupModel, categoryCmd := m.CategoryGroupModel.Update(msg)
+			if cgMo, ok := updatedCategoryGroupModel.(ui.CategoryGroupModel); ok {
+				m.CategoryGroupModel = cgMo
 			}
+			return m, categoryCmd
 
 		case viewCategory:
-			if m.CategoryModel != nil {
-				updatedCategoryModel, categoryCmd := m.CategoryModel.Update(msg)
-				if cgMo, ok := updatedCategoryModel.(ui.CategoryModel); ok {
-					m.CategoryModel = &cgMo
-				}
-				return m, categoryCmd
+			updatedCategoryModel, categoryCmd := m.CategoryModel.Update(msg)
+			if cgMo, ok := updatedCategoryModel.(ui.CategoryModel); ok {
+				m.CategoryModel = cgMo
 			}
+			return m, categoryCmd
 		}
 
 	case tea.WindowSizeMsg:
@@ -197,32 +209,16 @@ func (m App) View() string {
 		viewContent = m.MonthlyModel.View()
 
 	case viewIncome:
-		if m.IncomeModel != nil {
-			viewContent = m.IncomeModel.View()
-		} else {
-			viewContent = "Income loading..."
-		}
+		viewContent = m.IncomeModel.View()
 
 	case viewIncomeForm:
-		if m.IncomeFormModel != nil {
-			viewContent = m.IncomeFormModel.View()
-		} else {
-			viewContent = "Income form loading.."
-		}
+		viewContent = m.IncomeFormModel.View()
 
 	case viewCategoryGroup:
-		if m.CategoryGroupModel != nil {
-			viewContent = m.CategoryGroupModel.View()
-		} else {
-			viewContent = "Category groups loading..."
-		}
+		viewContent = m.CategoryGroupModel.View()
 
 	case viewCategory:
-		if m.CategoryModel != nil {
-			viewContent = m.CategoryModel.View()
-		} else {
-			viewContent = "Category loading..."
-		}
+		viewContent = m.CategoryModel.View()
 
 	default:
 		viewContent = "Error: View not found or not initialized"

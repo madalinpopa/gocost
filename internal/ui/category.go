@@ -49,6 +49,7 @@ func NewCategoryModel(initialData *data.DataRoot, month time.Month, year int) Ca
 		AppData: AppData{
 			Data: initialData,
 		},
+		MonthKey:     monthKey,
 		categories:   categories,
 		editInput:    ti,
 		editingIndex: -1,

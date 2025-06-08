@@ -89,6 +89,7 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 
 					m.addCategory = false
+					m.editInput.SetValue("")
 					m.editInput.Blur()
 
 					return m, func() tea.Msg {

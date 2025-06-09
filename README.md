@@ -1,7 +1,11 @@
 # gocost
-## Go cost your life... before it costs you
 
-A simple TUI (Terminal User Interface) application to manage monthly expenses, built with Go and Bubble Tea.
+### Go cost your life... before it costs you
+
+`gocost` is a simple, fast, and keyboard-driven Terminal User Interface (TUI) application for managing your monthly expenses. Built with Go and the Bubble Tea framework, it provides a streamlined way to track where your money is going without ever leaving the terminal.
+
+![gocost demo](httpsst://raw.githubusercontent.com/madalinpopa/gocost/main/assets/demo.gif)
+
 
 ## Features
 

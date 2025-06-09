@@ -8,10 +8,10 @@ import (
 	"github.com/madalinpopa/gocost/internal/ui"
 )
 
+// handlePopulateCategoriesMsg copy categories from the previous month if exists
 func (m App) handlePopulateCategoriesMsg(msg ui.PopulateCategoriesMsg) (App, tea.Cmd) {
 	prevRecord, exists := m.Data.MonthlyData[msg.PreviousMonthKey]
 	if !exists || len(prevRecord.Categories) == 0 {
-		// No categories found in previous month
 		return m.SetErrorStatus("No categories found in previous month")
 	}
 
@@ -90,14 +90,15 @@ func (m App) handleViewErrorMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// handleExpenseViewMsg handles the display o expense form view
 func (m App) handleExpenseViewMsg(msg ui.ExpenseViewMsg) (tea.Model, tea.Cmd) {
 	m.activeView = viewExpense
 	m.ExpenseModel = ui.NewExpenseModel(m.Data, msg.Category, msg.MonthKey)
 	return m, m.ExpenseModel.Init()
 }
 
+// handleSaveExpenseMsg handles the saving of expense data
 func (m App) handleSaveExpenseMsg(msg ui.SaveExpenseMsg) (tea.Model, tea.Cmd) {
-	// Update the category's expense data
 	monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
 	if !exists {
 		monthRecord = data.MonthlyRecord{
@@ -119,7 +120,6 @@ func (m App) handleSaveExpenseMsg(msg ui.SaveExpenseMsg) (tea.Model, tea.Cmd) {
 
 	m.Data.MonthlyData[msg.MonthKey] = monthRecord
 
-	// Save data to file
 	if err := data.SaveData(m.FilePath, m.Data); err != nil {
 		return m.SetErrorStatus("Failed to save expense")
 	}
@@ -137,14 +137,15 @@ func (m App) handleSaveExpenseMsg(msg ui.SaveExpenseMsg) (tea.Model, tea.Cmd) {
 	return m.SetSuccessStatus("Expense saved successfully")
 }
 
+// handleEditExpenseMsg handles edit expense message
 func (m App) handleEditExpenseMsg(msg ui.EditExpenseMsg) (tea.Model, tea.Cmd) {
 	m.activeView = viewExpense
 	m.ExpenseModel = ui.NewExpenseModel(m.Data, msg.Category, msg.MonthKey)
 	return m, m.ExpenseModel.Init()
 }
 
+// handleDeleteExpenseMsg find and clear the expense from the category (reset to default values)
 func (m App) handleDeleteExpenseMsg(msg ui.DeleteExpenseMsg) (tea.Model, tea.Cmd) {
-	// Find and clear the expense from the category (reset to default values)
 	monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
 	if exists {
 		for i, category := range monthRecord.Categories {
@@ -165,7 +166,6 @@ func (m App) handleDeleteExpenseMsg(msg ui.DeleteExpenseMsg) (tea.Model, tea.Cmd
 		}
 		m.Data.MonthlyData[msg.MonthKey] = monthRecord
 
-		// Save data to file
 		if err := data.SaveData(m.FilePath, m.Data); err != nil {
 			return m.SetErrorStatus("Failed to clear expense")
 		}
@@ -307,7 +307,6 @@ func (m App) handleSaveIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.IncomeModel = ui.NewIncomeModel(m.Data, m.CurrentMonth, m.CurrentYear)
 		m.activeView = viewIncome
 
-		// save data to file
 		err := data.SaveData(m.FilePath, m.Data)
 		if err != nil {
 			return m.SetErrorStatus("Failed to save income")
@@ -357,6 +356,7 @@ func (m App) handleDeleteIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// handleSelectGroupMsg handles the selection of a category group.
 func (m App) handleSelectGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if _, ok := msg.(ui.SelectGroupMsg); ok {
 		m.CategoryGroupModel = m.CategoryGroupModel.SelectGroup()
@@ -365,6 +365,7 @@ func (m App) handleSelectGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// handleSelectedGroupMsg handles the selected category group and returns to Category view.
 func (m App) handleSelectedGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	if msg, ok := msg.(ui.SelectedGroupMsg); ok {
@@ -382,6 +383,7 @@ func (m App) handleSelectedGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+// handleCategoryAddMsg handles the addition of a new category.
 func (m App) handleCategoryAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(ui.CategoryAddMsg); ok {
 		monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
@@ -403,7 +405,7 @@ func (m App) handleCategoryAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Update model
 		m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
 		m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
-		
+
 		// Set focus to the newly added category
 		m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
 
@@ -413,6 +415,7 @@ func (m App) handleCategoryAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// handleCategoryUpdateMsg handles the update of a category.
 func (m App) handleCategoryUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(ui.CategoryUpdateMsg); ok {
 		monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
@@ -443,7 +446,7 @@ func (m App) handleCategoryUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Update model
 		m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
 		m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
-		
+
 		// Set focus to the updated category
 		m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
 
@@ -452,6 +455,7 @@ func (m App) handleCategoryUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// handleCategoryDeleteMsg handles the deletion of a category.
 func (m App) handleCategoryDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(ui.CategoryDeleteMsg); ok {
 		if monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]; ok {
@@ -467,7 +471,7 @@ func (m App) handleCategoryDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Data.MonthlyData[msg.MonthKey] = monthRecord
 			m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
 			m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
-			
+
 			// Reset focus since category was deleted
 			m.MonthlyModel = m.MonthlyModel.ResetFocus()
 

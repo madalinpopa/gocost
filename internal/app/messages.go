@@ -83,11 +83,8 @@ func (m App) handleModelsWindowResize(msg tea.Msg) (tea.Model, []tea.Cmd) {
 }
 
 // handleViewErrorMsg handles the display of error messages.
-func (m App) handleViewErrorMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(ui.ViewErrorMsg); ok {
-		return m.SetErrorStatus(msg.Text)
-	}
-	return m, nil
+func (m App) handleViewErrorMsg(msg ui.ViewErrorMsg) (tea.Model, tea.Cmd) {
+	return m.SetErrorStatus(msg.Text)
 }
 
 // handleExpenseViewMsg handles the display o expense form view
@@ -186,302 +183,271 @@ func (m App) handleDeleteExpenseMsg(msg ui.DeleteExpenseMsg) (tea.Model, tea.Cmd
 
 // handleMonthlyViewMsg switches the active view to the monthly overview and updates the MonthlyModel
 // with the current month and year, if it exists.
-func (m App) handleMonthlyViewMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if _, ok := msg.(ui.MonthlyViewMsg); ok {
-		m.MonthlyModel = m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
-		m.CategoryModel = m.CategoryModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
-		m.activeView = viewMonthlyOverview
-	}
+func (m App) handleMonthlyViewMsg(msg ui.MonthlyViewMsg) (tea.Model, tea.Cmd) {
+	m.MonthlyModel = m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+	m.CategoryModel = m.CategoryModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+	m.activeView = viewMonthlyOverview
 	return m, nil
 }
 
 // handleGroupAddMsg handles the addition of a new category group. It updates the data model,
-func (m App) handleGroupAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(ui.GroupAddMsg); ok {
+func (m App) handleGroupAddMsg(msg ui.GroupAddMsg) (tea.Model, tea.Cmd) {
 
-		m.Data.CategoryGroups[msg.Group.GroupID] = msg.Group
+	m.Data.CategoryGroups[msg.Group.GroupID] = msg.Group
 
-		if err := data.SaveData(m.FilePath, m.Data); err != nil {
-			return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
-		} else {
-			m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
-			return m.SetSuccessStatus(fmt.Sprintf("Group '%s' added successfully", msg.Group.GroupName))
-		}
+	if err := data.SaveData(m.FilePath, m.Data); err != nil {
+		return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
 	}
-	return m, nil
+	m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
+	return m.SetSuccessStatus(fmt.Sprintf("Group '%s' added successfully", msg.Group.GroupName))
 }
 
 // handleGroupDeleteMsg handles the deletion of a category group.
-func (m App) handleGroupDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(ui.GroupDeleteMsg); ok {
-		canDelete := true
+func (m App) handleGroupDeleteMsg(msg ui.GroupDeleteMsg) (tea.Model, tea.Cmd) {
+	canDelete := true
 
-		// TODO: Add category check for group
+	// TODO: Add category check for group
 
-		if !canDelete {
-			m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
-			return m.SetErrorStatus(fmt.Sprintf("Cannot delete group '%s': contains categories", msg.Group.GroupName))
+	if !canDelete {
+		m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
+		return m.SetErrorStatus(fmt.Sprintf("Cannot delete group '%s': contains categories", msg.Group.GroupName))
+	}
+
+	if canDelete {
+		delete(m.Data.CategoryGroups, msg.Group.GroupID)
+
+		if err := data.SaveData(m.FilePath, m.Data); err != nil {
+			return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
 		}
 
-		if canDelete {
-			delete(m.Data.CategoryGroups, msg.Group.GroupID)
-
-			if err := data.SaveData(m.FilePath, m.Data); err != nil {
-				return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
-			}
-			m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
-			return m.SetSuccessStatus(fmt.Sprintf("Group '%s' deleted successfully", msg.Group.GroupName))
-		}
+		m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
+		return m.SetSuccessStatus(fmt.Sprintf("Group '%s' deleted successfully", msg.Group.GroupName))
 	}
 	return m, nil
 }
 
 // handleGroupUpdateMsg handles the update of a category group.
-func (m App) handleGroupUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(ui.GroupUpdateMsg); ok {
-		groupId := msg.Group.GroupID
-		groupName := msg.Group.GroupName
+func (m App) handleGroupUpdateMsg(msg ui.GroupUpdateMsg) (tea.Model, tea.Cmd) {
+	groupId := msg.Group.GroupID
+	groupName := msg.Group.GroupName
 
-		_, existing := m.Data.CategoryGroups[groupId]
-		if !existing {
-			return m.SetErrorStatus(fmt.Sprintf("Failed to update group. Group not found: %s", groupName))
-		}
-
-		m.Data.CategoryGroups[groupId] = msg.Group
-
-		if err := data.SaveData(m.FilePath, m.Data); err != nil {
-			return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
-		}
-		m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
-		return m.SetSuccessStatus(fmt.Sprintf("Group '%s' updated successfully", groupName))
+	_, existing := m.Data.CategoryGroups[groupId]
+	if !existing {
+		return m.SetErrorStatus(fmt.Sprintf("Failed to update group. Group not found: %s", groupName))
 	}
-	return m, nil
+
+	m.Data.CategoryGroups[groupId] = msg.Group
+
+	if err := data.SaveData(m.FilePath, m.Data); err != nil {
+		return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
+	}
+	m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
+	return m.SetSuccessStatus(fmt.Sprintf("Group '%s' updated successfully", groupName))
 }
 
 // handleAddIncomeFormMsg handles the display of the income form.
-func (m App) handleAddIncomeFormMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if _, ok := msg.(ui.AddIncomeFormMsg); ok {
-		m.IncomeFormModel = ui.NewIncomeFormModel(m.CurrentMonth, m.CurrentYear, nil)
-		m.activeView = viewIncomeForm
-	}
+func (m App) handleAddIncomeFormMsg(msg ui.AddIncomeFormMsg) (tea.Model, tea.Cmd) {
+	m.IncomeFormModel = ui.NewIncomeFormModel(m.CurrentMonth, m.CurrentYear, nil)
+	m.activeView = viewIncomeForm
 	return m, nil
 }
 
 // handleIncomeViewMsg handles the display of income data.
-func (m App) handleIncomeViewMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if _, ok := msg.(ui.IncomeViewMsg); ok {
-		m.IncomeModel = ui.NewIncomeModel(m.Data, m.CurrentMonth, m.CurrentYear)
-		m.activeView = viewIncome
-	}
+func (m App) handleIncomeViewMsg(msg ui.IncomeViewMsg) (tea.Model, tea.Cmd) {
+	m.IncomeModel = ui.NewIncomeModel(m.Data, m.CurrentMonth, m.CurrentYear)
+	m.activeView = viewIncome
 	return m, nil
 }
 
 // handleSaveIncomeMsg handles the saving of income data.
-func (m App) handleSaveIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(ui.SaveIncomeMsg); ok {
+func (m App) handleSaveIncomeMsg(msg ui.SaveIncomeMsg) (tea.Model, tea.Cmd) {
 
-		// Get month record, if not exists, create a new one with the income record
-		monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]
-		if !ok {
-			monthRecord = data.MonthlyRecord{
-				Incomes:    make([]data.IncomeRecord, 0),
-				Categories: make([]data.Category, 0),
-			}
+	// Get month record, if not exists, create a new one with the income record
+	monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]
+	if !ok {
+		monthRecord = data.MonthlyRecord{
+			Incomes:    make([]data.IncomeRecord, 0),
+			Categories: make([]data.Category, 0),
 		}
-
-		// check if income exists
-		found := false
-		for i, income := range monthRecord.Incomes {
-			if income.IncomeID == msg.Income.IncomeID {
-				monthRecord.Incomes[i] = msg.Income
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			monthRecord.Incomes = append(monthRecord.Incomes, msg.Income)
-		}
-
-		m.Data.MonthlyData[msg.MonthKey] = monthRecord
-		m.IncomeModel = ui.NewIncomeModel(m.Data, m.CurrentMonth, m.CurrentYear)
-		m.activeView = viewIncome
-
-		err := data.SaveData(m.FilePath, m.Data)
-		if err != nil {
-			return m.SetErrorStatus("Failed to save income")
-		}
-		successMsg := "Income was added"
-		if found {
-			successMsg = "Income was updated"
-		}
-		return m.SetSuccessStatus(successMsg)
 	}
-	return m, nil
+
+	// check if income exists
+	found := false
+	for i, income := range monthRecord.Incomes {
+		if income.IncomeID == msg.Income.IncomeID {
+			monthRecord.Incomes[i] = msg.Income
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		monthRecord.Incomes = append(monthRecord.Incomes, msg.Income)
+	}
+
+	m.Data.MonthlyData[msg.MonthKey] = monthRecord
+	m.IncomeModel = ui.NewIncomeModel(m.Data, m.CurrentMonth, m.CurrentYear)
+	m.activeView = viewIncome
+
+	err := data.SaveData(m.FilePath, m.Data)
+	if err != nil {
+		return m.SetErrorStatus("Failed to save income")
+	}
+	successMsg := "Income was added"
+	if found {
+		successMsg = "Income was updated"
+	}
+	return m.SetSuccessStatus(successMsg)
 }
 
 // handleEditIncomeMsg handles the editing of income data.
-func (m App) handleEditIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(ui.EditIncomeMsg); ok {
-		m.IncomeFormModel = ui.NewIncomeFormModel(m.CurrentMonth, m.CurrentYear, &msg.Income)
-		m.activeView = viewIncomeForm
-	}
+func (m App) handleEditIncomeMsg(msg ui.EditIncomeMsg) (tea.Model, tea.Cmd) {
+	m.IncomeFormModel = ui.NewIncomeFormModel(m.CurrentMonth, m.CurrentYear, &msg.Income)
+	m.activeView = viewIncomeForm
 	return m, nil
 }
 
 // handleDeleteIncomeMsg handles the deletion of income data.
-func (m App) handleDeleteIncomeMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(ui.DeleteIncomeMsg); ok {
-		if monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]; ok {
-			var updatedIncomes []data.IncomeRecord
+func (m App) handleDeleteIncomeMsg(msg ui.DeleteIncomeMsg) (tea.Model, tea.Cmd) {
+	if monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]; ok {
+		var updatedIncomes []data.IncomeRecord
 
-			for _, income := range monthRecord.Incomes {
-				if income.IncomeID != msg.Income.IncomeID {
-					updatedIncomes = append(updatedIncomes, income)
-				}
+		for _, income := range monthRecord.Incomes {
+			if income.IncomeID != msg.Income.IncomeID {
+				updatedIncomes = append(updatedIncomes, income)
 			}
-
-			monthRecord.Incomes = updatedIncomes
-			m.Data.MonthlyData[msg.MonthKey] = monthRecord
-			m.IncomeModel = ui.NewIncomeModel(m.Data, m.CurrentMonth, m.CurrentYear)
-
-			err := data.SaveData(m.FilePath, m.Data)
-			if err != nil {
-				return m.SetErrorStatus("Failed to delete income")
-			}
-			return m.SetSuccessStatus("Income was deleted")
 		}
-	}
 
+		monthRecord.Incomes = updatedIncomes
+		m.Data.MonthlyData[msg.MonthKey] = monthRecord
+		m.IncomeModel = ui.NewIncomeModel(m.Data, m.CurrentMonth, m.CurrentYear)
+
+		err := data.SaveData(m.FilePath, m.Data)
+		if err != nil {
+			return m.SetErrorStatus("Failed to delete income")
+		}
+		return m.SetSuccessStatus("Income was deleted")
+	}
 	return m, nil
 }
 
 // handleSelectGroupMsg handles the selection of a category group.
-func (m App) handleSelectGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if _, ok := msg.(ui.SelectGroupMsg); ok {
-		m.CategoryGroupModel = m.CategoryGroupModel.SelectGroup()
-		m.activeView = viewCategoryGroup
-	}
+func (m App) handleSelectGroupMsg(msg ui.SelectGroupMsg) (tea.Model, tea.Cmd) {
+	m.CategoryGroupModel = m.CategoryGroupModel.SelectGroup()
+	m.activeView = viewCategoryGroup
 	return m, nil
 }
 
 // handleSelectedGroupMsg handles the selected category group and returns to Category view.
-func (m App) handleSelectedGroupMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m App) handleSelectedGroupMsg(msg ui.SelectedGroupMsg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-	if msg, ok := msg.(ui.SelectedGroupMsg); ok {
-		// Check if we're moving a category or adding a new one
-		if m.CategoryModel.IsMovingCategory() {
-			// Moving an existing category
-			m.CategoryModel, cmd = m.CategoryModel.MoveCategory(msg.Group)
-			m.CategoryModel = m.CategoryModel.ResetMoveState()
-		} else {
-			// Adding a new category
-			m.CategoryModel, cmd = m.CategoryModel.AddCategory(msg.Group)
-		}
-		m.activeView = viewCategory
+	if m.CategoryModel.IsMovingCategory() {
+		// Moving an existing category
+		m.CategoryModel, cmd = m.CategoryModel.MoveCategory(msg.Group)
+		m.CategoryModel = m.CategoryModel.ResetMoveState()
+	} else {
+		// Adding a new category
+		m.CategoryModel, cmd = m.CategoryModel.AddCategory(msg.Group)
 	}
+	m.activeView = viewCategory
 	return m, cmd
 }
 
 // handleCategoryAddMsg handles the addition of a new category.
-func (m App) handleCategoryAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(ui.CategoryAddMsg); ok {
-		monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
-		if !exists {
-			monthRecord = data.MonthlyRecord{
-				Incomes:    make([]data.IncomeRecord, 0),
-				Categories: make([]data.Category, 0),
-			}
+func (m App) handleCategoryAddMsg(msg ui.CategoryAddMsg) (tea.Model, tea.Cmd) {
+	monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
+	if !exists {
+		monthRecord = data.MonthlyRecord{
+			Incomes:    make([]data.IncomeRecord, 0),
+			Categories: make([]data.Category, 0),
 		}
-
-		monthRecord.Categories = append(monthRecord.Categories, msg.Category)
-
-		m.Data.MonthlyData[msg.MonthKey] = monthRecord
-
-		if err := data.SaveData(m.FilePath, m.Data); err != nil {
-			return m.SetErrorStatus("Failed to save category")
-		}
-
-		// Update model
-		m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
-		m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
-
-		// Set focus to the newly added category
-		m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
-
-		return m.SetSuccessStatus("Category name was saved")
 	}
 
-	return m, nil
+	monthRecord.Categories = append(monthRecord.Categories, msg.Category)
+
+	m.Data.MonthlyData[msg.MonthKey] = monthRecord
+
+	if err := data.SaveData(m.FilePath, m.Data); err != nil {
+		return m.SetErrorStatus("Failed to save category")
+	}
+
+	m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
+	m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
+
+	// Set focus to the newly added category
+	m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
+
+	return m.SetSuccessStatus("Category name was saved")
 }
 
 // handleCategoryUpdateMsg handles the update of a category.
-func (m App) handleCategoryUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(ui.CategoryUpdateMsg); ok {
-		monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
-		if !exists {
-			return m.SetErrorStatus("Failed to update category: month record not found")
-		}
-
-		// Find and update the category
-		found := false
-		for i, category := range monthRecord.Categories {
-			if category.CatID == msg.Category.CatID {
-				monthRecord.Categories[i] = msg.Category
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			return m.SetErrorStatus("Failed to update category: category not found")
-		}
-
-		m.Data.MonthlyData[msg.MonthKey] = monthRecord
-
-		if err := data.SaveData(m.FilePath, m.Data); err != nil {
-			return m.SetErrorStatus("Failed to save category")
-		}
-
-		// Update model
-		m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
-		m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
-
-		// Set focus to the updated category
-		m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
-
-		return m.SetSuccessStatus("Category was updated successfully")
+func (m App) handleCategoryUpdateMsg(msg ui.CategoryUpdateMsg) (tea.Model, tea.Cmd) {
+	monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
+	if !exists {
+		return m.SetErrorStatus("Failed to update category: month record not found")
 	}
-	return m, nil
+
+	// Find and update the category
+	found := false
+	for i, category := range monthRecord.Categories {
+		if category.CatID == msg.Category.CatID {
+			monthRecord.Categories[i] = msg.Category
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return m.SetErrorStatus("Failed to update category: category not found")
+	}
+
+	m.Data.MonthlyData[msg.MonthKey] = monthRecord
+
+	if err := data.SaveData(m.FilePath, m.Data); err != nil {
+		return m.SetErrorStatus("Failed to save category")
+	}
+
+	m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
+	m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
+
+	// Set focus to the updated category
+	m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
+
+	return m.SetSuccessStatus("Category was updated successfully")
 }
 
 // handleCategoryDeleteMsg handles the deletion of a category.
-func (m App) handleCategoryDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(ui.CategoryDeleteMsg); ok {
-		if monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]; ok {
-			var updatedCategories []data.Category
+func (m App) handleCategoryDeleteMsg(msg ui.CategoryDeleteMsg) (tea.Model, tea.Cmd) {
+	if monthRecord, ok := m.Data.MonthlyData[msg.MonthKey]; ok {
+		var updatedCategories []data.Category
 
-			for _, category := range monthRecord.Categories {
-				if category.CatID != msg.Category.CatID {
-					updatedCategories = append(updatedCategories, category)
-				}
+		for _, category := range monthRecord.Categories {
+			if category.CatID != msg.Category.CatID {
+				updatedCategories = append(updatedCategories, category)
 			}
-
-			monthRecord.Categories = updatedCategories
-			m.Data.MonthlyData[msg.MonthKey] = monthRecord
-			m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
-			m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
-
-			// Reset focus since category was deleted
-			m.MonthlyModel = m.MonthlyModel.ResetFocus()
-
-			err := data.SaveData(m.FilePath, m.Data)
-			if err != nil {
-				return m.SetErrorStatus("Failed to delete category")
-			}
-			return m.SetSuccessStatus("Category was deleted")
 		}
+
+		monthRecord.Categories = updatedCategories
+		m.Data.MonthlyData[msg.MonthKey] = monthRecord
+		m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
+		m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
+
+		// Reset focus since category was deleted
+		m.MonthlyModel = m.MonthlyModel.ResetFocus()
+
+		err := data.SaveData(m.FilePath, m.Data)
+		if err != nil {
+			return m.SetErrorStatus("Failed to delete category")
+		}
+		return m.SetSuccessStatus("Category was deleted")
 	}
 
+	return m, nil
+}
+
+// handleReturnToMonthlyWithFocusMsg handles the return to monthly view with focus on a specific category.
+func (m App) handleReturnToMonthlyWithFocusMsg(msg ui.ReturnToMonthlyWithFocusMsg) (tea.Model, tea.Cmd) {
+	m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
+	m.activeView = viewMonthlyOverview
 	return m, nil
 }

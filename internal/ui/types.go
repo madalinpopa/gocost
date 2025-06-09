@@ -127,3 +127,8 @@ type DeleteExpenseMsg struct {
 	MonthKey string
 	Category data.Category
 }
+
+// ReturnToMonthlyWithFocusMsg is sent when returning to monthly view with specific category focus
+type ReturnToMonthlyWithFocusMsg struct {
+	Category data.Category
+}

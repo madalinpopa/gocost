@@ -90,6 +90,100 @@ func (m App) handleViewErrorMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+func (m App) handleExpenseViewMsg(msg ui.ExpenseViewMsg) (tea.Model, tea.Cmd) {
+	m.activeView = viewExpense
+	m.ExpenseModel = ui.NewExpenseModel(m.Data, msg.Category, msg.MonthKey)
+	return m, m.ExpenseModel.Init()
+}
+
+func (m App) handleSaveExpenseMsg(msg ui.SaveExpenseMsg) (tea.Model, tea.Cmd) {
+	// Update the category's expense data
+	monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
+	if !exists {
+		monthRecord = data.MonthlyRecord{
+			Categories: []data.Category{},
+		}
+	}
+
+	// Find and update the category
+	for i, category := range monthRecord.Categories {
+		if category.CatID == msg.Category.CatID {
+			if category.Expense == nil {
+				category.Expense = make(map[string]data.ExpenseRecord)
+			}
+			category.Expense[category.CatID] = msg.Expense
+			monthRecord.Categories[i] = category
+			break
+		}
+	}
+
+	m.Data.MonthlyData[msg.MonthKey] = monthRecord
+
+	// Save data to file
+	if err := data.SaveData(m.FilePath, m.Data); err != nil {
+		return m.SetErrorStatus("Failed to save expense")
+	}
+
+	// Update models with new data
+	m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
+	m.IncomeModel = m.IncomeModel.UpdateData(m.Data)
+	m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
+
+	// Set focus to the category that was just updated
+	m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
+
+	// Return to monthly view
+	m.activeView = viewMonthlyOverview
+	return m.SetSuccessStatus("Expense saved successfully")
+}
+
+func (m App) handleEditExpenseMsg(msg ui.EditExpenseMsg) (tea.Model, tea.Cmd) {
+	m.activeView = viewExpense
+	m.ExpenseModel = ui.NewExpenseModel(m.Data, msg.Category, msg.MonthKey)
+	return m, m.ExpenseModel.Init()
+}
+
+func (m App) handleDeleteExpenseMsg(msg ui.DeleteExpenseMsg) (tea.Model, tea.Cmd) {
+	// Find and clear the expense from the category (reset to default values)
+	monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
+	if exists {
+		for i, category := range monthRecord.Categories {
+			if category.CatID == msg.Category.CatID {
+				// Instead of deleting, reset the expense to default values
+				if category.Expense == nil {
+					category.Expense = make(map[string]data.ExpenseRecord)
+				}
+				category.Expense[category.CatID] = data.ExpenseRecord{
+					Amount: 0,
+					Budget: 0,
+					Status: "Not Paid",
+					Notes:  "",
+				}
+				monthRecord.Categories[i] = category
+				break
+			}
+		}
+		m.Data.MonthlyData[msg.MonthKey] = monthRecord
+
+		// Save data to file
+		if err := data.SaveData(m.FilePath, m.Data); err != nil {
+			return m.SetErrorStatus("Failed to clear expense")
+		}
+	}
+
+	// Update models with new data
+	m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
+	m.IncomeModel = m.IncomeModel.UpdateData(m.Data)
+	m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
+
+	// Set focus to the category that was just cleared
+	m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
+
+	// Return to monthly view
+	m.activeView = viewMonthlyOverview
+	return m.SetSuccessStatus("Expense cleared successfully")
+}
+
 // handleMonthlyViewMsg switches the active view to the monthly overview and updates the MonthlyModel
 // with the current month and year, if it exists.
 func (m App) handleMonthlyViewMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -307,6 +401,10 @@ func (m App) handleCategoryAddMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Update model
 		m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
+		m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
+		
+		// Set focus to the newly added category
+		m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
 
 		return m.SetSuccessStatus("Category name was saved")
 	}
@@ -343,6 +441,10 @@ func (m App) handleCategoryUpdateMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Update model
 		m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
+		m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
+		
+		// Set focus to the updated category
+		m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
 
 		return m.SetSuccessStatus("Category was updated successfully")
 	}
@@ -364,6 +466,9 @@ func (m App) handleCategoryDeleteMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Data.MonthlyData[msg.MonthKey] = monthRecord
 			m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
 			m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
+			
+			// Reset focus since category was deleted
+			m.MonthlyModel = m.MonthlyModel.ResetFocus()
 
 			err := data.SaveData(m.FilePath, m.Data)
 			if err != nil {

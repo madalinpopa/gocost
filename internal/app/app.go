@@ -93,6 +93,7 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, m.IncomeModel.Init()
 
 			case "c":
+				m.CategoryModel = m.CategoryModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 				m.activeView = viewCategory
 				return m, m.CategoryModel.Init()
 
@@ -104,12 +105,14 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CurrentYear, m.CurrentMonth = ui.GetPreviousMonth(m.CurrentYear, m.CurrentMonth)
 				m.MonthlyModel = m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 				m.IncomeModel = m.IncomeModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+				m.CategoryModel = m.CategoryModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 				return m, nil
 
 			case "l":
 				m.CurrentYear, m.CurrentMonth = ui.GetNextMonth(m.CurrentYear, m.CurrentMonth)
 				m.MonthlyModel = m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 				m.IncomeModel = m.IncomeModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+				m.CategoryModel = m.CategoryModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 				return m, nil
 			}
 			updatedMonthlyModel, monthlyCmd := m.MonthlyModel.Update(msg)

@@ -21,6 +21,7 @@ type IncomeModel struct {
 	incomeEntries []data.IncomeRecord
 }
 
+// NewIncomeModel creates a new IncomeModel instance.
 func NewIncomeModel(initialData *data.DataRoot, month time.Month, year int) IncomeModel {
 	monthKey := GetMonthKey(month, year)
 	var incomeEntries []data.IncomeRecord
@@ -44,10 +45,12 @@ func NewIncomeModel(initialData *data.DataRoot, month time.Month, year int) Inco
 	}
 }
 
+// Init initializes the IncomeModel.
 func (m IncomeModel) Init() tea.Cmd {
 	return nil
 }
 
+// Update handles messages and updates the IncomeModel state.
 func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
@@ -112,6 +115,7 @@ func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View renders the IncomeModel.
 func (m IncomeModel) View() string {
 	var b strings.Builder
 
@@ -148,6 +152,7 @@ func (m IncomeModel) View() string {
 	return viewStr
 }
 
+// SetMonthYear updates the current month/year and loads corresponding income entries.
 func (m IncomeModel) SetMonthYear(month time.Month, year int) IncomeModel {
 
 	m.CurrentMonth = month
@@ -164,6 +169,7 @@ func (m IncomeModel) SetMonthYear(month time.Month, year int) IncomeModel {
 	return m
 }
 
+// UpdateData refreshes the model with new data and resets state.
 func (m IncomeModel) UpdateData(updatedData *data.DataRoot) IncomeModel {
 	m.Data = updatedData
 	

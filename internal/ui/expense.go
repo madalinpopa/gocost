@@ -42,6 +42,7 @@ type ExpenseModel struct {
 	hasExistingExpense bool
 }
 
+// NewExpenseModel creates a new ExpenseModel instance for managing expense data.
 func NewExpenseModel(initialData *data.DataRoot, category data.Category, monthKey string) ExpenseModel {
 
 	ai := textinput.New()
@@ -111,10 +112,12 @@ func NewExpenseModel(initialData *data.DataRoot, category data.Category, monthKe
 	return m
 }
 
+// Init initializes the ExpenseModel.
 func (m ExpenseModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
+// Update handles messages and updates the ExpenseModel state.
 func (m ExpenseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
@@ -275,6 +278,7 @@ func (m ExpenseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
+// View renders the ExpenseModel as a form for editing expense details.
 func (m ExpenseModel) View() string {
 	var b strings.Builder
 

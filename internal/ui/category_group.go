@@ -24,6 +24,7 @@ type CategoryGroupModel struct {
 	editingIndex  int             // Index of the group being edited, -1 for new group
 }
 
+// NewCategoryGroupModel creates a new CategoryGroupModel instance.
 func NewCategoryGroupModel(initialData *data.DataRoot) CategoryGroupModel {
 	ti := textinput.New()
 	ti.Placeholder = "Group Name"
@@ -49,10 +50,12 @@ func NewCategoryGroupModel(initialData *data.DataRoot) CategoryGroupModel {
 	}
 }
 
+// Init initializes the CategoryGroupModel.
 func (m CategoryGroupModel) Init() tea.Cmd {
 	return nil
 }
 
+// Update handles messages and updates the CategoryGroupModel state.
 func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
@@ -193,6 +196,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View renders the CategoryGroupModel.
 func (m CategoryGroupModel) View() string {
 
 	var b strings.Builder
@@ -236,6 +240,7 @@ func (m CategoryGroupModel) View() string {
 	return viewStr
 }
 
+// UpdateData refreshes the model with new data and resets cursor if needed.
 func (m CategoryGroupModel) UpdateData(updatedData *data.DataRoot) CategoryGroupModel {
 	var groups []data.CategoryGroup
 	for _, value := range m.Data.CategoryGroups {
@@ -256,12 +261,14 @@ func (m CategoryGroupModel) UpdateData(updatedData *data.DataRoot) CategoryGroup
 	return m
 }
 
+// focusInput activates the text input for group name editing.
 func (m CategoryGroupModel) focusInput() (tea.Model, tea.Cmd) {
 	m.isEditingName = true
 	m.editInput.Focus()
 	return m, textinput.Blink
 }
 
+// blurInput deactivates the text input and resets editing state.
 func (m CategoryGroupModel) blurInput() tea.Model {
 	m.isEditingName = false
 	m.editInput.Blur()
@@ -269,6 +276,7 @@ func (m CategoryGroupModel) blurInput() tea.Model {
 	return m
 }
 
+// SelectGroup enables group selection mode.
 func (m CategoryGroupModel) SelectGroup() CategoryGroupModel {
 	m.selectGroup = true
 	return m

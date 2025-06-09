@@ -40,7 +40,6 @@ func TestSetSuccessStatus(t *testing.T) {
 		t.Error("Expected command to be returned for auto-clear, got nil")
 	}
 
-	// Check that the message contains the success symbol
 	message := updatedApp.GetStatusMessage()
 	if len(message) == 0 {
 		t.Error("Expected status message to be set")

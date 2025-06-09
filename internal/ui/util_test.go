@@ -50,3 +50,61 @@ func TestGetNextMonth(t *testing.T) {
 		}
 	}
 }
+
+func TestIsViewingCurrentMonth(t *testing.T) {
+	now := time.Now()
+	
+	// Get a different month to ensure test reliability
+	differentMonth := time.January
+	if now.Month() == time.January {
+		differentMonth = time.February
+	}
+	
+	tests := []struct {
+		name      string
+		month     time.Month
+		year      int
+		want      bool
+	}{
+		{
+			name:  "current month and year",
+			month: now.Month(),
+			year:  now.Year(),
+			want:  true,
+		},
+		{
+			name:  "different month same year",
+			month: differentMonth,
+			year:  now.Year(),
+			want:  false,
+		},
+		{
+			name:  "same month different year",
+			month: now.Month(),
+			year:  now.Year() - 1,
+			want:  false,
+		},
+		{
+			name:  "different month and year",
+			month: differentMonth,
+			year:  2020,
+			want:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			model := MonthlyModel{
+				MonthYear: MonthYear{
+					CurrentMonth: tt.month,
+					CurrentYear:  tt.year,
+				},
+			}
+			
+			got := model.isViewingCurrentMonth()
+			if got != tt.want {
+				t.Errorf("isViewingCurrentMonth() = %v; want %v", got, tt.want)
+			}
+		})
+	}
+}

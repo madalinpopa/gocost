@@ -218,14 +218,8 @@ func (m IncomeFormModel) View() string {
 	b.WriteString(m.amountInput.View())
 	b.WriteString("\n\n")
 
-	saveButton := "[ Save ]"
-	cancelButton := "[ Cancel ]"
-	if m.focusIndex == editFocusSave {
-		saveButton = FocusedListItem.Render(saveButton)
-	}
-	if m.focusIndex == editFocusCancel {
-		cancelButton = FocusedListItem.Render(cancelButton)
-	}
+	saveButton := RenderButton("Save", m.focusIndex == editFocusSave)
+	cancelButton := RenderButton("Cancel", m.focusIndex == editFocusCancel)
 	buttons := lipgloss.JoinHorizontal(lipgloss.Top, saveButton, "  ", cancelButton)
 	b.WriteString(buttons)
 	b.WriteString("\n\n")

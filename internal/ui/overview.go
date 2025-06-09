@@ -170,7 +170,7 @@ func (m MonthlyModel) getFooter(totalExpenses, balance decimal.Decimal, defaultC
 	case focusLevelGroups:
 		keyHints = "j/k: Nav | Ent: Select" + populateHint + " | i: Income | c: Categories | g: Groups | h/l: Month"
 	case focusLevelCategories:
-		keyHints = "j/k: Nav | Ent: Select | Esc: Back" + populateHint + " | i: Income | c: Categories | g: Groups | h/l: Month"
+		keyHints = "j/k: Nav | Ent: Expense | Esc: Back" + populateHint + " | i: Income | c: Categories | g: Groups | h/l: Month"
 	}
 	totalExpensesStr := fmt.Sprintf("Total Expenses: %s %s", totalExpenses.String(), defaultCurrency)
 
@@ -245,6 +245,28 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 
 		// Display categories within this group if we're in category navigation mode and this is the focused group
 		if m.Level == focusLevelCategories && visibleIdx == m.focusedGroupIndex {
+			// Add column headers
+			headerStyle := MutedText
+			nameHeader := headerStyle.Render("    Category")
+			amountHeader := headerStyle.Render("Amount")
+			budgetHeader := headerStyle.Render("/Budget")
+			statusHeader := headerStyle.Render("Status")
+			notesHeader := headerStyle.Render("Notes")
+			
+			headerSpacerWidth := max(m.Width-lipgloss.Width(nameHeader)-lipgloss.Width(amountHeader)-lipgloss.Width(budgetHeader)-lipgloss.Width(statusHeader)-lipgloss.Width(notesHeader)-AppStyle.GetHorizontalPadding(), 1)
+			
+			headerLine := lipgloss.JoinHorizontal(
+				lipgloss.Left,
+				nameHeader,
+				lipgloss.NewStyle().Width(headerSpacerWidth).Render(""),
+				amountHeader,
+				budgetHeader,
+				"  ",
+				statusHeader,
+				notesHeader,
+			)
+			expenseSectionContent = append(expenseSectionContent, headerLine)
+			
 			categories := categoriesByGroup[group.GroupID]
 			for catIdx, category := range categories {
 				catStyle := NormalListItem
@@ -255,18 +277,61 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 					catPrefix = "  > "
 				}
 
-				// Calculate category total
-				var categoryTotal decimal.Decimal
-				for _, expense := range category.Expense {
-					amount := decimal.NewFromFloat(expense.Amount)
-					categoryTotal = categoryTotal.Add(amount)
+				// Get expense data for this category
+				var expense data.ExpenseRecord
+				var hasExpense bool
+				if len(category.Expense) > 0 {
+					// Get the first (and should be only) expense for this category
+					for _, exp := range category.Expense {
+						expense = exp
+						hasExpense = true
+						break
+					}
 				}
 
-				catNameRender := catStyle.Render(fmt.Sprintf("%s%s", catPrefix, category.CategoryName))
-				catTotalRender := catStyle.Render(fmt.Sprintf("%s %s", categoryTotal.String(), currency))
+				// Format expense data
+				amountStr := "0.00"
+				budgetStr := "0.00"
+				statusStr := "Not Set"
+				notesIndicator := ""
 
-				catSpacerWidth := max(m.Width-lipgloss.Width(catNameRender)-lipgloss.Width(catTotalRender)-AppStyle.GetHorizontalPadding(), 0)
-				categoryLine := lipgloss.JoinHorizontal(lipgloss.Left, catNameRender, lipgloss.NewStyle().Width(catSpacerWidth).Render(""), catTotalRender)
+				if hasExpense {
+					amountStr = fmt.Sprintf("%.2f", expense.Amount)
+					budgetStr = fmt.Sprintf("%.2f", expense.Budget)
+					statusStr = expense.Status
+					if expense.Notes != "" {
+						notesIndicator = " (N)"
+					}
+				}
+
+				// Build category line with columns
+				catNameRender := catStyle.Render(fmt.Sprintf("%s%s", catPrefix, category.CategoryName))
+				amountRender := catStyle.Render(fmt.Sprintf("%s %s", amountStr, currency))
+				budgetRender := catStyle.Render(fmt.Sprintf("/%s %s", budgetStr, currency))
+				statusRender := catStyle.Render(fmt.Sprintf("[%s]", statusStr))
+				notesRender := catStyle.Render(notesIndicator)
+
+				// Calculate spacing
+				nameWidth := lipgloss.Width(catNameRender)
+				amountWidth := lipgloss.Width(amountRender)
+				budgetWidth := lipgloss.Width(budgetRender)
+				statusWidth := lipgloss.Width(statusRender)
+				notesWidth := lipgloss.Width(notesRender)
+
+				totalContentWidth := nameWidth + amountWidth + budgetWidth + statusWidth + notesWidth
+				availableWidth := m.Width - AppStyle.GetHorizontalPadding()
+				spacerWidth := max(availableWidth-totalContentWidth, 1)
+
+				categoryLine := lipgloss.JoinHorizontal(
+					lipgloss.Left,
+					catNameRender,
+					lipgloss.NewStyle().Width(spacerWidth).Render(""),
+					amountRender,
+					budgetRender,
+					"  ",
+					statusRender,
+					notesRender,
+				)
 				expenseSectionContent = append(expenseSectionContent, categoryLine)
 			}
 		}
@@ -412,9 +477,14 @@ func (m MonthlyModel) handleCategoryNavigation(msg tea.KeyMsg) (tea.Model, tea.C
 		}
 	case "enter":
 		if numCategories > 0 && m.focusedCategoryIndex >= 0 && m.focusedCategoryIndex < numCategories {
-			// TODO: Navigate to expense view for selected category
-			// selectedCategory := categoriesInGroup[m.focusedCategoryIndex]
-			// Could emit a message to switch to expense management view
+			selectedCategory := categoriesInGroup[m.focusedCategoryIndex]
+			monthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
+			return m, func() tea.Msg {
+				return ExpenseViewMsg{
+					MonthKey: monthKey,
+					Category: selectedCategory,
+				}
+			}
 		}
 	case "esc":
 		// Go back to group navigation

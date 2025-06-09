@@ -7,6 +7,7 @@ import (
 	"github.com/madalinpopa/gocost/internal/ui"
 )
 
+// StatusType represents the type of status message
 type StatusType int
 
 const (
@@ -14,8 +15,10 @@ const (
 	StatusError
 )
 
+// StatusClearMsg represents a message to clear the status message
 type StatusClearMsg struct{}
 
+// Status represents a status message
 type Status struct {
 	Message string
 	Type    StatusType

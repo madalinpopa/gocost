@@ -8,6 +8,7 @@ import (
 	"github.com/madalinpopa/gocost/internal/ui"
 )
 
+// currentView represents the current view of the application.
 type currentView int
 
 const (
@@ -19,6 +20,7 @@ const (
 	viewExpense
 )
 
+// App represents the main application.
 type App struct {
 	ui.AppData
 	ui.MonthYear
@@ -29,6 +31,7 @@ type App struct {
 	statusMessage string
 }
 
+// New creates a new instance of the application.
 func New(initialData *data.DataRoot, dataFilePath string) App {
 	now := time.Now()
 	currentM := now.Month()
@@ -53,6 +56,7 @@ func New(initialData *data.DataRoot, dataFilePath string) App {
 	}
 }
 
+// Init initializes the application.
 func (m App) Init() tea.Cmd {
 	switch m.activeView {
 
@@ -74,6 +78,7 @@ func (m App) Init() tea.Cmd {
 	return nil
 }
 
+// Update updates the application state.
 func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
@@ -235,6 +240,7 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View returns the current view of the application.
 func (m App) View() string {
 
 	var viewContent string
@@ -270,10 +276,4 @@ func (m App) View() string {
 	}
 	viewContent += statusLine
 	return viewContent
-}
-
-func (m App) handleReturnToMonthlyWithFocusMsg(msg ui.ReturnToMonthlyWithFocusMsg) (tea.Model, tea.Cmd) {
-	m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
-	m.activeView = viewMonthlyOverview
-	return m, nil
 }

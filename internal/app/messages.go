@@ -206,7 +206,18 @@ func (m App) handleGroupAddMsg(msg ui.GroupAddMsg) (tea.Model, tea.Cmd) {
 func (m App) handleGroupDeleteMsg(msg ui.GroupDeleteMsg) (tea.Model, tea.Cmd) {
 	canDelete := true
 
-	// TODO: Add category check for group
+	// Check if any categories are using this group
+	for _, monthRecord := range m.Data.MonthlyData {
+		for _, category := range monthRecord.Categories {
+			if category.GroupID == msg.Group.GroupID {
+				canDelete = false
+				break
+			}
+		}
+		if !canDelete {
+			break
+		}
+	}
 
 	if !canDelete {
 		m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)

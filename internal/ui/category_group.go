@@ -144,6 +144,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 
 		case "q", "esc":
+			m = m.ResetSelection()
 			return m, func() tea.Msg { return MonthlyViewMsg{} }
 
 		case "j", "down":
@@ -279,5 +280,11 @@ func (m CategoryGroupModel) blurInput() tea.Model {
 // SelectGroup enables group selection mode.
 func (m CategoryGroupModel) SelectGroup() CategoryGroupModel {
 	m.selectGroup = true
+	return m
+}
+
+// ResetSelection disables group selection mode.
+func (m CategoryGroupModel) ResetSelection() CategoryGroupModel {
+	m.selectGroup = false
 	return m
 }

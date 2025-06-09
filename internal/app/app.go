@@ -119,6 +119,15 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.IncomeModel = m.IncomeModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 				m.CategoryModel = m.CategoryModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 				return m, nil
+
+			case "r":
+				now := time.Now()
+				m.CurrentMonth = now.Month()
+				m.CurrentYear = now.Year()
+				m.MonthlyModel = m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+				m.IncomeModel = m.IncomeModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+				m.CategoryModel = m.CategoryModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
+				return m, nil
 			}
 			updatedMonthlyModel, monthlyCmd := m.MonthlyModel.Update(msg)
 			if mo, ok := updatedMonthlyModel.(ui.MonthlyModel); ok {

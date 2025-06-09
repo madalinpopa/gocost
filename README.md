@@ -21,6 +21,7 @@
 #### Global Navigation
 - `q` / `Esc` - Go back/Quit
 - `h` / `l` - Navigate between months
+- `r` - Reset to current month (only shown when viewing a different month)
 - `i` - Manage income
 - `c` - Manage categories
 - `g` - Manage category groups

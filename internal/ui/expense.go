@@ -295,15 +295,19 @@ func (m ExpenseModel) View() string {
 	statusLine := "Status: "
 	for i, opt := range m.statusOptions {
 		cursor := " "
-		style := NormalListItem
-		if i == m.statusCursor {
-			style = style.Bold(true)
-		}
 		if m.focusIndex == focusStatus && i == m.statusCursor {
-			style = FocusedListItem
 			cursor = ">"
 		}
-		statusLine += style.Render(fmt.Sprintf("%s[%s]", cursor, opt)) + "  "
+		
+		var statusBadge string
+		if m.focusIndex == focusStatus && i == m.statusCursor {
+			statusBadge = FocusedListItem.Render(fmt.Sprintf("%s[%s]", cursor, opt))
+		} else if i == m.statusCursor {
+			statusBadge = BoldText.Render(fmt.Sprintf("%s[%s]", cursor, opt))
+		} else {
+			statusBadge = fmt.Sprintf("%s%s", cursor, RenderStatusBadge(opt))
+		}
+		statusLine += statusBadge + "  "
 	}
 	b.WriteString(statusLine)
 	b.WriteString("\n\n")
@@ -314,22 +318,12 @@ func (m ExpenseModel) View() string {
 	b.WriteString("\n\n")
 
 	// Buttons
-	saveButton := "[ Save ]"
-	cancelButton := "[ Cancel ]"
-
-	if m.focusIndex == focusSave {
-		saveButton = FocusedListItem.Render(saveButton)
-	}
-	if m.focusIndex == focusCancel {
-		cancelButton = FocusedListItem.Render(cancelButton)
-	}
+	saveButton := RenderButton("Save", m.focusIndex == focusSave)
+	cancelButton := RenderButton("Cancel", m.focusIndex == focusCancel)
 
 	var buttons string
 	if m.hasExistingExpense {
-		clearButton := "[ Clear ]"
-		if m.focusIndex == focusClear {
-			clearButton = FocusedListItem.Render(clearButton)
-		}
+		clearButton := RenderButton("Clear", m.focusIndex == focusClear)
 		buttons = lipgloss.JoinHorizontal(lipgloss.Top, saveButton, "  ", cancelButton, "  ", clearButton)
 	} else {
 		buttons = lipgloss.JoinHorizontal(lipgloss.Top, saveButton, "  ", cancelButton)

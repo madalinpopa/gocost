@@ -579,7 +579,58 @@ func (m MonthlyModel) ResetFocus() MonthlyModel {
 	return m
 }
 
-func (m MonthlyModel) UpdateData(updatedData *data.DataRoot) MonthlyModel {
-	m.Data = updatedData
-	return m.ResetFocus()
+func (m MonthlyModel) SetFocusToCategory(category data.Category) MonthlyModel {
+	monthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
+	monthRecord, exists := m.Data.MonthlyData[monthKey]
+	if !exists {
+		return m.ResetFocus()
+	}
+
+	// Get categories by group
+	categoriesByGroup := make(map[string][]data.Category)
+	for _, cat := range monthRecord.Categories {
+		categoriesByGroup[cat.GroupID] = append(categoriesByGroup[cat.GroupID], cat)
+	}
+
+	// Get ordered and visible groups
+	orderedGroups := m.getOrderedGroups()
+	visibleGroups := m.getVisibleGroups(orderedGroups, categoriesByGroup)
+
+	// Find the group index for this category
+	groupIndex := -1
+	for i, group := range visibleGroups {
+		if group.GroupID == category.GroupID {
+			groupIndex = i
+			break
+		}
+	}
+
+	if groupIndex == -1 {
+		return m.ResetFocus()
+	}
+
+	// Find the category index within the group
+	categoryIndex := -1
+	categoriesInGroup := categoriesByGroup[category.GroupID]
+	for i, cat := range categoriesInGroup {
+		if cat.CatID == category.CatID {
+			categoryIndex = i
+			break
+		}
+	}
+
+	if categoryIndex == -1 {
+		return m.ResetFocus()
+	}
+
+	// Set focus to the found category
+	m.Level = focusLevelCategories
+	m.focusedGroupIndex = groupIndex
+	m.focusedCategoryIndex = categoryIndex
+	return m
+}
+
+func (m MonthlyModel) UpdateData(data *data.DataRoot) MonthlyModel {
+	m.Data = data
+	return m
 }

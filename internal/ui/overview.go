@@ -32,6 +32,7 @@ type MonthlyModel struct {
 	focusedCategoryIndex int
 }
 
+// NewMonthlyModel creates a new MonthlyModel instance.
 func NewMonthlyModel(data *data.DataRoot, month time.Month, year int) MonthlyModel {
 	return MonthlyModel{
 		AppData: AppData{
@@ -44,10 +45,12 @@ func NewMonthlyModel(data *data.DataRoot, month time.Month, year int) MonthlyMod
 	}
 }
 
+// Init initializes the MonthlyModel.
 func (m MonthlyModel) Init() tea.Cmd {
 	return nil
 }
 
+// Update handles messages and updates the MonthlyModel state.
 func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
@@ -75,6 +78,7 @@ func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View renders the MonthlyModel displaying the monthly overview.
 func (m MonthlyModel) View() string {
 	var b strings.Builder
 
@@ -113,6 +117,7 @@ func (m MonthlyModel) View() string {
 
 }
 
+// getHeader renders the header section with month/year and total income.
 func (m MonthlyModel) getHeader(totalIncome decimal.Decimal, defaultCurrency string) string {
 	var b bytes.Buffer
 
@@ -149,6 +154,7 @@ func (m MonthlyModel) getHeader(totalIncome decimal.Decimal, defaultCurrency str
 	return b.String()
 }
 
+// getFooter renders the footer section with totals, balance, and key hints.
 func (m MonthlyModel) getFooter(totalExpenses, balance decimal.Decimal, defaultCurrency string) string {
 	var b bytes.Buffer
 
@@ -180,6 +186,7 @@ func (m MonthlyModel) getFooter(totalExpenses, balance decimal.Decimal, defaultC
 	return b.String()
 }
 
+// getContent renders the main content area with groups and categories.
 func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, currency string) string {
 	var b strings.Builder
 
@@ -385,6 +392,7 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 	return b.String()
 }
 
+// getOrderedGroups returns all category groups sorted by order.
 func (m MonthlyModel) getOrderedGroups() []data.CategoryGroup {
 	var orderedGroups []data.CategoryGroup
 	for _, group := range m.Data.CategoryGroups {
@@ -398,6 +406,7 @@ func (m MonthlyModel) getOrderedGroups() []data.CategoryGroup {
 	return orderedGroups
 }
 
+// getVisibleGroups filters groups to only those containing categories.
 func (m MonthlyModel) getVisibleGroups(orderedGroups []data.CategoryGroup, categoriesByGroup map[string][]data.Category) []data.CategoryGroup {
 	var visibleGroups []data.CategoryGroup
 	for _, group := range orderedGroups {
@@ -408,6 +417,7 @@ func (m MonthlyModel) getVisibleGroups(orderedGroups []data.CategoryGroup, categ
 	return visibleGroups
 }
 
+// getMonthIncome calculates the total income for the month.
 func (m MonthlyModel) getMonthIncome(monthRecord data.MonthlyRecord) decimal.Decimal {
 	var totalIncome decimal.Decimal
 	for _, income := range monthRecord.Incomes {
@@ -417,6 +427,7 @@ func (m MonthlyModel) getMonthIncome(monthRecord data.MonthlyRecord) decimal.Dec
 	return totalIncome
 }
 
+// getMonthExpenses calculates total expenses and group totals for the month.
 func (m MonthlyModel) getMonthExpenses(mr data.MonthlyRecord) (decimal.Decimal, map[string]decimal.Decimal) {
 	var expenseTotals decimal.Decimal
 	groupTotals := make(map[string]decimal.Decimal)
@@ -434,6 +445,7 @@ func (m MonthlyModel) getMonthExpenses(mr data.MonthlyRecord) (decimal.Decimal, 
 	return expenseTotals, groupTotals
 }
 
+// handleGroupNavigation processes keyboard input when navigating groups.
 func (m MonthlyModel) handleGroupNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	// Get visible groups for navigation
 	monthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
@@ -477,6 +489,7 @@ func (m MonthlyModel) handleGroupNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd)
 	return m, nil
 }
 
+// handleCategoryNavigation processes keyboard input when navigating categories.
 func (m MonthlyModel) handleCategoryNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	monthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
@@ -539,6 +552,7 @@ func (m MonthlyModel) handleCategoryNavigation(msg tea.KeyMsg) (tea.Model, tea.C
 	return m, nil
 }
 
+// handlePopulateCategories initiates populating categories from previous month.
 func (m MonthlyModel) handlePopulateCategories() (tea.Model, tea.Cmd) {
 	currentMonthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
 	prevYear, prevMonth := GetPreviousMonth(m.CurrentYear, m.CurrentMonth)
@@ -552,6 +566,7 @@ func (m MonthlyModel) handlePopulateCategories() (tea.Model, tea.Cmd) {
 	}
 }
 
+// currentMonthHasNoCategories checks if the current month has any categories.
 func (m MonthlyModel) currentMonthHasNoCategories() bool {
 	currentMonthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
 	if record, exists := m.Data.MonthlyData[currentMonthKey]; exists {
@@ -560,12 +575,14 @@ func (m MonthlyModel) currentMonthHasNoCategories() bool {
 	return true
 }
 
+// SetMonthYear updates the current month/year and resets focus.
 func (m MonthlyModel) SetMonthYear(month time.Month, year int) MonthlyModel {
 	m.CurrentMonth = month
 	m.CurrentYear = year
 	return m.ResetFocus()
 }
 
+// ResetFocus resets the navigation focus to the top level.
 func (m MonthlyModel) ResetFocus() MonthlyModel {
 	m.Level = focusLevelGroups
 	m.focusedGroupIndex = 0
@@ -573,6 +590,7 @@ func (m MonthlyModel) ResetFocus() MonthlyModel {
 	return m
 }
 
+// SetFocusToCategory sets focus to a specific category in the navigation.
 func (m MonthlyModel) SetFocusToCategory(category data.Category) MonthlyModel {
 	monthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
 	monthRecord, exists := m.Data.MonthlyData[monthKey]
@@ -624,6 +642,7 @@ func (m MonthlyModel) SetFocusToCategory(category data.Category) MonthlyModel {
 	return m
 }
 
+// UpdateData refreshes the model with new data.
 func (m MonthlyModel) UpdateData(data *data.DataRoot) MonthlyModel {
 	m.Data = data
 	return m

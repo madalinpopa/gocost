@@ -37,9 +37,10 @@ type ExpenseModel struct {
 
 	expenseCategory data.Category
 	existingExpense data.ExpenseRecord
+	monthKey        string
 }
 
-func NewExpenseModel(initialData *data.DataRoot, category data.Category) ExpenseModel {
+func NewExpenseModel(initialData *data.DataRoot, category data.Category, monthKey string) ExpenseModel {
 
 	ai := textinput.New()
 	ai.Placeholder = "0.00"
@@ -58,7 +59,13 @@ func NewExpenseModel(initialData *data.DataRoot, category data.Category) Expense
 	ni.SetWidth(30)
 
 	currentStatus := "Not Paid"
-	expenseRecord, existing := category.Expense[category.CatID]
+	var expenseRecord data.ExpenseRecord
+	var existing bool
+	
+	if category.Expense != nil {
+		expenseRecord, existing = category.Expense[category.CatID]
+	}
+	
 	if !existing {
 		expenseRecord = data.ExpenseRecord{
 			Status: currentStatus,
@@ -76,18 +83,19 @@ func NewExpenseModel(initialData *data.DataRoot, category data.Category) Expense
 		statusIdx = 1
 	}
 
-	if currentStatus == "Paid" {
-		statusIdx = 1
-	}
 	m := ExpenseModel{
 		AppData: AppData{
 			Data: initialData,
 		},
-		amountInput:   ai,
-		budgetInput:   bi,
-		notesInput:    ni,
-		statusOptions: statusOpts,
-		statusCursor:  statusIdx,
+		amountInput:     ai,
+		budgetInput:     bi,
+		notesInput:      ni,
+		statusOptions:   statusOpts,
+		statusCursor:    statusIdx,
+		status:          currentStatus,
+		expenseCategory: category,
+		existingExpense: expenseRecord,
+		monthKey:        monthKey,
 		WindowSize: WindowSize{
 			Width:  50,
 			Height: 15,
@@ -154,7 +162,41 @@ func (m ExpenseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "enter":
 			if m.focusIndex == focusSave {
-				return m, nil
+				// Validate and save expense
+				amount, err := ValidAmount(m.amountInput.Value())
+				if err != nil {
+					return m, func() tea.Msg {
+						return ViewErrorMsg{
+							Text:  "Please provide a valid amount",
+							Model: m,
+						}
+					}
+				}
+
+				budget, err := ValidAmount(m.budgetInput.Value())
+				if err != nil {
+					return m, func() tea.Msg {
+						return ViewErrorMsg{
+							Text:  "Please provide a valid budget",
+							Model: m,
+						}
+					}
+				}
+
+				expense := data.ExpenseRecord{
+					Amount: amount,
+					Budget: budget,
+					Status: m.statusOptions[m.statusCursor],
+					Notes:  m.notesInput.Value(),
+				}
+
+				return m, func() tea.Msg {
+					return SaveExpenseMsg{
+						MonthKey: m.monthKey,
+						Category: m.expenseCategory,
+						Expense:  expense,
+					}
+				}
 			} else if m.focusIndex == focusCancel {
 				return m, func() tea.Msg { return MonthlyViewMsg{} }
 			}

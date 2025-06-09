@@ -8,6 +8,18 @@
 build:
 	go build -o bin/gocost ./cmd/gocost
 
+# Cross-platform builds
+build/linux:
+	GOOS=linux GOARCH=amd64 go build -o bin/gocost-linux-amd64 ./cmd/gocost
+
+build/windows:
+	GOOS=windows GOARCH=amd64 go build -o bin/gocost-windows-amd64.exe ./cmd/gocost
+
+build/darwin:
+	GOOS=darwin GOARCH=arm64 go build -o bin/gocost-darwin-arm64 ./cmd/gocost
+
+build/all: build/linux build/windows build/darwin
+
 run:
 	go run ./cmd/gocost
 

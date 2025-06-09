@@ -48,7 +48,7 @@ func New(initialData *data.DataRoot, dataFilePath string) App {
 			IncomeModel:        ui.NewIncomeModel(initialData, currentM, currentY),
 			CategoryModel:      ui.NewCategoryModel(initialData, currentM, currentY),
 			CategoryGroupModel: ui.NewCategoryGroupModel(initialData),
-			ExpenseModel:       ui.NewExpenseModel(initialData, data.Category{}),
+			ExpenseModel:       ui.NewExpenseModel(initialData, data.Category{}, ""),
 		},
 	}
 }
@@ -210,6 +210,18 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ui.PopulateCategoriesMsg:
 		return m.handlePopulateCategoriesMsg(msg)
 
+	case ui.ExpenseViewMsg:
+		return m.handleExpenseViewMsg(msg)
+
+	case ui.SaveExpenseMsg:
+		return m.handleSaveExpenseMsg(msg)
+
+	case ui.EditExpenseMsg:
+		return m.handleEditExpenseMsg(msg)
+
+	case ui.DeleteExpenseMsg:
+		return m.handleDeleteExpenseMsg(msg)
+
 	case StatusClearMsg:
 		return m.ClearStatus(), nil
 	}
@@ -252,4 +264,83 @@ func (m App) View() string {
 	}
 	viewContent += statusLine
 	return viewContent
+}
+
+func (m App) handleExpenseViewMsg(msg ui.ExpenseViewMsg) (tea.Model, tea.Cmd) {
+	m.activeView = viewExpense
+	m.ExpenseModel = ui.NewExpenseModel(m.Data, msg.Category, msg.MonthKey)
+	return m, m.ExpenseModel.Init()
+}
+
+func (m App) handleSaveExpenseMsg(msg ui.SaveExpenseMsg) (tea.Model, tea.Cmd) {
+	// Update the category's expense data
+	monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
+	if !exists {
+		monthRecord = data.MonthlyRecord{
+			Categories: []data.Category{},
+		}
+	}
+
+	// Find and update the category
+	for i, category := range monthRecord.Categories {
+		if category.CatID == msg.Category.CatID {
+			if category.Expense == nil {
+				category.Expense = make(map[string]data.ExpenseRecord)
+			}
+			category.Expense[category.CatID] = msg.Expense
+			monthRecord.Categories[i] = category
+			break
+		}
+	}
+
+	m.Data.MonthlyData[msg.MonthKey] = monthRecord
+
+	// Save data to file
+	if err := data.SaveData(m.FilePath, m.Data); err != nil {
+		return m.SetErrorStatus("Failed to save expense")
+	}
+
+	// Update models with new data
+	m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
+	m.IncomeModel = m.IncomeModel.UpdateData(m.Data)
+	m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
+
+	// Return to monthly view
+	m.activeView = viewMonthlyOverview
+	return m.SetSuccessStatus("Expense saved successfully")
+}
+
+func (m App) handleEditExpenseMsg(msg ui.EditExpenseMsg) (tea.Model, tea.Cmd) {
+	m.activeView = viewExpense
+	m.ExpenseModel = ui.NewExpenseModel(m.Data, msg.Category, msg.MonthKey)
+	return m, m.ExpenseModel.Init()
+}
+
+func (m App) handleDeleteExpenseMsg(msg ui.DeleteExpenseMsg) (tea.Model, tea.Cmd) {
+	// Find and remove the expense from the category
+	monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
+	if exists {
+		for i, category := range monthRecord.Categories {
+			if category.CatID == msg.Category.CatID {
+				delete(category.Expense, category.CatID)
+				monthRecord.Categories[i] = category
+				break
+			}
+		}
+		m.Data.MonthlyData[msg.MonthKey] = monthRecord
+
+		// Save data to file
+		if err := data.SaveData(m.FilePath, m.Data); err != nil {
+			return m.SetErrorStatus("Failed to delete expense")
+		}
+	}
+
+	// Update models with new data
+	m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
+	m.IncomeModel = m.IncomeModel.UpdateData(m.Data)
+	m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
+
+	// Return to monthly view
+	m.activeView = viewMonthlyOverview
+	return m.SetSuccessStatus("Expense deleted successfully")
 }

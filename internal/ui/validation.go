@@ -5,6 +5,7 @@ import (
 	"strconv"
 )
 
+// ValidAmount validates and converts a string to a float64 amount, ensuring it's not zero.
 func ValidAmount(v string) (float64, error) {
 
 	floatValue, err := strconv.ParseFloat(v, 64)

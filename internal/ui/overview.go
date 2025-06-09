@@ -245,13 +245,59 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 
 		// Display categories within this group if we're in category navigation mode and this is the focused group
 		if m.Level == focusLevelCategories && visibleIdx == m.focusedGroupIndex {
-			// Define consistent column widths
-			amountColWidth := 12 // For "1234.56 USD"
-			budgetColWidth := 12 // For "/1234.56 USD"
-			statusColWidth := 11 // For "[Not Paid]"
-			notesColWidth := 6   // For " (N)"
-			columnSpacing := 2   // Space between columns
+			// Calculate dynamic column widths based on content
+			categories := categoriesByGroup[group.GroupID]
+			amountColWidth := len("Amount")
+			budgetColWidth := len("/Budget")
+			statusColWidth := len("Status")
+			notesColWidth := len("Notes")
+			columnSpacing := 2          // Space between columns
+			
+			// Scan through categories to find maximum widths needed
+			for _, category := range categories {
+				var expense data.ExpenseRecord
+				var hasExpense bool
+				if len(category.Expense) > 0 {
+					for _, exp := range category.Expense {
+						expense = exp
+						hasExpense = true
+						break
+					}
+				}
 
+				// Calculate required widths for this category
+				amountStr := "0.00"
+				budgetStr := "0.00"
+				statusStr := "Not Set"
+				notesIndicator := ""
+
+				if hasExpense {
+					amountStr = fmt.Sprintf("%.2f", expense.Amount)
+					budgetStr = fmt.Sprintf("%.2f", expense.Budget)
+					statusStr = expense.Status
+					if expense.Notes != "" {
+						notesIndicator = " (N)"
+					}
+				}
+
+				amountText := fmt.Sprintf("%s %s", amountStr, currency)
+				budgetText := fmt.Sprintf("/%s %s", budgetStr, currency)
+				statusText := fmt.Sprintf("[%s]", statusStr)
+
+				if len(amountText) > amountColWidth {
+					amountColWidth = len(amountText)
+				}
+				if len(budgetText) > budgetColWidth {
+					budgetColWidth = len(budgetText)
+				}
+				if len(statusText) > statusColWidth {
+					statusColWidth = len(statusText)
+				}
+				if len(notesIndicator) > notesColWidth {
+					notesColWidth = len(notesIndicator)
+				}
+			}
+			
 			// Add column headers
 			headerStyle := MutedText
 			amountHeader := headerStyle.Render(lipgloss.NewStyle().Width(amountColWidth).Align(lipgloss.Right).Render("Amount"))
@@ -275,7 +321,6 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 			)
 			expenseSectionContent = append(expenseSectionContent, headerLine)
 
-			categories := categoriesByGroup[group.GroupID]
 			for catIdx, category := range categories {
 				catStyle := NormalListItem
 				catPrefix := "    "

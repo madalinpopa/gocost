@@ -10,6 +10,7 @@ import (
 	"github.com/madalinpopa/gocost/internal/data"
 )
 
+// CategoryModel represents the view model that displays the categories
 type CategoryModel struct {
 	AppData
 	WindowSize
@@ -29,6 +30,7 @@ type CategoryModel struct {
 	editingIndex  int
 }
 
+// NewCategoryModel creates a new CategoryModel instance.
 func NewCategoryModel(initialData *data.DataRoot, month time.Month, year int) CategoryModel {
 
 	monthKey := GetMonthKey(month, year)
@@ -59,10 +61,12 @@ func NewCategoryModel(initialData *data.DataRoot, month time.Month, year int) Ca
 
 }
 
+// Init initializes the CategoryModel.
 func (m CategoryModel) Init() tea.Cmd {
 	return nil
 }
 
+// Update updates the CategoryModel.
 func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
@@ -205,6 +209,7 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View renders the CategoryModel.
 func (m CategoryModel) View() string {
 	var b strings.Builder
 
@@ -264,6 +269,7 @@ func (m CategoryModel) View() string {
 	return viewStr
 }
 
+// AddCategory enables input field to create a new category in the specified group.
 func (m CategoryModel) AddCategory(group data.CategoryGroup) (CategoryModel, tea.Cmd) {
 	m.addCategory = true
 	m.selectedGroup = group
@@ -271,6 +277,7 @@ func (m CategoryModel) AddCategory(group data.CategoryGroup) (CategoryModel, tea
 	return m, textinput.Blink
 }
 
+// MoveCategory moves the selected category to the specified group.
 func (m CategoryModel) MoveCategory(group data.CategoryGroup) (CategoryModel, tea.Cmd) {
 	m.moveCategory = true
 	m.selectedGroup = group
@@ -285,22 +292,26 @@ func (m CategoryModel) MoveCategory(group data.CategoryGroup) (CategoryModel, te
 	}
 }
 
+// IsMovingCategory returns true if a category is currently being moved.
 func (m CategoryModel) IsMovingCategory() bool {
 	return m.movingCategory.CatID != ""
 }
 
+// ResetMoveState clears the moving category state.
 func (m CategoryModel) ResetMoveState() CategoryModel {
 	m.movingCategory = data.Category{}
 	m.moveCategory = false
 	return m
 }
 
+// focusInput activates the text input for category name editing.
 func (m CategoryModel) focusInput() (tea.Model, tea.Cmd) {
 	m.isEditingName = true
 	m.editInput.Focus()
 	return m, textinput.Blink
 }
 
+// UpdateData refreshes the model with new data and resets state.
 func (m CategoryModel) UpdateData(updatedData *data.DataRoot) CategoryModel {
 	m.Data = updatedData
 
@@ -322,6 +333,7 @@ func (m CategoryModel) UpdateData(updatedData *data.DataRoot) CategoryModel {
 	return m
 }
 
+// SetMonthYear updates the current month/year and loads corresponding categories.
 func (m CategoryModel) SetMonthYear(month time.Month, year int) CategoryModel {
 	m.CurrentMonth = month
 	m.CurrentYear = year

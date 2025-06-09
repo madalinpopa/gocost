@@ -18,6 +18,7 @@ const (
 	focusNotes
 	focusSave
 	focusCancel
+	focusClear
 )
 
 type ExpenseModel struct {
@@ -38,6 +39,7 @@ type ExpenseModel struct {
 	expenseCategory data.Category
 	existingExpense data.ExpenseRecord
 	monthKey        string
+	hasExistingExpense bool
 }
 
 func NewExpenseModel(initialData *data.DataRoot, category data.Category, monthKey string) ExpenseModel {
@@ -87,15 +89,16 @@ func NewExpenseModel(initialData *data.DataRoot, category data.Category, monthKe
 		AppData: AppData{
 			Data: initialData,
 		},
-		amountInput:     ai,
-		budgetInput:     bi,
-		notesInput:      ni,
-		statusOptions:   statusOpts,
-		statusCursor:    statusIdx,
-		status:          currentStatus,
-		expenseCategory: category,
-		existingExpense: expenseRecord,
-		monthKey:        monthKey,
+		amountInput:        ai,
+		budgetInput:        bi,
+		notesInput:         ni,
+		statusOptions:      statusOpts,
+		statusCursor:       statusIdx,
+		status:             currentStatus,
+		expenseCategory:    category,
+		existingExpense:    expenseRecord,
+		monthKey:           monthKey,
+		hasExistingExpense: existing,
 		WindowSize: WindowSize{
 			Width:  50,
 			Height: 15,
@@ -127,7 +130,11 @@ func (m ExpenseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 
 		case "esc":
-			return m, func() tea.Msg { return MonthlyViewMsg{} }
+			return m, func() tea.Msg { 
+				return ReturnToMonthlyWithFocusMsg{
+					Category: m.expenseCategory,
+				}
+			}
 
 		case "tab", "shift+tab", "up", "down":
 			// Focus traversal
@@ -137,10 +144,24 @@ func (m ExpenseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.focusIndex++
 			}
 
-			if m.focusIndex > focusCancel {
+			maxFocus := focusCancel
+			if m.hasExistingExpense {
+				maxFocus = focusClear
+			}
+
+			if m.focusIndex > maxFocus {
 				m.focusIndex = focusAmount
 			} else if m.focusIndex < focusAmount {
-				m.focusIndex = focusCancel
+				m.focusIndex = maxFocus
+			}
+
+			// Skip focusClear if no existing expense
+			if !m.hasExistingExpense && m.focusIndex == focusClear {
+				if msg.String() == "shift+tab" || msg.String() == "up" {
+					m.focusIndex = focusCancel
+				} else {
+					m.focusIndex = focusAmount
+				}
 			}
 
 			// Update focus on inputs
@@ -198,7 +219,18 @@ func (m ExpenseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			} else if m.focusIndex == focusCancel {
-				return m, func() tea.Msg { return MonthlyViewMsg{} }
+				return m, func() tea.Msg { 
+					return ReturnToMonthlyWithFocusMsg{
+						Category: m.expenseCategory,
+					}
+				}
+			} else if m.focusIndex == focusClear && m.hasExistingExpense {
+				return m, func() tea.Msg {
+					return DeleteExpenseMsg{
+						MonthKey: m.monthKey,
+						Category: m.expenseCategory,
+					}
+				}
 			}
 
 			// If on status, toggle it
@@ -292,10 +324,25 @@ func (m ExpenseModel) View() string {
 		cancelButton = FocusedListItem.Render(cancelButton)
 	}
 
-	buttons := lipgloss.JoinHorizontal(lipgloss.Top, saveButton, "  ", cancelButton)
+	var buttons string
+	if m.hasExistingExpense {
+		clearButton := "[ Clear ]"
+		if m.focusIndex == focusClear {
+			clearButton = FocusedListItem.Render(clearButton)
+		}
+		buttons = lipgloss.JoinHorizontal(lipgloss.Top, saveButton, "  ", cancelButton, "  ", clearButton)
+	} else {
+		buttons = lipgloss.JoinHorizontal(lipgloss.Top, saveButton, "  ", cancelButton)
+	}
 	b.WriteString(buttons)
 	b.WriteString("\n\n")
-	b.WriteString(MutedText.Render("(Tab/Shift+Tab to navigate, Enter to select/save, Esc to cancel)"))
+	
+	helpText := "(Tab/Shift+Tab to navigate, Enter to select/save, Esc to cancel"
+	if m.hasExistingExpense {
+		helpText += ", Clear to reset"
+	}
+	helpText += ")"
+	b.WriteString(MutedText.Render(helpText))
 
 	popupContent := AppStyle.Width(m.Width).Align(lipgloss.Center).Render(b.String())
 	return FocusedBorder.Render(popupContent)

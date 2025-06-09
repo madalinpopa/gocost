@@ -97,14 +97,6 @@ func (m MonthlyModel) View() string {
 
 	balance := totalIncome.Sub(totalExpenses)
 
-	_, _ = balance, totalExpensesGroup
-
-	// amountColWidth := 12        // For "1234.56 $"
-	// statusColWidth := 11        // For "[Not Paid]"
-	// notesIndicatorColWidth := 4 // For " (N)"
-
-	// columnSpacer := "  " // Two spaces
-
 	header := m.getHeader(totalIncome, defaultCurrency)
 	content := m.getContent(totalExpensesGroup, defaultCurrency)
 	footer := m.getFooter(totalExpenses, balance, defaultCurrency)
@@ -231,6 +223,9 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 		} else if m.Level == focusLevelCategories && visibleIdx == m.focusedGroupIndex {
 			groupStyle = ActiveGroupStyle
 			groupPrefix = ">> "
+		} else if m.Level == focusLevelCategories && visibleIdx != m.focusedGroupIndex {
+			groupStyle = MutedGroupStyle
+			groupPrefix = "  "
 		}
 
 		var groupTotal decimal.Decimal

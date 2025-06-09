@@ -21,6 +21,7 @@ const (
 	defaultConfigType   = "json"
 )
 
+// getDefaultDataDir returns the default data directory path.
 func getDefaultDataDir() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {

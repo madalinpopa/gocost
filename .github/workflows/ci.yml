@@ -61,16 +61,19 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: gocost-binaries
+          path: bin
 
       - name: Get tag name
         id: get_tag
         run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
       - name: Create release
-        uses: elgohr/Github-Release-Action@v5
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          workdir: bin
-          title: ${{ steps.get_tag.outputs.TAG_NAME }}
-          tag: ${{ steps.get_tag.outputs.TAG_NAME }}
+        run: |
+          gh release create ${{ steps.get_tag.outputs.TAG_NAME }} \
+            --title "${{ steps.get_tag.outputs.TAG_NAME }}" \
+            --generate-notes \
+            bin/gocost-linux-amd64 \
+            bin/gocost-windows-amd64.exe \
+            bin/gocost-darwin-arm64

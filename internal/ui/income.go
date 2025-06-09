@@ -163,3 +163,21 @@ func (m IncomeModel) SetMonthYear(month time.Month, year int) IncomeModel {
 
 	return m
 }
+
+func (m IncomeModel) UpdateData(updatedData *data.DataRoot) IncomeModel {
+	m.Data = updatedData
+	
+	if monthRecord, ok := m.Data.MonthlyData[m.monthKey]; ok {
+		m.incomeEntries = monthRecord.Incomes
+	} else {
+		m.incomeEntries = make([]data.IncomeRecord, 0)
+	}
+	
+	if m.cursor >= len(m.incomeEntries) && len(m.incomeEntries) > 0 {
+		m.cursor = len(m.incomeEntries) - 1
+	} else if len(m.incomeEntries) == 0 {
+		m.cursor = 0
+	}
+	
+	return m
+}

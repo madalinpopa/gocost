@@ -93,6 +93,10 @@ var (
 	ActiveGroupStyle = lipgloss.NewStyle().
 			Bold(false).
 			Foreground(lipgloss.AdaptiveColor{Light: "#B45309", Dark: "#FBBF24"})
+			
+	MutedGroupStyle = lipgloss.NewStyle().
+			Bold(false).
+			Foreground(ColorMutedText)
 
 	// Button styles
 	ButtonStyle = lipgloss.NewStyle().
@@ -289,4 +293,9 @@ func RenderHighlight(text string) string {
 // RenderEmphasis renders text with emphasis styling  
 func RenderEmphasis(text string) string {
 	return EmphasisStyle.Render(text)
+}
+
+// RenderMutedGroup renders group text with muted styling for non-selected groups
+func RenderMutedGroup(text string) string {
+	return MutedGroupStyle.Render(text)
 }

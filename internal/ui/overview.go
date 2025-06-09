@@ -158,11 +158,16 @@ func (m MonthlyModel) getFooter(totalExpenses, balance decimal.Decimal, defaultC
 		populateHint = " | p: Populate"
 	}
 
+	resetHint := ""
+	if !m.isViewingCurrentMonth() {
+		resetHint = " | r: Reset"
+	}
+
 	switch m.Level {
 	case focusLevelGroups:
-		keyHints = "j/k: Nav | Ent: Select" + populateHint + " | i: Income | c: Categories | g: Groups | h/l: Month"
+		keyHints = "j/k: Nav | Ent: Select" + populateHint + " | i: Income | c: Categories | g: Groups | h/l: Month" + resetHint
 	case focusLevelCategories:
-		keyHints = "j/k: Nav | Ent: Expense | Esc: Back" + populateHint + " | i: Income | c: Categories | g: Groups | h/l: Month"
+		keyHints = "j/k: Nav | Ent: Expense | Esc: Back" + populateHint + " | i: Income | c: Categories | g: Groups | h/l: Month" + resetHint
 	}
 	totalExpensesStr := fmt.Sprintf("Total Expenses: %s %s", totalExpenses.String(), defaultCurrency)
 
@@ -641,4 +646,10 @@ func (m MonthlyModel) SetFocusToCategory(category data.Category) MonthlyModel {
 func (m MonthlyModel) UpdateData(data *data.DataRoot) MonthlyModel {
 	m.Data = data
 	return m
+}
+
+// isViewingCurrentMonth checks if the currently viewed month is the actual current month
+func (m MonthlyModel) isViewingCurrentMonth() bool {
+	now := time.Now()
+	return m.CurrentMonth == now.Month() && m.CurrentYear == now.Year()
 }

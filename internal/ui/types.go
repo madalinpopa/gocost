@@ -105,3 +105,25 @@ type PopulateCategoriesMsg struct {
 	CurrentMonthKey  string
 	PreviousMonthKey string
 }
+
+type ExpenseViewMsg struct {
+	MonthKey string
+	Category data.Category
+}
+
+type SaveExpenseMsg struct {
+	MonthKey string
+	Category data.Category
+	Expense  data.ExpenseRecord
+}
+
+type EditExpenseMsg struct {
+	MonthKey string
+	Category data.Category
+	Expense  data.ExpenseRecord
+}
+
+type DeleteExpenseMsg struct {
+	MonthKey string
+	Category data.Category
+}

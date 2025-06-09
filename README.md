@@ -88,6 +88,14 @@ gocost/
 
 ## Installation
 
+### Download from GitHub Releases
+
+Download the latest pre-built binary from the [GitHub Releases page](https://github.com/madalinpopa/gocost/releases):
+
+1. Go to the [releases page](https://github.com/madalinpopa/gocost/releases)
+2. Download the latest release for your platform
+3. Extract and run the binary
+
 ### From source
 
 ```bash

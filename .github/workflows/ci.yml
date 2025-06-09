@@ -20,13 +20,13 @@ jobs:
           go-version: 1.24
 
       - name: Build project
-        run: make build
+        run: make build/all
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: gocost
-          path: bin/gocost
+          name: gocost-binaries
+          path: bin/*
           overwrite: "true"
           retention-days: 1
 
@@ -60,7 +60,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: gocost
+          name: gocost-binaries
 
       - name: Get tag name
         id: get_tag

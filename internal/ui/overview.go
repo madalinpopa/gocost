@@ -251,8 +251,8 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 			budgetColWidth := len("/Budget")
 			statusColWidth := len("Status")
 			notesColWidth := len("Notes")
-			columnSpacing := 2          // Space between columns
-			
+			columnSpacing := 2 // Space between columns
+
 			// Scan through categories to find maximum widths needed
 			for _, category := range categories {
 				var expense data.ExpenseRecord
@@ -297,13 +297,13 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 					notesColWidth = len(notesIndicator)
 				}
 			}
-			
+
 			// Add column headers
 			headerStyle := MutedText
-			amountHeader := headerStyle.Render(lipgloss.NewStyle().Width(amountColWidth).Align(lipgloss.Right).Render("Amount"))
-			budgetHeader := headerStyle.Render(lipgloss.NewStyle().Width(budgetColWidth).Align(lipgloss.Right).Render("/Budget"))
-			statusHeader := headerStyle.Render(lipgloss.NewStyle().Width(statusColWidth).Align(lipgloss.Center).Render("Status"))
-			notesHeader := headerStyle.Render(lipgloss.NewStyle().Width(notesColWidth).Align(lipgloss.Center).Render("Notes"))
+			amountHeader := headerStyle.Render(lipgloss.NewStyle().Width(amountColWidth).Align(lipgloss.Left).Render("Amount"))
+			budgetHeader := headerStyle.Render(lipgloss.NewStyle().Width(budgetColWidth).Align(lipgloss.Left).Render("/Budget"))
+			statusHeader := headerStyle.Render(lipgloss.NewStyle().Width(statusColWidth).Align(lipgloss.Left).Render("Status"))
+			notesHeader := headerStyle.Render(lipgloss.NewStyle().Width(notesColWidth).Align(lipgloss.Left).Render("Notes"))
 
 			totalColumnsWidth := amountColWidth + budgetColWidth + statusColWidth + notesColWidth + (columnSpacing * 3)
 			headerSpacerWidth := max(m.Width-totalColumnsWidth-AppStyle.GetHorizontalPadding(), 1)

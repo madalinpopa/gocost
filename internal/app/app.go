@@ -26,7 +26,7 @@ type App struct {
 	ui.AppViews
 
 	activeView    currentView
-	statusMessage string // To display feedback/errors to the user
+	statusMessage string
 }
 
 func New(initialData *data.DataRoot, dataFilePath string) App {
@@ -277,5 +277,3 @@ func (m App) handleReturnToMonthlyWithFocusMsg(msg ui.ReturnToMonthlyWithFocusMs
 	m.activeView = viewMonthlyOverview
 	return m, nil
 }
-
-

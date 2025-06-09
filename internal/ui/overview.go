@@ -238,7 +238,8 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 			groupTotal = totalGroupExpenses[group.GroupID]
 		}
 		groupNameRender := groupStyle.Render(fmt.Sprintf("%s%s", groupPrefix, group.GroupName))
-		groupTotalRender := groupStyle.Render(fmt.Sprintf("Total: %s %s", groupTotal.String(), currency))
+		totalRender := MutedText.Render("Total:")
+		groupTotalRender := groupStyle.Render(fmt.Sprintf("%s %s %s", totalRender, groupTotal.String(), currency))
 
 		groupHeaderSpacerWidth := max(m.Width-lipgloss.Width(groupNameRender)-lipgloss.Width(groupTotalRender)-AppStyle.GetHorizontalPadding(), 0)
 		groupHeader := lipgloss.JoinHorizontal(lipgloss.Left, groupNameRender, CreateSpacer(groupHeaderSpacerWidth).Render(""), groupTotalRender)

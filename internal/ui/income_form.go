@@ -32,6 +32,7 @@ type IncomeFormModel struct {
 	focusIndex int
 }
 
+// NewIncomeFormModel creates a new IncomeFormModel instance for adding or editing income.
 func NewIncomeFormModel(currentMonth time.Month, year int, income *data.IncomeRecord) IncomeFormModel {
 
 	monthKey := GetMonthKey(currentMonth, year)
@@ -75,10 +76,12 @@ func NewIncomeFormModel(currentMonth time.Month, year int, income *data.IncomeRe
 	return m
 }
 
+// Init initializes the IncomeFormModel.
 func (m IncomeFormModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
+// Update handles messages and updates the IncomeFormModel state.
 func (m IncomeFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmds []tea.Cmd
@@ -201,6 +204,7 @@ func (m IncomeFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
+// View renders the IncomeFormModel as a form for adding or editing income.
 func (m IncomeFormModel) View() string {
 	var b strings.Builder
 	title := "Add New Income"

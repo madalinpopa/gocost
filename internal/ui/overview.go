@@ -129,13 +129,11 @@ func (m MonthlyModel) getHeader(totalIncome decimal.Decimal, defaultCurrency str
 	headerStr := lipgloss.JoinHorizontal(
 		lipgloss.Top,
 		HeaderText.Render(headerLeft),
-		lipgloss.NewStyle().Width(headerSpacerWidth).Render(""),
+		CreateSpacer(headerSpacerWidth).Render(""),
 		headerRight,
 	)
 
-	bottomBorder := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder(), false, false, true, false).
-		BorderForeground(ColorSubtleBorder).
+	bottomBorder := TopBorder.
 		Width(m.Width - AppStyle.GetHorizontalFrameSize()).
 		Render("")
 
@@ -154,11 +152,7 @@ func (m MonthlyModel) getHeader(totalIncome decimal.Decimal, defaultCurrency str
 func (m MonthlyModel) getFooter(totalExpenses, balance decimal.Decimal, defaultCurrency string) string {
 	var b bytes.Buffer
 
-	footerStyle := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder(), true, false, false, false).
-		BorderForeground(ColorSubtleBorder).
-		Width(m.Width - AppStyle.GetHorizontalPadding()).
-		PaddingTop(1)
+	footerStyle := CreateFooterStyle(m.Width)
 
 	var keyHints string
 	populateHint := ""
@@ -177,7 +171,7 @@ func (m MonthlyModel) getFooter(totalExpenses, balance decimal.Decimal, defaultC
 	balanceStr := fmt.Sprintf("Balance: %s %s", balance.String(), defaultCurrency)
 	footerSummarySpacerWidth := max(m.Width-lipgloss.Width(totalExpensesStr)-lipgloss.Width(balanceStr)-AppStyle.GetHorizontalPadding(), 0)
 
-	space := lipgloss.NewStyle().Width(footerSummarySpacerWidth).Render("")
+	space := CreateSpacer(footerSummarySpacerWidth).Render("")
 	footerSummary := lipgloss.JoinHorizontal(lipgloss.Top, totalExpensesStr, space, balanceStr)
 
 	b.WriteString("\n\n")
@@ -228,7 +222,7 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 			groupStyle = FocusedListItem
 			groupPrefix = "> "
 		} else if m.Level == focusLevelCategories && visibleIdx == m.focusedGroupIndex {
-			groupStyle = HeaderText.Bold(false).Foreground(lipgloss.Color("220"))
+			groupStyle = ActiveGroupStyle
 			groupPrefix = ">> "
 		}
 
@@ -240,7 +234,7 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 		groupTotalRender := groupStyle.Render(fmt.Sprintf("Total: %s %s", groupTotal.String(), currency))
 
 		groupHeaderSpacerWidth := max(m.Width-lipgloss.Width(groupNameRender)-lipgloss.Width(groupTotalRender)-AppStyle.GetHorizontalPadding(), 0)
-		groupHeader := lipgloss.JoinHorizontal(lipgloss.Left, groupNameRender, lipgloss.NewStyle().Width(groupHeaderSpacerWidth).Render(""), groupTotalRender)
+		groupHeader := lipgloss.JoinHorizontal(lipgloss.Left, groupNameRender, CreateSpacer(groupHeaderSpacerWidth).Render(""), groupTotalRender)
 		expenseSectionContent = append(expenseSectionContent, groupHeader)
 
 		// Display categories within this group if we're in category navigation mode and this is the focused group
@@ -282,7 +276,7 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 
 				amountText := fmt.Sprintf("%s %s", amountStr, currency)
 				budgetText := fmt.Sprintf("/%s %s", budgetStr, currency)
-				statusText := fmt.Sprintf("[%s]", statusStr)
+				statusText := fmt.Sprintf("[%s]", statusStr) // Plain text for width calculation
 
 				if len(amountText) > amountColWidth {
 					amountColWidth = len(amountText)
@@ -300,23 +294,23 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 
 			// Add column headers
 			headerStyle := MutedText
-			amountHeader := headerStyle.Render(lipgloss.NewStyle().Width(amountColWidth).Align(lipgloss.Left).Render("Amount"))
-			budgetHeader := headerStyle.Render(lipgloss.NewStyle().Width(budgetColWidth).Align(lipgloss.Left).Render("/Budget"))
-			statusHeader := headerStyle.Render(lipgloss.NewStyle().Width(statusColWidth).Align(lipgloss.Left).Render("Status"))
-			notesHeader := headerStyle.Render(lipgloss.NewStyle().Width(notesColWidth).Align(lipgloss.Left).Render("Notes"))
+			amountHeader := headerStyle.Render(CreateLeftAlignedColumn(amountColWidth).Render("Amount"))
+			budgetHeader := headerStyle.Render(CreateLeftAlignedColumn(budgetColWidth).Render("/Budget"))
+			statusHeader := headerStyle.Render(CreateLeftAlignedColumn(statusColWidth).Render("Status"))
+			notesHeader := headerStyle.Render(CreateLeftAlignedColumn(notesColWidth).Render("Notes"))
 
 			totalColumnsWidth := amountColWidth + budgetColWidth + statusColWidth + notesColWidth + (columnSpacing * 3)
 			headerSpacerWidth := max(m.Width-totalColumnsWidth-AppStyle.GetHorizontalPadding(), 1)
 
 			headerLine := lipgloss.JoinHorizontal(
 				lipgloss.Left,
-				lipgloss.NewStyle().Width(headerSpacerWidth).Render(""),
+				CreateSpacer(headerSpacerWidth).Render(""),
 				amountHeader,
-				lipgloss.NewStyle().Width(columnSpacing).Render(""),
+				CreateColumnSpacer(columnSpacing).Render(""),
 				budgetHeader,
-				lipgloss.NewStyle().Width(columnSpacing).Render(""),
+				CreateColumnSpacer(columnSpacing).Render(""),
 				statusHeader,
-				lipgloss.NewStyle().Width(columnSpacing).Render(""),
+				CreateColumnSpacer(columnSpacing).Render(""),
 				notesHeader,
 			)
 			expenseSectionContent = append(expenseSectionContent, headerLine)
@@ -359,10 +353,10 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 
 				// Build category line with columns using consistent widths
 				catNameRender := catStyle.Render(fmt.Sprintf("%s%s", catPrefix, category.CategoryName))
-				amountRender := catStyle.Render(lipgloss.NewStyle().Width(amountColWidth).Align(lipgloss.Right).Render(fmt.Sprintf("%s %s", amountStr, currency)))
-				budgetRender := catStyle.Render(lipgloss.NewStyle().Width(budgetColWidth).Align(lipgloss.Right).Render(fmt.Sprintf("/%s %s", budgetStr, currency)))
-				statusRender := catStyle.Render(lipgloss.NewStyle().Width(statusColWidth).Align(lipgloss.Center).Render(fmt.Sprintf("[%s]", statusStr)))
-				notesRender := catStyle.Render(lipgloss.NewStyle().Width(notesColWidth).Align(lipgloss.Center).Render(notesIndicator))
+				amountRender := catStyle.Render(CreateRightAlignedColumn(amountColWidth).Render(fmt.Sprintf("%s %s", amountStr, currency)))
+				budgetRender := catStyle.Render(CreateRightAlignedColumn(budgetColWidth).Render(fmt.Sprintf("/%s %s", budgetStr, currency)))
+				statusRender := catStyle.Render(CreateCenterAlignedColumn(statusColWidth).Render(RenderStatusBadge(statusStr)))
+				notesRender := catStyle.Render(CreateCenterAlignedColumn(notesColWidth).Render(notesIndicator))
 
 				// Calculate spacing for category name
 				nameWidth := lipgloss.Width(catNameRender)
@@ -373,13 +367,13 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 				categoryLine := lipgloss.JoinHorizontal(
 					lipgloss.Left,
 					catNameRender,
-					lipgloss.NewStyle().Width(spacerWidth).Render(""),
+					CreateSpacer(spacerWidth).Render(""),
 					amountRender,
-					lipgloss.NewStyle().Width(columnSpacing).Render(""),
+					CreateColumnSpacer(columnSpacing).Render(""),
 					budgetRender,
-					lipgloss.NewStyle().Width(columnSpacing).Render(""),
+					CreateColumnSpacer(columnSpacing).Render(""),
 					statusRender,
-					lipgloss.NewStyle().Width(columnSpacing).Render(""),
+					CreateColumnSpacer(columnSpacing).Render(""),
 					notesRender,
 				)
 				expenseSectionContent = append(expenseSectionContent, categoryLine)

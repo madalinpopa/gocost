@@ -12,7 +12,7 @@ import (
 func (m App) handlePopulateCategoriesMsg(msg ui.PopulateCategoriesMsg) (App, tea.Cmd) {
 	prevRecord, exists := m.Data.MonthlyData[msg.PreviousMonthKey]
 	if !exists || len(prevRecord.Categories) == 0 {
-		return m.SetErrorStatus("No categories found in previous month")
+		return m.SetErrorStatus(fmt.Sprintf("No categories found in %s to copy from", msg.PreviousMonthKey))
 	}
 
 	var newCategories []data.Category
@@ -42,7 +42,7 @@ func (m App) handlePopulateCategoriesMsg(msg ui.PopulateCategoriesMsg) (App, tea
 	// Reset focus to first group in monthly model
 	m.MonthlyModel = m.MonthlyModel.ResetFocus()
 
-	return m.SetSuccessStatus("Categories populated from previous month")
+	return m.SetSuccessStatus(fmt.Sprintf("Successfully copied %d categories from %s to %s", len(newCategories), msg.PreviousMonthKey, msg.CurrentMonthKey))
 }
 
 // handleModelsWindowResize updates the width and height within views
@@ -118,7 +118,7 @@ func (m App) handleSaveExpenseMsg(msg ui.SaveExpenseMsg) (tea.Model, tea.Cmd) {
 	m.Data.MonthlyData[msg.MonthKey] = monthRecord
 
 	if err := data.SaveData(m.FilePath, m.Data); err != nil {
-		return m.SetErrorStatus("Failed to save expense")
+		return m.SetErrorStatus(fmt.Sprintf("Failed to save expense for category '%s': %v", msg.Category.CategoryName, err))
 	}
 
 	// Update models with new data
@@ -131,7 +131,7 @@ func (m App) handleSaveExpenseMsg(msg ui.SaveExpenseMsg) (tea.Model, tea.Cmd) {
 
 	// Return to monthly view
 	m.activeView = viewMonthlyOverview
-	return m.SetSuccessStatus("Expense saved successfully")
+	return m.SetSuccessStatus(fmt.Sprintf("Expense for '%s' saved successfully (Amount: $%.2f)", msg.Category.CategoryName, msg.Expense.Amount))
 }
 
 // handleEditExpenseMsg handles edit expense message
@@ -164,7 +164,7 @@ func (m App) handleDeleteExpenseMsg(msg ui.DeleteExpenseMsg) (tea.Model, tea.Cmd
 		m.Data.MonthlyData[msg.MonthKey] = monthRecord
 
 		if err := data.SaveData(m.FilePath, m.Data); err != nil {
-			return m.SetErrorStatus("Failed to clear expense")
+			return m.SetErrorStatus(fmt.Sprintf("Failed to clear expense for category '%s': %v", msg.Category.CategoryName, err))
 		}
 	}
 
@@ -178,7 +178,7 @@ func (m App) handleDeleteExpenseMsg(msg ui.DeleteExpenseMsg) (tea.Model, tea.Cmd
 
 	// Return to monthly view
 	m.activeView = viewMonthlyOverview
-	return m.SetSuccessStatus("Expense cleared successfully")
+	return m.SetSuccessStatus(fmt.Sprintf("Expense for category '%s' has been cleared", msg.Category.CategoryName))
 }
 
 // handleMonthlyViewMsg switches the active view to the monthly overview and updates the MonthlyModel
@@ -221,7 +221,7 @@ func (m App) handleGroupDeleteMsg(msg ui.GroupDeleteMsg) (tea.Model, tea.Cmd) {
 
 	if !canDelete {
 		m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
-		return m.SetErrorStatus(fmt.Sprintf("Cannot delete group '%s': contains categories", msg.Group.GroupName))
+		return m.SetErrorStatus(fmt.Sprintf("Cannot delete group '%s': group is still being used by existing categories", msg.Group.GroupName))
 	}
 
 	if canDelete {
@@ -302,11 +302,11 @@ func (m App) handleSaveIncomeMsg(msg ui.SaveIncomeMsg) (tea.Model, tea.Cmd) {
 
 	err := data.SaveData(m.FilePath, m.Data)
 	if err != nil {
-		return m.SetErrorStatus("Failed to save income")
+		return m.SetErrorStatus(fmt.Sprintf("Failed to save income '%s': %v", msg.Income.Description, err))
 	}
-	successMsg := "Income was added"
+	successMsg := fmt.Sprintf("Income '%s' added successfully (Amount: $%.2f)", msg.Income.Description, msg.Income.Amount)
 	if found {
-		successMsg = "Income was updated"
+		successMsg = fmt.Sprintf("Income '%s' updated successfully (Amount: $%.2f)", msg.Income.Description, msg.Income.Amount)
 	}
 	return m.SetSuccessStatus(successMsg)
 }
@@ -335,9 +335,9 @@ func (m App) handleDeleteIncomeMsg(msg ui.DeleteIncomeMsg) (tea.Model, tea.Cmd) 
 
 		err := data.SaveData(m.FilePath, m.Data)
 		if err != nil {
-			return m.SetErrorStatus("Failed to delete income")
+			return m.SetErrorStatus(fmt.Sprintf("Failed to delete income '%s': %v", msg.Income.Description, err))
 		}
-		return m.SetSuccessStatus("Income was deleted")
+		return m.SetSuccessStatus(fmt.Sprintf("Income '%s' has been deleted", msg.Income.Description))
 	}
 	return m, nil
 }
@@ -379,7 +379,7 @@ func (m App) handleCategoryAddMsg(msg ui.CategoryAddMsg) (tea.Model, tea.Cmd) {
 	m.Data.MonthlyData[msg.MonthKey] = monthRecord
 
 	if err := data.SaveData(m.FilePath, m.Data); err != nil {
-		return m.SetErrorStatus("Failed to save category")
+		return m.SetErrorStatus(fmt.Sprintf("Failed to save category '%s': %v", msg.Category.CategoryName, err))
 	}
 
 	m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
@@ -388,14 +388,14 @@ func (m App) handleCategoryAddMsg(msg ui.CategoryAddMsg) (tea.Model, tea.Cmd) {
 	// Set focus to the newly added category
 	m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
 
-	return m.SetSuccessStatus("Category name was saved")
+	return m.SetSuccessStatus(fmt.Sprintf("Category '%s' has been created successfully", msg.Category.CategoryName))
 }
 
 // handleCategoryUpdateMsg handles the update of a category.
 func (m App) handleCategoryUpdateMsg(msg ui.CategoryUpdateMsg) (tea.Model, tea.Cmd) {
 	monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
 	if !exists {
-		return m.SetErrorStatus("Failed to update category: month record not found")
+		return m.SetErrorStatus(fmt.Sprintf("Failed to update category '%s': no data found for %s", msg.Category.CategoryName, msg.MonthKey))
 	}
 
 	// Find and update the category
@@ -409,13 +409,13 @@ func (m App) handleCategoryUpdateMsg(msg ui.CategoryUpdateMsg) (tea.Model, tea.C
 	}
 
 	if !found {
-		return m.SetErrorStatus("Failed to update category: category not found")
+		return m.SetErrorStatus(fmt.Sprintf("Failed to update category '%s': category not found in %s", msg.Category.CategoryName, msg.MonthKey))
 	}
 
 	m.Data.MonthlyData[msg.MonthKey] = monthRecord
 
 	if err := data.SaveData(m.FilePath, m.Data); err != nil {
-		return m.SetErrorStatus("Failed to save category")
+		return m.SetErrorStatus(fmt.Sprintf("Failed to save updated category '%s': %v", msg.Category.CategoryName, err))
 	}
 
 	m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
@@ -424,7 +424,7 @@ func (m App) handleCategoryUpdateMsg(msg ui.CategoryUpdateMsg) (tea.Model, tea.C
 	// Set focus to the updated category
 	m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
 
-	return m.SetSuccessStatus("Category was updated successfully")
+	return m.SetSuccessStatus(fmt.Sprintf("Category '%s' has been updated successfully", msg.Category.CategoryName))
 }
 
 // handleCategoryDeleteMsg handles the deletion of a category.
@@ -448,9 +448,9 @@ func (m App) handleCategoryDeleteMsg(msg ui.CategoryDeleteMsg) (tea.Model, tea.C
 
 		err := data.SaveData(m.FilePath, m.Data)
 		if err != nil {
-			return m.SetErrorStatus("Failed to delete category")
+			return m.SetErrorStatus(fmt.Sprintf("Failed to delete category '%s': %v", msg.Category.CategoryName, err))
 		}
-		return m.SetSuccessStatus("Category was deleted")
+		return m.SetSuccessStatus(fmt.Sprintf("Category '%s' has been deleted", msg.Category.CategoryName))
 	}
 
 	return m, nil

@@ -11,23 +11,23 @@ var (
 	ColorSuccess       = lipgloss.AdaptiveColor{Light: "#047857", Dark: "#10B981"}
 	ColorWarning       = lipgloss.AdaptiveColor{Light: "#DC2626", Dark: "#EF4444"}
 	ColorAccent        = lipgloss.AdaptiveColor{Light: "#7C3AED", Dark: "#A855F7"}
-	
+
 	// Status colors
 	ColorStatusPaid    = lipgloss.AdaptiveColor{Light: "#047857", Dark: "#10B981"}
 	ColorStatusNotPaid = lipgloss.AdaptiveColor{Light: "#DC2626", Dark: "#EF4444"}
-	
+
 	// List item colors
 	ColorFocusedListBg = lipgloss.AdaptiveColor{Light: "#E0E7FF", Dark: "#374151"}
 	ColorFocusedListFg = lipgloss.AdaptiveColor{Light: "#1E293B", Dark: "#F3F4F6"}
-	
+
 	// Semantic background colors
 	ColorGroupHeaderBg = lipgloss.AdaptiveColor{Light: "#F8FAFC", Dark: "#1F2937"}
 	ColorActiveGroupBg = lipgloss.AdaptiveColor{Light: "#FEF3C7", Dark: "#454311"}
-	ColorErrorBg      = lipgloss.AdaptiveColor{Light: "#FEF2F2", Dark: "#7F1D1D"}
-	ColorSuccessBg    = lipgloss.AdaptiveColor{Light: "#F0FDF4", Dark: "#14532D"}
-	ColorInfoBg       = lipgloss.AdaptiveColor{Light: "#EFF6FF", Dark: "#1E3A8A"}
-	ColorInputBg      = lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#374151"}
-	ColorInputBorder  = lipgloss.AdaptiveColor{Light: "#D1D5DB", Dark: "#4B5563"}
+	ColorErrorBg       = lipgloss.AdaptiveColor{Light: "#FEF2F2", Dark: "#7F1D1D"}
+	ColorSuccessBg     = lipgloss.AdaptiveColor{Light: "#F0FDF4", Dark: "#14532D"}
+	ColorInfoBg        = lipgloss.AdaptiveColor{Light: "#EFF6FF", Dark: "#1E3A8A"}
+	ColorInputBg       = lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#374151"}
+	ColorInputBorder   = lipgloss.AdaptiveColor{Light: "#D1D5DB", Dark: "#4B5563"}
 
 	// General styles
 	AppStyle = lipgloss.NewStyle().Padding(1, 2)
@@ -40,11 +40,11 @@ var (
 	NormalBorder = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(ColorSubtleBorder)
-			
+
 	TopBorder = lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder(), false, false, true, false).
 			BorderForeground(ColorSubtleBorder)
-			
+
 	BottomBorder = lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder(), true, false, false, false).
 			BorderForeground(ColorSubtleBorder)
@@ -56,10 +56,10 @@ var (
 
 	MutedText = lipgloss.NewStyle().
 			Foreground(ColorMutedText)
-			
+
 	AccentText = lipgloss.NewStyle().
 			Foreground(ColorAccent)
-			
+
 	BoldText = lipgloss.NewStyle().
 			Bold(true)
 
@@ -67,7 +67,7 @@ var (
 	StatusPaid = lipgloss.NewStyle().
 			Foreground(ColorStatusPaid).
 			Bold(true)
-			
+
 	StatusNotPaid = lipgloss.NewStyle().
 			Foreground(ColorStatusNotPaid).
 			Bold(true)
@@ -77,23 +77,23 @@ var (
 			Background(ColorFocusedListBg).
 			Foreground(ColorFocusedListFg).
 			Bold(true)
-			
+
 	NormalListItem = lipgloss.NewStyle()
-	
+
 	SelectedListItem = lipgloss.NewStyle().
-			Background(ColorAccent).
-			Foreground(lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#FFFFFF"}).
-			Bold(true)
+				Background(ColorAccent).
+				Foreground(lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#FFFFFF"}).
+				Bold(true)
 
 	// Group styles
 	GroupHeaderStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(ColorHeaderText)
-			
+				Bold(true).
+				Foreground(ColorHeaderText)
+
 	ActiveGroupStyle = lipgloss.NewStyle().
-			Bold(false).
-			Foreground(lipgloss.AdaptiveColor{Light: "#B45309", Dark: "#FBBF24"})
-			
+				Bold(false).
+				Foreground(lipgloss.AdaptiveColor{Light: "#B45309", Dark: "#FBBF24"})
+
 	MutedGroupStyle = lipgloss.NewStyle().
 			Bold(false).
 			Foreground(ColorMutedText)
@@ -103,18 +103,18 @@ var (
 			Padding(0, 1).
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(ColorSubtleBorder)
-			
+
 	FocusedButtonStyle = lipgloss.NewStyle().
-			Padding(0, 1).
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(ColorFocusedBorder).
-			Background(ColorFocusedListBg).
-			Foreground(ColorFocusedListFg).
-			Bold(true)
+				Padding(0, 1).
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(ColorFocusedBorder).
+				Background(ColorFocusedListBg).
+				Foreground(ColorFocusedListFg).
+				Bold(true)
 
 	// Layout utility styles
 	SpacerStyle = lipgloss.NewStyle()
-	
+
 	// Column alignment styles
 	LeftAlign   = lipgloss.NewStyle().Align(lipgloss.Left)
 	RightAlign  = lipgloss.NewStyle().Align(lipgloss.Right)
@@ -146,17 +146,17 @@ var (
 			Padding(0, 1)
 
 	FocusedInputStyle = lipgloss.NewStyle().
-			Background(ColorInputBg).
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(ColorFocusedBorder).
-			Padding(0, 1)
+				Background(ColorInputBg).
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(ColorFocusedBorder).
+				Padding(0, 1)
 
 	// Table styles
 	TableHeaderStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(ColorHeaderText).
-			Background(ColorGroupHeaderBg).
-			Padding(0, 1)
+				Bold(true).
+				Foreground(ColorHeaderText).
+				Background(ColorGroupHeaderBg).
+				Padding(0, 1)
 
 	TableCellStyle = lipgloss.NewStyle().
 			Padding(0, 1)
@@ -173,10 +173,10 @@ var (
 
 	// Progress and status indicators
 	ProgressBarStyle = lipgloss.NewStyle().
-			Background(ColorSubtleBorder)
+				Background(ColorSubtleBorder)
 
 	ProgressFillStyle = lipgloss.NewStyle().
-			Background(ColorSuccess)
+				Background(ColorSuccess)
 )
 
 // Utility functions for common styling patterns
@@ -273,15 +273,12 @@ func RenderProgressBar(percentage float64, width int) string {
 	if width <= 0 {
 		return ""
 	}
-	
-	fillWidth := int(float64(width) * percentage / 100)
-	if fillWidth > width {
-		fillWidth = width
-	}
-	
+
+	fillWidth := max(int(float64(width)*percentage/100), width)
+
 	fill := ProgressFillStyle.Width(fillWidth).Render("")
 	empty := ProgressBarStyle.Width(width - fillWidth).Render("")
-	
+
 	return lipgloss.JoinHorizontal(lipgloss.Left, fill, empty)
 }
 
@@ -290,7 +287,7 @@ func RenderHighlight(text string) string {
 	return HighlightStyle.Render(text)
 }
 
-// RenderEmphasis renders text with emphasis styling  
+// RenderEmphasis renders text with emphasis styling
 func RenderEmphasis(text string) string {
 	return EmphasisStyle.Render(text)
 }

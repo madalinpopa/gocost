@@ -321,3 +321,30 @@ func (m CategoryModel) UpdateData(updatedData *data.DataRoot) CategoryModel {
 
 	return m
 }
+
+func (m CategoryModel) SetMonthYear(month time.Month, year int) CategoryModel {
+	m.CurrentMonth = month
+	m.CurrentYear = year
+	m.MonthKey = GetMonthKey(month, year)
+
+	var categories []data.Category
+	if record, ok := m.Data.MonthlyData[m.MonthKey]; ok {
+		categories = record.Categories
+	}
+
+	if categories == nil {
+		categories = make([]data.Category, 0)
+	}
+
+	m.categories = categories
+	if m.cursor >= len(m.categories) && len(m.categories) > 0 {
+		m.cursor = len(m.categories) - 1
+	} else {
+		m.cursor = 0
+	}
+
+	// Reset move state when month/year changes
+	m = m.ResetMoveState()
+
+	return m
+}

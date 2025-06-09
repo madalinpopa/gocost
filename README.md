@@ -4,7 +4,7 @@
 
 `gocost` is a simple, fast, and keyboard-driven Terminal User Interface (TUI) application for managing your monthly expenses. Built with Go and the Bubble Tea framework, it provides a streamlined way to track where your money is going without ever leaving the terminal.
 
-![gocost demo](./assets/demo.gif)
+![gocost demo](./assets/demo.png)
 
 
 ## Features

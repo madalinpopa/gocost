@@ -28,6 +28,12 @@ type CategoryModel struct {
 	isEditingName bool
 	editInput     textinput.Model
 	editingIndex  int
+
+	isFiltering        bool
+	filterInput        textinput.Model
+	filterText         string
+	filteredCategories []data.Category
+	isFiltered         bool
 }
 
 // NewCategoryModel creates a new CategoryModel instance.
@@ -39,6 +45,11 @@ func NewCategoryModel(initialData *data.DataRoot, month time.Month, year int) Ca
 	ti.Placeholder = "Category name"
 	ti.CharLimit = 30
 	ti.Width = 30
+
+	filterTi := textinput.New()
+	filterTi.Placeholder = "Filter categories..."
+	filterTi.CharLimit = 50
+	filterTi.Width = 50
 
 	var categories []data.Category
 	if record, ok := initialData.MonthlyData[monthKey]; ok {
@@ -57,6 +68,7 @@ func NewCategoryModel(initialData *data.DataRoot, month time.Month, year int) Ca
 		categories:   categories,
 		editInput:    ti,
 		editingIndex: -1,
+		filterInput:  filterTi,
 	}
 
 }
@@ -72,9 +84,46 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
+	if m.isFiltering {
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			switch msg.String() {
+			case "enter":
+				filterText := strings.TrimSpace(m.filterInput.Value())
+				m.isFiltering = false
+				m.filterInput.Blur()
+				
+				if filterText != "" {
+					return m, func() tea.Msg {
+						return FilterCategoriesMsg{FilterText: filterText}
+					}
+				} else {
+					// Clear filter if empty
+					m.filterText = ""
+					m.filteredCategories = nil
+					m.isFiltered = false
+					m.cursor = 0
+					m.filterInput.SetValue("")
+					return m, nil
+				}
+			case "esc":
+				m.isFiltering = false
+				m.filterInput.Blur()
+				m.filterInput.SetValue("")
+				return m, nil
+			}
+		}
+		m.filterInput, cmd = m.filterInput.Update(msg)
+		cmds = append(cmds, cmd)
+		return m, tea.Batch(cmds...)
+	}
+
 	if m.addCategory {
 
 		switch msg := msg.(type) {
+
+		case FilterCategoriesMsg:
+			return m.handleFilterCategories(msg)
 
 		case tea.KeyMsg:
 
@@ -119,6 +168,9 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Handle actions when editing
 		switch msg := msg.(type) {
 
+		case FilterCategoriesMsg:
+			return m.handleFilterCategories(msg)
+
 		case tea.KeyMsg:
 			switch msg.String() {
 
@@ -149,6 +201,9 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 
+	case FilterCategoriesMsg:
+		return m.handleFilterCategories(msg)
+
 	case tea.KeyMsg:
 
 		switch msg.String() {
@@ -159,47 +214,76 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m = m.ResetMoveState()
 				return m, nil
 			}
+			// Clear filter when exiting
+			m = m.clearFilter()
 			return m, func() tea.Msg { return MonthlyViewMsg{} }
 
 		case "j", "down":
-			if len(m.categories) > 0 {
-				m.cursor = (m.cursor + 1) % len(m.categories)
+			displayCategories := m.getDisplayCategories()
+			if len(displayCategories) > 0 {
+				m.cursor = (m.cursor + 1) % len(displayCategories)
 			}
 			return m, nil
 
 		case "k", "up":
-			if len(m.categories) > 0 {
+			displayCategories := m.getDisplayCategories()
+			if len(displayCategories) > 0 {
 				m.cursor--
 				if m.cursor < 0 {
-					m.cursor = len(m.categories) - 1
+					m.cursor = len(displayCategories) - 1
 				}
 			}
 			return m, nil
 
+		case "/":
+			m.isFiltering = true
+			m.filterInput.Focus()
+			return m, textinput.Blink
+
+		case "c":
+			if m.isFiltered {
+				// Clear filter
+				m.filterText = ""
+				m.filteredCategories = nil
+				m.isFiltered = false
+				m.cursor = 0
+				return m, nil
+			}
+
 		case "a", "n":
 			return m, func() tea.Msg { return SelectGroupMsg{} }
 		case "e":
-			if len(m.categories) > 0 {
-				if m.cursor >= 0 && m.cursor < len(m.categories) {
-					m.editingIndex = m.cursor
-					m.editInput.SetValue(m.categories[m.cursor].CategoryName)
+			displayCategories := m.getDisplayCategories()
+			if len(displayCategories) > 0 {
+				if m.cursor >= 0 && m.cursor < len(displayCategories) {
+					// Find the original index in the full categories list
+					selectedCategory := displayCategories[m.cursor]
+					for i, category := range m.categories {
+						if category.CatID == selectedCategory.CatID {
+							m.editingIndex = i
+							break
+						}
+					}
+					m.editInput.SetValue(selectedCategory.CategoryName)
 					m.editInput.Placeholder = "Edit Category Name"
 					return m.focusInput()
 				}
 			}
 
 		case "d":
-			if len(m.categories) > 0 {
-				if m.cursor >= 0 && m.cursor < len(m.categories) {
-					selectedCategory := m.categories[m.cursor]
+			displayCategories := m.getDisplayCategories()
+			if len(displayCategories) > 0 {
+				if m.cursor >= 0 && m.cursor < len(displayCategories) {
+					selectedCategory := displayCategories[m.cursor]
 					return m, func() tea.Msg { return CategoryDeleteMsg{MonthKey: m.MonthKey, Category: selectedCategory} }
 				}
 			}
 
 		case "m":
-			if len(m.categories) > 0 {
-				if m.cursor >= 0 && m.cursor < len(m.categories) {
-					m.movingCategory = m.categories[m.cursor]
+			displayCategories := m.getDisplayCategories()
+			if len(displayCategories) > 0 {
+				if m.cursor >= 0 && m.cursor < len(displayCategories) {
+					m.movingCategory = displayCategories[m.cursor]
 					return m, func() tea.Msg { return SelectGroupMsg{} }
 				}
 			}
@@ -220,7 +304,11 @@ func (m CategoryModel) View() string {
 	b.WriteString(HeaderText.Render(title))
 	b.WriteString("\n\n")
 
-	if m.isEditingName || m.addCategory {
+	if m.isFiltering {
+		b.WriteString("Filter Categories (Enter to apply filter, Esc to cancel):\n")
+		b.WriteString(m.filterInput.View())
+		b.WriteString("\n\n")
+	} else if m.isEditingName || m.addCategory {
 		b.WriteString("Enter Category Name (Enter to save, Esc to cancel):\n")
 		b.WriteString(m.editInput.View())
 		b.WriteString("\n")
@@ -230,14 +318,26 @@ func (m CategoryModel) View() string {
 			b.WriteString("\n\n")
 		}
 
-		if len(m.categories) == 0 {
-			b.WriteString(MutedText.Render("No category defined yet."))
+		displayCategories := m.getDisplayCategories()
+		
+		if len(displayCategories) == 0 {
+			if m.isFiltered {
+				b.WriteString(MutedText.Render(fmt.Sprintf("No categories found matching '%s'.", m.filterText)))
+			} else {
+				b.WriteString(MutedText.Render("No category defined yet."))
+			}
 		} else {
+			// Show filter info if filtering is active
+			if m.isFiltered {
+				b.WriteString(MutedText.Render(fmt.Sprintf("Showing %d of %d categories matching '%s'", len(displayCategories), len(m.categories), m.filterText)))
+				b.WriteString("\n\n")
+			}
+			
 			// Calculate maximum widths for dynamic column sizing
 			maxCategoryWidth := 0
 			maxGroupWidth := 0
 			
-			for _, item := range m.categories {
+			for _, item := range displayCategories {
 				if len(item.CategoryName) > maxCategoryWidth {
 					maxCategoryWidth = len(item.CategoryName)
 				}
@@ -255,7 +355,7 @@ func (m CategoryModel) View() string {
 			categoryColWidth := maxCategoryWidth + 2
 			groupColWidth := maxGroupWidth + 2
 			
-			for i, item := range m.categories {
+			for i, item := range displayCategories {
 				style := NormalListItem
 				prefix := " "
 				if i == m.cursor {
@@ -287,9 +387,12 @@ func (m CategoryModel) View() string {
 			}
 		}
 		b.WriteString("\n\n")
-		keyHints := "(j/k: Nav, a/n: Add, e: Edit, d: Delete, m: Move, Esc/q: Back)"
+		keyHints := "(j/k: Nav, /: Filter, a/n: Add, e: Edit, d: Delete, m: Move, Esc/q: Back)"
 		if m.IsMovingCategory() {
 			keyHints = "(Select a group to move the category, Esc/q: Cancel)"
+		}
+		if m.isFiltered {
+			keyHints = "(j/k: Nav, /: Filter, a/n: Add, e: Edit, d: Delete, m: Move, c: Clear filter, Esc/q: Back)"
 		}
 		b.WriteString(MutedText.Render(keyHints))
 	}
@@ -333,6 +436,55 @@ func (m CategoryModel) ResetMoveState() CategoryModel {
 	return m
 }
 
+// getDisplayCategories returns either filtered categories or all categories
+func (m CategoryModel) getDisplayCategories() []data.Category {
+	if m.isFiltered {
+		return m.filteredCategories
+	}
+	return m.categories
+}
+
+// handleFilterCategories processes the filter message and applies filtering
+func (m CategoryModel) handleFilterCategories(msg FilterCategoriesMsg) (CategoryModel, tea.Cmd) {
+	m.filterText = msg.FilterText
+	
+	var filtered []data.Category
+	filterLower := strings.ToLower(msg.FilterText)
+
+	for _, category := range m.categories {
+		// Check if category name contains filter text
+		if strings.Contains(strings.ToLower(category.CategoryName), filterLower) {
+			filtered = append(filtered, category)
+			continue
+		}
+
+		// Check if group name contains filter text
+		if group, ok := m.Data.CategoryGroups[category.GroupID]; ok {
+			if strings.Contains(strings.ToLower(group.GroupName), filterLower) {
+				filtered = append(filtered, category)
+			}
+		}
+	}
+
+	m.filteredCategories = filtered
+	m.isFiltered = true
+	m.cursor = 0 // Reset cursor to first item
+	m.filterInput.SetValue("")
+	
+	return m, nil
+}
+
+// clearFilter clears the filter state
+func (m CategoryModel) clearFilter() CategoryModel {
+	m.isFiltering = false
+	m.filterText = ""
+	m.filteredCategories = nil
+	m.isFiltered = false
+	m.filterInput.SetValue("")
+	m.filterInput.Blur()
+	return m
+}
+
 // focusInput activates the text input for category name editing.
 func (m CategoryModel) focusInput() (tea.Model, tea.Cmd) {
 	m.isEditingName = true
@@ -350,11 +502,12 @@ func (m CategoryModel) UpdateData(updatedData *data.DataRoot) CategoryModel {
 	}
 
 	m.categories = categories
-	if m.cursor >= len(m.categories) && len(m.categories) > 0 {
-		m.cursor = len(m.categories) - 1
-	} else {
-		m.cursor = 0
-	}
+	
+	// Clear filter when data is updated
+	m.filterText = ""
+	m.filteredCategories = nil
+	m.isFiltered = false
+	m.cursor = 0
 
 	// Reset move state when data is updated
 	m = m.ResetMoveState()
@@ -378,14 +531,17 @@ func (m CategoryModel) SetMonthYear(month time.Month, year int) CategoryModel {
 	}
 
 	m.categories = categories
-	if m.cursor >= len(m.categories) && len(m.categories) > 0 {
-		m.cursor = len(m.categories) - 1
+	
+	// Reset cursor
+	if len(m.categories) > 0 {
+		m.cursor = 0
 	} else {
 		m.cursor = 0
 	}
 
-	// Reset move state when month/year changes
+	// Reset move state and filter when month/year changes
 	m = m.ResetMoveState()
+	m = m.clearFilter()
 
 	return m
 }

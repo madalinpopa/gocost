@@ -80,6 +80,10 @@ type CategoryDeleteMove struct {
 	Category data.Category
 }
 
+type FilterCategoriesMsg struct {
+	FilterText string
+}
+
 type IncomeViewMsg struct{}
 
 type AddIncomeFormMsg struct {

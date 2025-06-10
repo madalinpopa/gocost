@@ -167,7 +167,7 @@ func (m MonthlyModel) getFooter(totalExpenses, balance decimal.Decimal, defaultC
 	case focusLevelGroups:
 		keyHints = "j/k: Nav | Ent: Select" + populateHint + " | i: Income | c: Categories | g: Groups | h/l: Month" + resetHint
 	case focusLevelCategories:
-		keyHints = "j/k: Nav | Ent: Expense | Esc: Back" + populateHint + " | i: Income | c: Categories | g: Groups | h/l: Month" + resetHint
+		keyHints = "j/k: Nav | Ent: Expense | t: Toggle | Esc: Back" + populateHint + " | i: Income | c: Categories | g: Groups | h/l: Month" + resetHint
 	}
 	totalExpensesStr := fmt.Sprintf("Total Expenses: %s %s", totalExpenses.String(), defaultCurrency)
 
@@ -539,6 +539,18 @@ func (m MonthlyModel) handleCategoryNavigation(msg tea.KeyMsg) (tea.Model, tea.C
 			monthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
 			return m, func() tea.Msg {
 				return ExpenseViewMsg{
+					MonthKey: monthKey,
+					Category: selectedCategory,
+				}
+			}
+		}
+	case "t":
+		// Toggle expense status for selected category
+		if numCategories > 0 && m.focusedCategoryIndex >= 0 && m.focusedCategoryIndex < numCategories {
+			selectedCategory := categoriesInGroup[m.focusedCategoryIndex]
+			monthKey := GetMonthKey(m.CurrentMonth, m.CurrentYear)
+			return m, func() tea.Msg {
+				return ToggleExpenseStatusMsg{
 					MonthKey: monthKey,
 					Category: selectedCategory,
 				}

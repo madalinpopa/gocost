@@ -1,4 +1,5 @@
 # gocost
+[![Go Reference](https://pkg.go.dev/badge/github.com/madalinpopa/gocost.svg)](https://pkg.go.dev/github.com/madalinpopa/gocost)
 
 ### Go cost your life... before it costs you
 
@@ -8,11 +9,11 @@
 
 ## What is gocost?
 
-**gocost** is an app for tracking your essential monthly bills and recurring costs—like rent, utilities, and subscriptions—to give you a clear picture of your total cost of living each month. 
+**gocost** is an app for tracking your essential monthly bills and recurring costs—like rent, utilities, and subscriptions—to give you a clear picture of your total cost of living each month.
 
 ### What it is:
 - A tool for monitoring your main monthly payment obligations
-- Focused on tracking your essential "cost centers" 
+- Focused on tracking your essential "cost centers"
 - Designed to show whether your bills have been paid
 - Perfect for understanding your baseline monthly expenses
 

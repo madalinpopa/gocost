@@ -211,8 +211,7 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m = m.ResetMoveState()
 				return m, nil
 			}
-			// Clear filter when exiting
-			m = m.clearFilter()
+			m = m.resetEditingState()
 			return m, func() tea.Msg { return MonthlyViewMsg{} }
 
 		case "j", "down":

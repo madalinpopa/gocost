@@ -481,6 +481,20 @@ func (m CategoryModel) clearFilter() CategoryModel {
 	return m
 }
 
+// resetEditingState resets all editing-related state flags and inputs
+func (m CategoryModel) resetEditingState() CategoryModel {
+	m.addCategory = false
+	m.moveCategory = false
+	m.selectedGroup = data.CategoryGroup{}
+	m.movingCategory = data.Category{}
+	m.isEditingName = false
+	m.editInput.Blur()
+	m.editInput.SetValue("")
+	m.editingIndex = -1
+	m = m.clearFilter()
+	return m
+}
+
 // focusInput activates the text input for category name editing.
 func (m CategoryModel) focusInput() (tea.Model, tea.Cmd) {
 	m.isEditingName = true
@@ -498,15 +512,10 @@ func (m CategoryModel) UpdateData(updatedData *data.DataRoot) CategoryModel {
 	}
 
 	m.categories = categories
-	
-	// Clear filter when data is updated
-	m.filterText = ""
-	m.filteredCategories = nil
-	m.isFiltered = false
 	m.cursor = 0
 
-	// Reset move state when data is updated
-	m = m.ResetMoveState()
+	// Reset all editing state when data is updated
+	m = m.resetEditingState()
 
 	return m
 }
@@ -527,7 +536,7 @@ func (m CategoryModel) SetMonthYear(month time.Month, year int) CategoryModel {
 	}
 
 	m.categories = categories
-	
+
 	// Reset cursor
 	if len(m.categories) > 0 {
 		m.cursor = 0
@@ -535,9 +544,8 @@ func (m CategoryModel) SetMonthYear(month time.Month, year int) CategoryModel {
 		m.cursor = 0
 	}
 
-	// Reset move state and filter when month/year changes
-	m = m.ResetMoveState()
-	m = m.clearFilter()
+	// Reset all editing state when month/year changes
+	m = m.resetEditingState()
 
 	return m
 }

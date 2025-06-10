@@ -61,24 +61,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	if m.selectGroup {
 
-		switch msg := msg.(type) {
-
-		case tea.KeyMsg:
-
-			switch msg.String() {
-
-			case "enter":
-				if len(m.groups) > 0 {
-					if m.cursor >= 0 && m.cursor < len(m.groups) {
-						selectedGroup := m.groups[m.cursor]
-						return m, func() tea.Msg { return SelectedGroupMsg{Group: selectedGroup} }
-					}
-				}
-			}
-		}
-	}
 
 	if m.isEditingName {
 
@@ -160,30 +143,46 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 
-		case "a", "n": // Add new category group name
-			m.editingIndex = -1
-			m.editInput.SetValue("")
-			m.editInput.Placeholder = "New Group Name"
-			return m.focusInput()
-
-		case "e": // Edit selected category group name
-			if len(m.groups) > 0 {
-				if m.cursor >= 0 && m.cursor < len(m.groups) {
-					m.editingIndex = m.cursor
-					m.editInput.SetValue(m.groups[m.cursor].GroupName)
-					m.editInput.Placeholder = "Edit Group Name"
-					return m.focusInput()
+		case "enter":
+			// Handle selection when in select group mode
+			if m.selectGroup {
+				if len(m.groups) > 0 {
+					if m.cursor >= 0 && m.cursor < len(m.groups) {
+						selectedGroup := m.groups[m.cursor]
+						return m, func() tea.Msg { return SelectedGroupMsg{Group: selectedGroup} }
+					}
 				}
-
 			}
 
-		case "d": // Delete selected category group
-			if len(m.groups) > 0 {
-				if m.cursor >= 0 && m.cursor < len(m.groups) {
-					groupToDelete := m.groups[m.cursor]
-					return m, func() tea.Msg {
-						return GroupDeleteMsg{
-							Group: groupToDelete,
+		case "a", "n": // Add new category group name (only when not selecting)
+			if !m.selectGroup {
+				m.editingIndex = -1
+				m.editInput.SetValue("")
+				m.editInput.Placeholder = "New Group Name"
+				return m.focusInput()
+			}
+
+		case "e": // Edit selected category group name (only when not selecting)
+			if !m.selectGroup {
+				if len(m.groups) > 0 {
+					if m.cursor >= 0 && m.cursor < len(m.groups) {
+						m.editingIndex = m.cursor
+						m.editInput.SetValue(m.groups[m.cursor].GroupName)
+						m.editInput.Placeholder = "Edit Group Name"
+						return m.focusInput()
+					}
+				}
+			}
+
+		case "d": // Delete selected category group (only when not selecting)
+			if !m.selectGroup {
+				if len(m.groups) > 0 {
+					if m.cursor >= 0 && m.cursor < len(m.groups) {
+						groupToDelete := m.groups[m.cursor]
+						return m, func() tea.Msg {
+							return GroupDeleteMsg{
+								Group: groupToDelete,
+							}
 						}
 					}
 				}

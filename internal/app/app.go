@@ -221,6 +221,9 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ui.CategoryDeleteMsg:
 		return m.handleCategoryDeleteMsg(msg)
 
+	case ui.FilterCategoriesMsg:
+		return m.handleFilterCategoriesMsg(msg)
+
 	case ui.ViewErrorMsg:
 		return m.handleViewErrorMsg(msg)
 

@@ -233,6 +233,28 @@ func (m CategoryModel) View() string {
 		if len(m.categories) == 0 {
 			b.WriteString(MutedText.Render("No category defined yet."))
 		} else {
+			// Calculate maximum widths for dynamic column sizing
+			maxCategoryWidth := 0
+			maxGroupWidth := 0
+			
+			for _, item := range m.categories {
+				if len(item.CategoryName) > maxCategoryWidth {
+					maxCategoryWidth = len(item.CategoryName)
+				}
+				
+				var groupName string
+				if group, ok := m.Data.CategoryGroups[item.GroupID]; ok {
+					groupName = group.GroupName
+				}
+				if len(groupName) > maxGroupWidth {
+					maxGroupWidth = len(groupName)
+				}
+			}
+			
+			// Add padding to column widths
+			categoryColWidth := maxCategoryWidth + 2
+			groupColWidth := maxGroupWidth + 2
+			
 			for i, item := range m.categories {
 				style := NormalListItem
 				prefix := " "
@@ -252,7 +274,14 @@ func (m CategoryModel) View() string {
 				if ok {
 					groupName = group.GroupName
 				}
-				line := fmt.Sprintf("%s %s - %s", prefix, item.CategoryName, groupName)
+				
+				// Format category name with left alignment
+				categoryFormatted := fmt.Sprintf("%-*s", categoryColWidth, item.CategoryName)
+				
+				// Format group name with muted style and column alignment
+				groupFormatted := MutedText.Render(fmt.Sprintf("%-*s", groupColWidth, groupName))
+				
+				line := fmt.Sprintf("%s %s %s", prefix, categoryFormatted, groupFormatted)
 				b.WriteString(style.Render(line))
 				b.WriteString("\n")
 			}

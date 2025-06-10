@@ -14,7 +14,6 @@ import (
 const (
 	focusAmount = iota
 	focusBudget
-	focusStatus
 	focusNotes
 	focusSave
 	focusCancel
@@ -29,12 +28,9 @@ type ExpenseModel struct {
 	amountInput textinput.Model
 	budgetInput textinput.Model
 	notesInput  textarea.Model
-	status      string
 
-	focusIndex int // 0. amount, 1: budget, 3: status, 4: notes, 5: Save, 6: Cancel
+	focusIndex int // 0. amount, 1: budget, 2: notes, 3: Save, 4: Cancel
 
-	statusOptions []string
-	statusCursor  int
 
 	expenseCategory data.Category
 	existingExpense data.ExpenseRecord
@@ -61,7 +57,6 @@ func NewExpenseModel(initialData *data.DataRoot, category data.Category, monthKe
 	ni.SetHeight(3)
 	ni.SetWidth(30)
 
-	currentStatus := "Not Paid"
 	var expenseRecord data.ExpenseRecord
 	var existing bool
 	
@@ -70,20 +65,11 @@ func NewExpenseModel(initialData *data.DataRoot, category data.Category, monthKe
 	}
 	
 	if !existing {
-		expenseRecord = data.ExpenseRecord{
-			Status: currentStatus,
-		}
+		expenseRecord = data.ExpenseRecord{}
 	} else {
 		ai.SetValue(fmt.Sprintf("%.2f", expenseRecord.Amount))
 		bi.SetValue(fmt.Sprintf("%.2f", expenseRecord.Budget))
 		ni.SetValue(expenseRecord.Notes)
-		currentStatus = expenseRecord.Status
-	}
-
-	statusOpts := []string{"Not Paid", "Paid"}
-	statusIdx := 0
-	if currentStatus == "Paid" {
-		statusIdx = 1
 	}
 
 	m := ExpenseModel{
@@ -93,9 +79,6 @@ func NewExpenseModel(initialData *data.DataRoot, category data.Category, monthKe
 		amountInput:        ai,
 		budgetInput:        bi,
 		notesInput:         ni,
-		statusOptions:      statusOpts,
-		statusCursor:       statusIdx,
-		status:             currentStatus,
 		expenseCategory:    category,
 		existingExpense:    expenseRecord,
 		monthKey:           monthKey,
@@ -207,10 +190,15 @@ func (m ExpenseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 
+				status := m.existingExpense.Status
+				if status == "" {
+					status = "Not Paid" // Default status for new expenses
+				}
+
 				expense := data.ExpenseRecord{
 					Amount: amount,
 					Budget: budget,
-					Status: m.statusOptions[m.statusCursor],
+					Status: status,
 					Notes:  m.notesInput.Value(),
 				}
 
@@ -236,29 +224,18 @@ func (m ExpenseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
-			// If on status, toggle it
-			if m.focusIndex == focusStatus {
-				m.statusCursor = (m.statusCursor + 1) % len(m.statusOptions)
-				m.status = m.statusOptions[m.statusCursor]
-			}
 
-		// Handle spacebar for status toggle when status is focused
+		// Handle spacebar for focused inputs
 		case " ":
-			if m.focusIndex == focusStatus {
-				m.statusCursor = (m.statusCursor + 1) % len(m.statusOptions)
-				m.status = m.statusOptions[m.statusCursor]
-			} else {
-				// If not status, pass space to focused input
-				if m.amountInput.Focused() {
-					m.amountInput, cmd = m.amountInput.Update(msg)
-					cmds = append(cmds, cmd)
-				} else if m.budgetInput.Focused() {
-					m.budgetInput, cmd = m.budgetInput.Update(msg)
-					cmds = append(cmds, cmd)
-				} else if m.notesInput.Focused() {
-					m.notesInput, cmd = m.notesInput.Update(msg)
-					cmds = append(cmds, cmd)
-				}
+			if m.amountInput.Focused() {
+				m.amountInput, cmd = m.amountInput.Update(msg)
+				cmds = append(cmds, cmd)
+			} else if m.budgetInput.Focused() {
+				m.budgetInput, cmd = m.budgetInput.Update(msg)
+				cmds = append(cmds, cmd)
+			} else if m.notesInput.Focused() {
+				m.notesInput, cmd = m.notesInput.Update(msg)
+				cmds = append(cmds, cmd)
 			}
 
 		default:
@@ -296,26 +273,6 @@ func (m ExpenseModel) View() string {
 	b.WriteString(m.budgetInput.View())
 	b.WriteString("\n\n")
 
-	statusLine := "Status: "
-	for i, opt := range m.statusOptions {
-		cursor := " "
-		if m.focusIndex == focusStatus && i == m.statusCursor {
-			cursor = ">"
-		}
-		
-		var statusBadge string
-		if m.focusIndex == focusStatus && i == m.statusCursor {
-			statusBadge = FocusedListItem.Render(fmt.Sprintf("%s[%s]", cursor, opt))
-		} else if i == m.statusCursor {
-			statusBadge = BoldText.Render(fmt.Sprintf("%s[%s]", cursor, opt))
-		} else {
-			statusBadge = fmt.Sprintf("%s%s", cursor, RenderStatusBadge(opt))
-		}
-		statusLine += statusBadge + "  "
-	}
-	b.WriteString(statusLine)
-	b.WriteString("\n\n")
-
 	// Notes
 	b.WriteString("Notes: \n")
 	b.WriteString(m.notesInput.View())
@@ -339,7 +296,7 @@ func (m ExpenseModel) View() string {
 	if m.hasExistingExpense {
 		helpText += ", Clear to reset"
 	}
-	helpText += ")"
+	helpText += ", Status can be toggled from monthly view with 't')"
 	b.WriteString(MutedText.Render(helpText))
 
 	popupContent := AppStyle.Width(m.Width).Align(lipgloss.Center).Render(b.String())

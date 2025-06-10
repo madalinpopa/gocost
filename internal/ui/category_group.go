@@ -82,7 +82,6 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if m.isEditingName {
 
-		// Handle actions when editing
 		switch msg := msg.(type) {
 
 		case tea.KeyMsg:
@@ -140,7 +139,6 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 
-		// Handle navigation and select actions
 		switch msg.String() {
 
 		case "q", "esc":
@@ -260,6 +258,8 @@ func (m CategoryGroupModel) UpdateData(updatedData *data.DataRoot) CategoryGroup
 	} else {
 		m.cursor = 0
 	}
+
+	m = m.resetEditingState()
 	return m
 }
 
@@ -274,6 +274,7 @@ func (m CategoryGroupModel) focusInput() (tea.Model, tea.Cmd) {
 func (m CategoryGroupModel) blurInput() tea.Model {
 	m.isEditingName = false
 	m.editInput.Blur()
+	m.editInput.SetValue("")
 	m.editingIndex = -1
 	return m
 }
@@ -284,8 +285,17 @@ func (m CategoryGroupModel) SelectGroup() CategoryGroupModel {
 	return m
 }
 
+// resetEditingState resets all editing-related state flags and inputs
+func (m CategoryGroupModel) resetEditingState() CategoryGroupModel {
+	m.selectGroup = false
+	m.isEditingName = false
+	m.editInput.Blur()
+	m.editInput.SetValue("")
+	m.editingIndex = -1
+	return m
+}
+
 // ResetSelection disables group selection mode.
 func (m CategoryGroupModel) ResetSelection() CategoryGroupModel {
-	m.selectGroup = false
-	return m
+	return m.resetEditingState()
 }

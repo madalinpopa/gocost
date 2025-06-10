@@ -128,7 +128,7 @@ Download the latest pre-built binary from the [GitHub Releases page](https://git
 ### From source
 
 ```bash
-go install github.com/madalinpopa/gocost/cmd/gocost@latest
+go install github.com/madalinpopa/gocost/cmd/gocost@v1.1.2
 ```
 
 ### Build locally

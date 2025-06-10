@@ -525,6 +525,15 @@ func (m App) handleCategoryDeleteMsg(msg ui.CategoryDeleteMsg) (tea.Model, tea.C
 	return m, nil
 }
 
+// handleFilterCategoriesMsg handles filtering categories by the provided filter text.
+func (m App) handleFilterCategoriesMsg(msg ui.FilterCategoriesMsg) (tea.Model, tea.Cmd) {
+	updatedCategoryModel, cmd := m.CategoryModel.Update(msg)
+	if cgMo, ok := updatedCategoryModel.(ui.CategoryModel); ok {
+		m.CategoryModel = cgMo
+	}
+	return m, cmd
+}
+
 // handleReturnToMonthlyWithFocusMsg handles the return to monthly view with focus on a specific category.
 func (m App) handleReturnToMonthlyWithFocusMsg(msg ui.ReturnToMonthlyWithFocusMsg) (tea.Model, tea.Cmd) {
 	m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)

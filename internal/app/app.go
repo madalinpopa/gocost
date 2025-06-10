@@ -239,6 +239,9 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ui.DeleteExpenseMsg:
 		return m.handleDeleteExpenseMsg(msg)
 
+	case ui.ToggleExpenseStatusMsg:
+		return m.handleToggleExpenseStatusMsg(msg)
+
 	case ui.ReturnToMonthlyWithFocusMsg:
 		return m.handleReturnToMonthlyWithFocusMsg(msg)
 

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/madalinpopa/gocost/internal/data"
 )
 
@@ -337,5 +338,55 @@ func TestCategoryGroupModel_ResetEditingState(t *testing.T) {
 	
 	if resetModel.editInput.Focused() {
 		t.Error("Expected editInput to be blurred")
+	}
+}
+
+func TestCategoryGroupModel_SelectMode_DisablesAddEditDelete(t *testing.T) {
+	model := createTestCategoryGroupModel()
+	
+	// Set model to select group mode
+	model = model.SelectGroup()
+	
+	if !model.selectGroup {
+		t.Fatal("Expected selectGroup to be true")
+	}
+	
+	// Test that "a" (add) doesn't trigger editing when in select mode
+	updatedModel, _ := model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("a")})
+	if groupModel, ok := updatedModel.(CategoryGroupModel); ok {
+		if groupModel.isEditingName {
+			t.Error("Expected add operation to be disabled in select mode")
+		}
+		if groupModel.editInput.Focused() {
+			t.Error("Expected editInput to remain unfocused in select mode")
+		}
+	}
+	
+	// Test that "e" (edit) doesn't trigger editing when in select mode
+	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("e")})
+	if groupModel, ok := updatedModel.(CategoryGroupModel); ok {
+		if groupModel.isEditingName {
+			t.Error("Expected edit operation to be disabled in select mode")
+		}
+		if groupModel.editInput.Focused() {
+			t.Error("Expected editInput to remain unfocused in select mode")
+		}
+	}
+	
+	// Test that "d" (delete) doesn't trigger any action when in select mode
+	updatedModel, cmd := model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("d")})
+	if groupModel, ok := updatedModel.(CategoryGroupModel); ok {
+		if groupModel.isEditingName {
+			t.Error("Expected delete operation to be disabled in select mode")
+		}
+	}
+	if cmd != nil {
+		t.Error("Expected no command to be returned for delete in select mode")
+	}
+	
+	// Test that "enter" works correctly in select mode
+	updatedModel, cmd = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	if cmd == nil {
+		t.Error("Expected command to be returned for enter in select mode")
 	}
 }

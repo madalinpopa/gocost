@@ -181,6 +181,75 @@ func (m App) handleDeleteExpenseMsg(msg ui.DeleteExpenseMsg) (tea.Model, tea.Cmd
 	return m.SetSuccessStatus(fmt.Sprintf("Expense for category '%s' has been cleared", msg.Category.CategoryName))
 }
 
+// handleToggleExpenseStatusMsg toggles the status of an expense between "Paid" and "Not Paid"
+func (m App) handleToggleExpenseStatusMsg(msg ui.ToggleExpenseStatusMsg) (tea.Model, tea.Cmd) {
+	monthRecord, exists := m.Data.MonthlyData[msg.MonthKey]
+	if !exists {
+		monthRecord = data.MonthlyRecord{
+			Categories: []data.Category{},
+		}
+	}
+
+	// Find and update the category
+	for i, category := range monthRecord.Categories {
+		if category.CatID == msg.Category.CatID {
+			if category.Expense == nil {
+				category.Expense = make(map[string]data.ExpenseRecord)
+			}
+
+			// Get current expense or create default
+			currentExpense, exists := category.Expense[category.CatID]
+			if !exists {
+				currentExpense = data.ExpenseRecord{
+					Amount: 0,
+					Budget: 0,
+					Status: "Not Paid",
+					Notes:  "",
+				}
+			}
+
+			// Toggle status
+			if currentExpense.Status == "Paid" {
+				currentExpense.Status = "Not Paid"
+			} else {
+				currentExpense.Status = "Paid"
+			}
+
+			category.Expense[category.CatID] = currentExpense
+			monthRecord.Categories[i] = category
+			break
+		}
+	}
+
+	m.Data.MonthlyData[msg.MonthKey] = monthRecord
+
+	if err := data.SaveData(m.FilePath, m.Data); err != nil {
+		return m.SetErrorStatus(fmt.Sprintf("Failed to toggle status for category '%s': %v", msg.Category.CategoryName, err))
+	}
+
+	// Update models with new data
+	m.MonthlyModel = m.MonthlyModel.UpdateData(m.Data)
+	m.IncomeModel = m.IncomeModel.UpdateData(m.Data)
+	m.CategoryModel = m.CategoryModel.UpdateData(m.Data)
+
+	// Set focus to the category that was just updated
+	m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
+
+	// Get the updated expense to show the new status
+	updatedRecord := m.Data.MonthlyData[msg.MonthKey]
+	var newStatus string = "Not Paid"
+	for _, category := range updatedRecord.Categories {
+		if category.CatID == msg.Category.CatID {
+			if expense, exists := category.Expense[category.CatID]; exists {
+				newStatus = expense.Status
+			}
+			break
+		}
+	}
+
+	return m.SetSuccessStatus(fmt.Sprintf("Expense status for '%s' toggled to '%s'", msg.Category.CategoryName, newStatus))
+}
+
 // handleMonthlyViewMsg switches the active view to the monthly overview and updates the MonthlyModel
 // with the current month and year, if it exists.
 func (m App) handleMonthlyViewMsg(msg ui.MonthlyViewMsg) (tea.Model, tea.Cmd) {

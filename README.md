@@ -12,6 +12,7 @@
 - 📊 Monthly expense tracking with categories and groups
 - 💰 Income management
 - 📁 Category organization with groups
+- 🔍 Category filtering by name or group
 - 💾 Local JSON data persistence
 - ⌨️ Keyboard-driven interface
 - 🎨 Adaptive colors for light/dark terminals
@@ -31,6 +32,8 @@
 - `j` / `down` - Move down
 - `k` / `up` - Move up
 - `Enter` - Select/Edit
+- `/` - Filter items (in category view)
+- `c` - Clear filter (when filtered)
 - `a` / `n` - Add new item
 - `e` - Edit item
 - `d` - Delete item
@@ -41,6 +44,14 @@
 - `Tab` / `Shift+Tab` - Navigate between fields
 - `Enter` - Save
 - `Esc` - Cancel
+
+#### Category Filtering
+- `/` - Start filtering categories (in category view)
+- `Enter` - Apply filter (while typing)
+- `c` - Clear current filter
+- `Esc` - Cancel filter input
+
+The filter searches both category names and group names (case-insensitive). When a filter is active, you can still perform all normal operations (edit, delete, move) on the filtered results.
 
 ## Project Structure
 

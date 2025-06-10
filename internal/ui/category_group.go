@@ -224,7 +224,8 @@ func (m CategoryGroupModel) View() string {
 					style = FocusedListItem
 					prefix = "> "
 				}
-				line := fmt.Sprintf("%s %d. %s (ID: %s)", prefix, item.Order, item.GroupName, item.GroupID)
+				groupId := MutedText.Render(item.GroupID)
+				line := fmt.Sprintf("%s %d. %s (ID: %s)", prefix, item.Order, item.GroupName, groupId)
 				b.WriteString(style.Render(line))
 				b.WriteString("\n")
 			}

@@ -92,13 +92,12 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				filterText := strings.TrimSpace(m.filterInput.Value())
 				m.isFiltering = false
 				m.filterInput.Blur()
-				
+
 				if filterText != "" {
 					return m, func() tea.Msg {
 						return FilterCategoriesMsg{FilterText: filterText}
 					}
 				} else {
-					// Clear filter if empty
 					m.filterText = ""
 					m.filteredCategories = nil
 					m.isFiltered = false
@@ -165,7 +164,6 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if m.isEditingName {
 
-		// Handle actions when editing
 		switch msg := msg.(type) {
 
 		case FilterCategoriesMsg:
@@ -210,7 +208,6 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "q", "esc":
 			if m.IsMovingCategory() {
-				// Cancel move operation
 				m = m.ResetMoveState()
 				return m, nil
 			}
@@ -256,7 +253,6 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			displayCategories := m.getDisplayCategories()
 			if len(displayCategories) > 0 {
 				if m.cursor >= 0 && m.cursor < len(displayCategories) {
-					// Find the original index in the full categories list
 					selectedCategory := displayCategories[m.cursor]
 					for i, category := range m.categories {
 						if category.CatID == selectedCategory.CatID {
@@ -319,7 +315,7 @@ func (m CategoryModel) View() string {
 		}
 
 		displayCategories := m.getDisplayCategories()
-		
+
 		if len(displayCategories) == 0 {
 			if m.isFiltered {
 				b.WriteString(MutedText.Render(fmt.Sprintf("No categories found matching '%s'.", m.filterText)))
@@ -332,16 +328,16 @@ func (m CategoryModel) View() string {
 				b.WriteString(MutedText.Render(fmt.Sprintf("Showing %d of %d categories matching '%s'", len(displayCategories), len(m.categories), m.filterText)))
 				b.WriteString("\n\n")
 			}
-			
+
 			// Calculate maximum widths for dynamic column sizing
 			maxCategoryWidth := 0
 			maxGroupWidth := 0
-			
+
 			for _, item := range displayCategories {
 				if len(item.CategoryName) > maxCategoryWidth {
 					maxCategoryWidth = len(item.CategoryName)
 				}
-				
+
 				var groupName string
 				if group, ok := m.Data.CategoryGroups[item.GroupID]; ok {
 					groupName = group.GroupName
@@ -350,11 +346,11 @@ func (m CategoryModel) View() string {
 					maxGroupWidth = len(groupName)
 				}
 			}
-			
+
 			// Add padding to column widths
 			categoryColWidth := maxCategoryWidth + 2
 			groupColWidth := maxGroupWidth + 2
-			
+
 			for i, item := range displayCategories {
 				style := NormalListItem
 				prefix := " "
@@ -374,13 +370,13 @@ func (m CategoryModel) View() string {
 				if ok {
 					groupName = group.GroupName
 				}
-				
+
 				// Format category name with left alignment
 				categoryFormatted := fmt.Sprintf("%-*s", categoryColWidth, item.CategoryName)
-				
+
 				// Format group name with muted style and column alignment
 				groupFormatted := MutedText.Render(fmt.Sprintf("%-*s", groupColWidth, groupName))
-				
+
 				line := fmt.Sprintf("%s %s %s", prefix, categoryFormatted, groupFormatted)
 				b.WriteString(style.Render(line))
 				b.WriteString("\n")
@@ -447,7 +443,7 @@ func (m CategoryModel) getDisplayCategories() []data.Category {
 // handleFilterCategories processes the filter message and applies filtering
 func (m CategoryModel) handleFilterCategories(msg FilterCategoriesMsg) (CategoryModel, tea.Cmd) {
 	m.filterText = msg.FilterText
-	
+
 	var filtered []data.Category
 	filterLower := strings.ToLower(msg.FilterText)
 
@@ -470,7 +466,7 @@ func (m CategoryModel) handleFilterCategories(msg FilterCategoriesMsg) (Category
 	m.isFiltered = true
 	m.cursor = 0 // Reset cursor to first item
 	m.filterInput.SetValue("")
-	
+
 	return m, nil
 }
 

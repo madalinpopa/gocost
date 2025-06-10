@@ -6,6 +6,22 @@
 
 ![gocost demo](./assets/demo.png)
 
+## What is gocost?
+
+**gocost** is an app for tracking your essential monthly bills and recurring costs—like rent, utilities, and subscriptions—to give you a clear picture of your total cost of living each month. 
+
+### What it is:
+- A tool for monitoring your main monthly payment obligations
+- Focused on tracking your essential "cost centers" 
+- Designed to show whether your bills have been paid
+- Perfect for understanding your baseline monthly expenses
+
+### What it's not:
+- Not a detailed expense tracker for every purchase
+- Not meant for tracking daily spending like coffee, meals, or shopping
+- Not a budgeting app for discretionary spending
+
+Instead of tracking every single transaction, gocost focuses on the big picture—helping you monitor the recurring costs that make up your monthly financial foundation.
 
 ## Features
 

@@ -268,7 +268,7 @@ func TestLoadConfig(t *testing.T) {
 	t.Run("creates config when not found", func(t *testing.T) {
 		// Create a temporary directory for testing
 		tempDir := t.TempDir()
-		
+
 		// Create a mock home directory
 		mockHomeDir := filepath.Join(tempDir, "home")
 		err := os.MkdirAll(mockHomeDir, 0755)
@@ -311,27 +311,42 @@ func TestLoadConfig(t *testing.T) {
 	t.Run("loads existing config", func(t *testing.T) {
 		// Create a temporary directory for testing
 		tempDir := t.TempDir()
-		
+
+		// Create a mock home directory
+		mockHomeDir := filepath.Join(tempDir, "home")
+		err := os.MkdirAll(mockHomeDir, 0755)
+		if err != nil {
+			t.Fatalf("Failed to create mock home directory: %v", err)
+		}
+
+		// Temporarily change HOME environment variable
+		originalHome := os.Getenv("HOME")
+		defer func() {
+			if originalHome != "" {
+				os.Setenv("HOME", originalHome)
+			} else {
+				os.Unsetenv("HOME")
+			}
+		}()
+		os.Setenv("HOME", mockHomeDir)
+
 		// Create config directory
-		configDir := filepath.Join(tempDir, dataDir)
-		err := os.MkdirAll(configDir, 0755)
+		configDir := filepath.Join(mockHomeDir, dataDir)
+		err = os.MkdirAll(configDir, 0755)
 		if err != nil {
 			t.Fatalf("Failed to create config directory: %v", err)
 		}
 
 		// Create a simple config file
 		configPath := filepath.Join(configDir, "config.json")
-		configContent := `{"currency": "USD", "dataDir": "/test/path", "dataFilename": "/test/data.json"}`
+		configContent := `{"currency": "RON", "dataDir": "/test/path", "dataFilename": "/test/data.json"}`
 		err = os.WriteFile(configPath, []byte(configContent), 0644)
 		if err != nil {
 			t.Fatalf("Failed to create config file: %v", err)
 		}
 
-		// Clear viper state and set working directory
+		// Clear viper state
 		viper.Reset()
-		originalWd, _ := os.Getwd()
-		defer os.Chdir(originalWd)
-		os.Chdir(tempDir)
 
 		// Test the function
 		err = LoadConfig()
@@ -340,8 +355,185 @@ func TestLoadConfig(t *testing.T) {
 		}
 
 		// Verify config values were loaded
+		if viper.GetString(CurrencyField) != "RON" {
+			t.Errorf("expected currency RON, got %s", viper.GetString(CurrencyField))
+		}
+	})
+
+	t.Run("loads config with partial values - missing fields are not set to defaults", func(t *testing.T) {
+		// Create a temporary directory for testing
+		tempDir := t.TempDir()
+
+		// Create a mock home directory
+		mockHomeDir := filepath.Join(tempDir, "home")
+		err := os.MkdirAll(mockHomeDir, 0755)
+		if err != nil {
+			t.Fatalf("Failed to create mock home directory: %v", err)
+		}
+
+		// Temporarily change HOME environment variable
+		originalHome := os.Getenv("HOME")
+		defer func() {
+			if originalHome != "" {
+				os.Setenv("HOME", originalHome)
+			} else {
+				os.Unsetenv("HOME")
+			}
+		}()
+		os.Setenv("HOME", mockHomeDir)
+
+		// Create config directory
+		configDir := filepath.Join(mockHomeDir, dataDir)
+		err = os.MkdirAll(configDir, 0755)
+		if err != nil {
+			t.Fatalf("Failed to create config directory: %v", err)
+		}
+
+		// Create a config file with only currency field
+		configPath := filepath.Join(configDir, "config.json")
+		configContent := `{"currency": "EUR"}`
+		err = os.WriteFile(configPath, []byte(configContent), 0644)
+		if err != nil {
+			t.Fatalf("Failed to create config file: %v", err)
+		}
+
+		// Clear viper state
+		viper.Reset()
+
+		// Test the function
+		err = LoadConfig()
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+
+		// Verify currency from file is loaded
+		if viper.GetString(CurrencyField) != "EUR" {
+			t.Errorf("expected currency EUR from config file, got %s", viper.GetString(CurrencyField))
+		}
+
+		// Verify missing fields are empty (no defaults set for existing config files)
+		if viper.GetString(DataDirField) != "" {
+			t.Errorf("expected DataDirField to be empty for existing config, got %s", viper.GetString(DataDirField))
+		}
+
+		if viper.GetString(DataFileField) != "" {
+			t.Errorf("expected DataFileField to be empty for existing config, got %s", viper.GetString(DataFileField))
+		}
+	})
+
+	t.Run("loads complete config file with all values", func(t *testing.T) {
+		// Create a temporary directory for testing
+		tempDir := t.TempDir()
+
+		// Create a mock home directory
+		mockHomeDir := filepath.Join(tempDir, "home")
+		err := os.MkdirAll(mockHomeDir, 0755)
+		if err != nil {
+			t.Fatalf("Failed to create mock home directory: %v", err)
+		}
+
+		// Temporarily change HOME environment variable
+		originalHome := os.Getenv("HOME")
+		defer func() {
+			if originalHome != "" {
+				os.Setenv("HOME", originalHome)
+			} else {
+				os.Unsetenv("HOME")
+			}
+		}()
+		os.Setenv("HOME", mockHomeDir)
+
+		// Create config directory
+		configDir := filepath.Join(mockHomeDir, dataDir)
+		err = os.MkdirAll(configDir, 0755)
+		if err != nil {
+			t.Fatalf("Failed to create config directory: %v", err)
+		}
+
+		// Create a complete config file
+		configPath := filepath.Join(configDir, "config.json")
+		configContent := `{
+			"currency": "USD",
+			"dataDir": "/custom/path",
+			"dataFilename": "/custom/data.json"
+		}`
+		err = os.WriteFile(configPath, []byte(configContent), 0644)
+		if err != nil {
+			t.Fatalf("Failed to create config file: %v", err)
+		}
+
+		// Clear viper state
+		viper.Reset()
+
+		// Test the function
+		err = LoadConfig()
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+
+		// Verify all values from file are loaded correctly
 		if viper.GetString(CurrencyField) != "USD" {
 			t.Errorf("expected currency USD, got %s", viper.GetString(CurrencyField))
+		}
+
+		if viper.GetString(DataDirField) != "/custom/path" {
+			t.Errorf("expected dataDir /custom/path, got %s", viper.GetString(DataDirField))
+		}
+
+		if viper.GetString(DataFileField) != "/custom/data.json" {
+			t.Errorf("expected dataFilename /custom/data.json, got %s", viper.GetString(DataFileField))
+		}
+	})
+
+	t.Run("handles invalid JSON config file", func(t *testing.T) {
+		// Create a temporary directory for testing
+		tempDir := t.TempDir()
+
+		// Create a mock home directory
+		mockHomeDir := filepath.Join(tempDir, "home")
+		err := os.MkdirAll(mockHomeDir, 0755)
+		if err != nil {
+			t.Fatalf("Failed to create mock home directory: %v", err)
+		}
+
+		// Temporarily change HOME environment variable
+		originalHome := os.Getenv("HOME")
+		defer func() {
+			if originalHome != "" {
+				os.Setenv("HOME", originalHome)
+			} else {
+				os.Unsetenv("HOME")
+			}
+		}()
+		os.Setenv("HOME", mockHomeDir)
+
+		// Create config directory
+		configDir := filepath.Join(mockHomeDir, dataDir)
+		err = os.MkdirAll(configDir, 0755)
+		if err != nil {
+			t.Fatalf("Failed to create config directory: %v", err)
+		}
+
+		// Create an invalid JSON config file
+		configPath := filepath.Join(configDir, "config.json")
+		configContent := `{"currency": "USD", "invalidJson":`
+		err = os.WriteFile(configPath, []byte(configContent), 0644)
+		if err != nil {
+			t.Fatalf("Failed to create config file: %v", err)
+		}
+
+		// Clear viper state
+		viper.Reset()
+
+		// Test the function - should return an error
+		err = LoadConfig()
+		if err == nil {
+			t.Errorf("expected error when reading invalid JSON config, got nil")
+		}
+
+		// Verify error message indicates config read failure
+		if !strings.Contains(err.Error(), "failed to read config file") {
+			t.Errorf("expected error message about config read failure, got: %v", err)
 		}
 	})
 }

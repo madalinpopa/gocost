@@ -21,34 +21,72 @@ const (
 	defaultConfigType   = "json"
 )
 
-// getDefaultDataDir returns the default data directory path.
-func getDefaultDataDir() (string, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", errors.New("could not get user home directory: " + err.Error())
+// getDataDir returns a path like "~/.local/share/gocost" or whatever
+// the XDG_DATA_HOME var is set to
+func getDataDir() (string, error) {
+	dataHome := os.Getenv("XDG_DATA_HOME")
+	if dataHome == "" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return "", errors.New("could not get user home directory: " + err.Error())
+		}
+		dataHome = filepath.Join(homeDir, ".local", "share")
 	}
-	appDataDir := filepath.Join(homeDir, dataDir)
 
-	if _, err := os.Stat(appDataDir); os.IsNotExist(err) {
-		if mkErr := os.MkdirAll(appDataDir, 0755); mkErr != nil {
-			return "", fmt.Errorf("could not create data directory: %w", mkErr)
+	appDataDir := filepath.Join(dataHome, "gocost")
+
+	if err := ensureDir(appDataDir); err != nil {
+		return "", err
+	}
+	return appDataDir, nil
+}
+
+// getConfigDir returns a path like "~/.config/gocost" or whatever
+// the XDG_CONFIG_HOME var is set to
+func getConfigDir() (string, error) {
+    configHome := os.Getenv("XDG_CONFIG_HOME")
+    if configHome == "" {
+        homeDir, err := os.UserHomeDir()
+        if err != nil {
+            return "", errors.New("could not get user home directory: " + err.Error())
+        }
+        configHome = filepath.Join(homeDir, ".config")
+    }
+
+    appConfigDir := filepath.Join(configHome, "gocost")
+
+    if err := ensureDir(appConfigDir); err != nil {
+        return "", err
+    }
+    return appConfigDir, nil
+}
+
+// ensureDir just creates a directory if it doesn't exist
+func ensureDir(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if mkErr := os.MkdirAll(path, 0755); mkErr != nil {
+			return fmt.Errorf("could not create directory %s: %w", path, mkErr)
 		}
 	} else if err != nil {
-		return "", fmt.Errorf("could not stat data directory: %w", err)
+		return fmt.Errorf("could not stat directory %s: %w", path, err)
 	}
-
-	return appDataDir, nil
+	return nil
 }
 
 // LoadConfig loads the configuration from the default location.
 func LoadConfig() error {
 
-	dataDirPath, err := getDefaultDataDir()
+	dataDirPath, err := getDataDir()
 	if err != nil {
 		return fmt.Errorf("failed to get data directory: %w", err)
 	}
 
-	viper.AddConfigPath(dataDirPath)
+	configDirPath, err := getConfigDir()
+	if err != nil {
+		return fmt.Errorf("failed to get data directory: %w", err)
+	}
+
+	viper.AddConfigPath(configDirPath)
 	viper.SetConfigName("config")
 	viper.SetConfigType("json")
 
@@ -63,7 +101,7 @@ func LoadConfig() error {
 			viper.SetDefault(DataFileField, dataFilename)
 
 			configFilename := filepath.Join(
-				dataDirPath, fmt.Sprintf("%s.%s", defaultConfigName, defaultConfigType),
+				configDirPath, fmt.Sprintf("%s.%s", defaultConfigName, defaultConfigType),
 			)
 
 			if err := viper.SafeWriteConfigAs(configFilename); err != nil {

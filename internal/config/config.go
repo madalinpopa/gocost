@@ -21,7 +21,7 @@ const (
 	defaultConfigType   = "json"
 )
 
-// getDataDir returns a path like "/home/user/.local/share/gocost" or whatever
+// getDataDir returns a path like "~/.local/share/gocost" or whatever
 // the XDG_DATA_HOME var is set to
 func getDataDir() (string, error) {
 	dataHome := os.Getenv("XDG_DATA_HOME")
@@ -41,7 +41,7 @@ func getDataDir() (string, error) {
 	return appDataDir, nil
 }
 
-// getConfigDir returns a path like "/home/user/.config/gocost" or whatever
+// getConfigDir returns a path like "~/.config/gocost" or whatever
 // the XDG_CONFIG_HOME var is set to
 func getConfigDir() (string, error) {
     configHome := os.Getenv("XDG_CONFIG_HOME")

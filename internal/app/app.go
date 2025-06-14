@@ -74,6 +74,8 @@ func (m App) Init() tea.Cmd {
 
 	case viewExpense:
 		return m.ExpenseModel.Init()
+	case viewIncomeForm:
+		return m.IncomeFormModel.Init()
 	}
 	return nil
 }

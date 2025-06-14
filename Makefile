@@ -6,17 +6,17 @@
 #   Run GO commands
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 build:
-	go build -o bin/gocost ./cmd/gocost
+	go build -ldflags="-X main.version=dev" -o bin/gocost ./cmd/gocost
 
 # Cross-platform builds
 build/linux:
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o bin/gocost-linux-amd64 ./cmd/gocost
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=$(VERSION)" -trimpath -o bin/gocost-linux-amd64 ./cmd/gocost
 
 build/windows:
-	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o bin/gocost-windows-amd64.exe ./cmd/gocost
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=$(VERSION)" -trimpath -o bin/gocost-windows-amd64.exe ./cmd/gocost
 
 build/darwin:
-	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o bin/gocost-darwin-arm64 ./cmd/gocost
+	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=$(VERSION)" -trimpath -o bin/gocost-darwin-arm64 ./cmd/gocost
 
 build/all: build/linux build/windows build/darwin
 

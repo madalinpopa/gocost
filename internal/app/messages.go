@@ -251,8 +251,8 @@ func (m App) handleToggleExpenseStatusMsg(msg ui.ToggleExpenseStatusMsg) (tea.Mo
 }
 
 // handleMonthlyViewMsg switches the active view to the monthly overview and updates the MonthlyModel
-// with the current month and year, if it exists.
-func (m App) handleMonthlyViewMsg(msg ui.MonthlyViewMsg) (tea.Model, tea.Cmd) {
+// with the current month and year if it exists.
+func (m App) handleMonthlyViewMsg() (tea.Model, tea.Cmd) {
 	m.MonthlyModel = m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 	m.CategoryModel = m.CategoryModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 	m.activeView = viewMonthlyOverview

@@ -176,6 +176,67 @@ The application stores data in your home directory:
 
 Currency symbol can be updated in `config.json`.
 
+## Application Architecture Diagram
+
+```mermaid
+graph TB
+    %% Main Entry Point
+    Main[main.go] --> App[App Controller]
+    
+    %% Core Application Layer
+    App --> |creates| Views[UI Views]
+    App --> |manages| State[Application State]
+    App --> |handles| Messages[Message System]
+    
+    %% Data Layer
+    App --> |uses| DataLayer[Data Layer]
+    DataLayer --> |loads/saves| FileSystem[JSON File Storage]
+    
+    %% UI Components
+    Views -- MonthlyModel --> MonthlyView[Monthly Overview]
+    Views -- IncomeModel --> IncomeView[Income Management]
+    Views -- IncomeFormModel --> IncomeForm[Income Form]
+    Views -- CategoryGroupModel --> CategoryGroupView[Category Groups]
+    Views -- CategoryModel --> CategoryView[Category Management]
+    Views -- ExpenseModel --> ExpenseView[Expense Management]
+    
+    %% Message Flow
+    Messages --> |handles| ViewSwitching[View Navigation]
+    Messages --> |processes| DataOperations[CRUD Operations]
+    Messages --> |manages| StatusMessages[Status Updates]
+    
+    %% Data Structure
+    DataLayer --> DataRoot[DataRoot]
+    DataRoot --> CategoryGroups[Category Groups Map]
+    DataRoot --> MonthlyData[Monthly Records Map]
+    MonthlyData --> IncomeRecords[Income Records]
+    MonthlyData --> Categories[Categories with Expenses]
+    
+    %% User Interactions
+    UserInput[User Input/Keys] --> App
+    App --> |renders| Display[Terminal Display]
+    
+    %% External Dependencies
+    App --> |uses| BubbleTea[Bubble Tea Framework]
+    BubbleTea --> |provides| TUI[Terminal UI Components]
+    
+    %% State Management
+    State --> CurrentView[Active View State]
+    State --> MonthYear[Current Month/Year]
+    State --> WindowSize[Window Dimensions]
+    State --> StatusMessage[Status Messages]
+    
+    classDef appLayer fill:#e1f5fe
+    classDef uiLayer fill:#f3e5f5
+    classDef dataLayer fill:#e8f5e8
+    classDef messageLayer fill:#fff3e0
+    
+    class App,State,Messages appLayer
+    class Views,MonthlyView,IncomeView,IncomeForm,CategoryGroupView,CategoryView,ExpenseView uiLayer
+    class DataLayer,FileSystem,DataRoot,CategoryGroups,MonthlyData,IncomeRecords,Categories dataLayer
+    class ViewSwitching,DataOperations,StatusMessages messageLayer
+```
+
 ## Contributing
 
 1. **Fork the repository**

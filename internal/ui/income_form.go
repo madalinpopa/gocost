@@ -16,7 +16,6 @@ const (
 	editFocusAmount
 	editFocusSave
 	editFocusCancel
-	numEditFormFields // For cycling focus
 )
 
 type IncomeFormModel struct {

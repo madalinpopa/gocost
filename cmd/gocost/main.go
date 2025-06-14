@@ -26,7 +26,6 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Check if config file exists
 	exists, configFilePath, err := config.CheckConfigFile()
 	if err != nil {
 		if _, err := fmt.Fprintf(os.Stderr, "Error checking config file: %v", err); err != nil {

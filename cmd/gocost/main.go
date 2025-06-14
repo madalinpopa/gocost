@@ -26,7 +26,7 @@ func main() {
 	}
 
 	// Check if config file exists
-	exists, configFilePath, err := config.ConfigFileExists()
+	exists, configFilePath, err := config.CheckConfigFile()
 	if err != nil {
 		if _, err := fmt.Fprintf(os.Stderr, "Error checking config file: %v", err); err != nil {
 			os.Exit(2)
@@ -34,8 +34,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Load config with default currency
-	if err := config.LoadConfig(config.DefaultCurrency, configFilePath, false); err != nil {
+	var selectedCurrency string
+	if !exists {
+		selectedCurrency = config.PromptForCurrency()
+	}
+
+	if err := config.LoadConfig(selectedCurrency, configFilePath); err != nil {
 		if _, err := fmt.Fprintf(os.Stderr, "Error loading config file: %v", err); err != nil {
 			os.Exit(2)
 		}

@@ -1,22 +1,23 @@
 package app
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/madalinpopa/gocost/internal/data"
 	"github.com/madalinpopa/gocost/internal/ui"
 )
 
-func createTestAppForStatus() App {
+func createTestAppForStatus(t testing.TB) App {
 	initialData := &data.DataRoot{
 		CategoryGroups: map[string]data.CategoryGroup{},
 		MonthlyData:    map[string]data.MonthlyRecord{},
 	}
-	return New(initialData, "test.json")
+	return New(initialData, filepath.Join("tests", "test.json"))
 }
 
 func TestSetStatus(t *testing.T) {
-	app := createTestAppForStatus()
+	app := createTestAppForStatus(t)
 
 	updatedApp, cmd := app.SetStatus("Test message", StatusSuccess)
 
@@ -30,7 +31,7 @@ func TestSetStatus(t *testing.T) {
 }
 
 func TestSetSuccessStatus(t *testing.T) {
-	app := createTestAppForStatus()
+	app := createTestAppForStatus(t)
 
 	updatedApp, cmd := app.SetSuccessStatus("Operation successful")
 
@@ -49,7 +50,7 @@ func TestSetSuccessStatus(t *testing.T) {
 }
 
 func TestSetErrorStatus(t *testing.T) {
-	app := createTestAppForStatus()
+	app := createTestAppForStatus(t)
 
 	updatedApp, cmd := app.SetErrorStatus("Something went wrong")
 
@@ -69,7 +70,7 @@ func TestSetErrorStatus(t *testing.T) {
 }
 
 func TestClearStatus(t *testing.T) {
-	app := createTestAppForStatus()
+	app := createTestAppForStatus(t)
 	app.statusMessage = "Test message"
 
 	clearedApp := app.ClearStatus()
@@ -84,7 +85,7 @@ func TestClearStatus(t *testing.T) {
 }
 
 func TestHasStatus(t *testing.T) {
-	app := createTestAppForStatus()
+	app := createTestAppForStatus(t)
 
 	// Test without status
 	if app.HasStatus() {
@@ -99,7 +100,7 @@ func TestHasStatus(t *testing.T) {
 }
 
 func TestGetStatusMessage(t *testing.T) {
-	app := createTestAppForStatus()
+	app := createTestAppForStatus(t)
 
 	// Test empty status
 	if app.GetStatusMessage() != "" {
@@ -115,7 +116,7 @@ func TestGetStatusMessage(t *testing.T) {
 }
 
 func TestStatusClearMsg(t *testing.T) {
-	app := createTestAppForStatus()
+	app := createTestAppForStatus(t)
 	app.statusMessage = "Test message"
 
 	// Test that StatusClearMsg clears the status
@@ -136,8 +137,8 @@ func TestStatusClearMsg(t *testing.T) {
 }
 
 func TestToggleExpenseStatus(t *testing.T) {
-	app := createTestAppForStatus()
-	
+	app := createTestAppForStatus(t)
+
 	// Create test data with a category and expense
 	testCategory := data.Category{
 		CatID:        "cat1",
@@ -152,35 +153,35 @@ func TestToggleExpenseStatus(t *testing.T) {
 			},
 		},
 	}
-	
+
 	monthKey := "2024-01"
 	app.Data.MonthlyData = map[string]data.MonthlyRecord{
 		monthKey: {
 			Categories: []data.Category{testCategory},
 		},
 	}
-	
+
 	// Test toggling from "Not Paid" to "Paid"
 	updatedModel, cmd := app.handleToggleExpenseStatusMsg(ui.ToggleExpenseStatusMsg{
 		MonthKey: monthKey,
 		Category: testCategory,
 	})
-	
+
 	if cmd == nil {
 		t.Error("Expected command to be returned for status message")
 	}
-	
+
 	updatedApp, ok := updatedModel.(App)
 	if !ok {
 		t.Fatalf("Expected App model, got %T", updatedModel)
 	}
-	
+
 	// Check that status was toggled to "Paid"
 	updatedRecord := updatedApp.Data.MonthlyData[monthKey]
 	if len(updatedRecord.Categories) == 0 {
 		t.Fatal("Expected category to exist after toggle")
 	}
-	
+
 	updatedCategory := updatedRecord.Categories[0]
 	if updatedExpense, exists := updatedCategory.Expense[testCategory.CatID]; exists {
 		if updatedExpense.Status != "Paid" {
@@ -189,22 +190,22 @@ func TestToggleExpenseStatus(t *testing.T) {
 	} else {
 		t.Error("Expected expense to exist after toggle")
 	}
-	
+
 	// Test toggling back from "Paid" to "Not Paid"
 	updatedModel2, cmd2 := updatedApp.handleToggleExpenseStatusMsg(ui.ToggleExpenseStatusMsg{
 		MonthKey: monthKey,
 		Category: testCategory,
 	})
-	
+
 	if cmd2 == nil {
 		t.Error("Expected command to be returned for status message")
 	}
-	
+
 	updatedApp2, ok := updatedModel2.(App)
 	if !ok {
 		t.Fatalf("Expected App model, got %T", updatedModel2)
 	}
-	
+
 	// Check that status was toggled back to "Not Paid"
 	updatedRecord2 := updatedApp2.Data.MonthlyData[monthKey]
 	updatedCategory2 := updatedRecord2.Categories[0]
@@ -218,8 +219,8 @@ func TestToggleExpenseStatus(t *testing.T) {
 }
 
 func TestToggleExpenseStatusNewExpense(t *testing.T) {
-	app := createTestAppForStatus()
-	
+	app := createTestAppForStatus(t)
+
 	// Create test data with a category but no existing expense
 	testCategory := data.Category{
 		CatID:        "cat1",
@@ -227,36 +228,36 @@ func TestToggleExpenseStatusNewExpense(t *testing.T) {
 		CategoryName: "Test Category",
 		Expense:      nil, // No existing expense
 	}
-	
+
 	monthKey := "2024-01"
 	app.Data.MonthlyData = map[string]data.MonthlyRecord{
 		monthKey: {
 			Categories: []data.Category{testCategory},
 		},
 	}
-	
+
 	// Test toggling when no expense exists (should create default and set to "Paid")
 	updatedModel, cmd := app.handleToggleExpenseStatusMsg(ui.ToggleExpenseStatusMsg{
 		MonthKey: monthKey,
 		Category: testCategory,
 	})
-	
+
 	if cmd == nil {
 		t.Error("Expected command to be returned for status message")
 	}
-	
+
 	updatedApp, ok := updatedModel.(App)
 	if !ok {
 		t.Fatalf("Expected App model, got %T", updatedModel)
 	}
-	
+
 	// Check that a new expense was created with "Paid" status
 	updatedRecord := updatedApp.Data.MonthlyData[monthKey]
 	updatedCategory := updatedRecord.Categories[0]
 	if updatedCategory.Expense == nil {
 		t.Fatal("Expected expense map to be created")
 	}
-	
+
 	if updatedExpense, exists := updatedCategory.Expense[testCategory.CatID]; exists {
 		if updatedExpense.Status != "Paid" {
 			t.Errorf("Expected status to be 'Paid' for new expense, got '%s'", updatedExpense.Status)
@@ -270,8 +271,8 @@ func TestToggleExpenseStatusNewExpense(t *testing.T) {
 }
 
 func TestToggleExpenseStatusNoMonthlyData(t *testing.T) {
-	app := createTestAppForStatus()
-	
+	app := createTestAppForStatus(t)
+
 	// Create test data with a category
 	testCategory := data.Category{
 		CatID:        "cat1",
@@ -279,30 +280,30 @@ func TestToggleExpenseStatusNoMonthlyData(t *testing.T) {
 		CategoryName: "Test Category",
 		Expense:      nil,
 	}
-	
+
 	monthKey := "2024-01"
 	// Don't add any monthly data - should handle missing month gracefully
-	
+
 	// Test toggling when no monthly data exists
 	updatedModel, cmd := app.handleToggleExpenseStatusMsg(ui.ToggleExpenseStatusMsg{
 		MonthKey: monthKey,
 		Category: testCategory,
 	})
-	
+
 	if cmd == nil {
 		t.Error("Expected command to be returned for status message")
 	}
-	
+
 	updatedApp, ok := updatedModel.(App)
 	if !ok {
 		t.Fatalf("Expected App model, got %T", updatedModel)
 	}
-	
+
 	// Check that monthly data was created
 	if _, exists := updatedApp.Data.MonthlyData[monthKey]; !exists {
 		t.Error("Expected monthly data to be created when it doesn't exist")
 	}
-	
+
 	// The category won't be in the monthly data since we're testing the case
 	// where the category doesn't exist in that month, so just verify the
 	// monthly record was created with empty categories

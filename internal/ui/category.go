@@ -7,23 +7,24 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/madalinpopa/gocost/internal/data"
+	"github.com/madalinpopa/gocost/internal/domain"
 )
 
 // CategoryModel represents the view model that displays the categories
 type CategoryModel struct {
-	AppData
 	WindowSize
 	MonthYear
 
-	MonthKey   string
-	cursor     int
-	categories []data.Category
+	MonthKey string
+	cursor   int
+	// Data is now passed in as slices
+	categories     []domain.Category
+	categoryGroups []domain.CategoryGroup
 
-	addCategory    bool               // When adding a new category
-	moveCategory   bool               // When moving a category to a new group
-	selectedGroup  data.CategoryGroup // Selected group
-	movingCategory data.Category      // Category being moved
+	addCategory    bool                 // When adding a new category
+	moveCategory   bool                 // When moving a category to a new group
+	selectedGroup  domain.CategoryGroup // Selected group
+	movingCategory domain.Category      // Category being moved
 
 	isEditingName bool
 	editInput     textinput.Model
@@ -32,13 +33,12 @@ type CategoryModel struct {
 	isFiltering        bool
 	filterInput        textinput.Model
 	filterText         string
-	filteredCategories []data.Category
+	filteredCategories []domain.Category
 	isFiltered         bool
 }
 
 // NewCategoryModel creates a new CategoryModel instance.
-func NewCategoryModel(initialData *data.DataRoot, month time.Month, year int) CategoryModel {
-
+func NewCategoryModel(appData AppData, month time.Month, year int) CategoryModel {
 	monthKey := GetMonthKey(month, year)
 
 	ti := textinput.New()
@@ -51,26 +51,14 @@ func NewCategoryModel(initialData *data.DataRoot, month time.Month, year int) Ca
 	filterTi.CharLimit = 50
 	filterTi.Width = 50
 
-	var categories []data.Category
-	if record, ok := initialData.MonthlyData[monthKey]; ok {
-		categories = record.Categories
-	}
-
-	if categories == nil {
-		categories = make([]data.Category, 0)
-	}
-
 	return CategoryModel{
-		AppData: AppData{
-			Data: initialData,
-		},
-		MonthKey:     monthKey,
-		categories:   categories,
-		editInput:    ti,
-		editingIndex: -1,
-		filterInput:  filterTi,
+		MonthKey:       monthKey,
+		categories:     appData.Categories,
+		categoryGroups: appData.CategoryGroups,
+		editInput:      ti,
+		editingIndex:   -1,
+		filterInput:    filterTi,
 	}
-
 }
 
 // Init initializes the CategoryModel.
@@ -118,37 +106,28 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.addCategory {
-
 		switch msg := msg.(type) {
-
 		case FilterCategoriesMsg:
 			return m.handleFilterCategories(msg)
-
 		case tea.KeyMsg:
-
 			switch msg.String() {
-
 			case "enter":
 				categoryName := strings.TrimSpace(m.editInput.Value())
 				if categoryName != "" {
 					newCategoryId := GenerateID()
-
-					newCategory := data.Category{
+					newCategory := domain.Category{
 						CatID:        newCategoryId,
 						GroupID:      m.selectedGroup.GroupID,
 						CategoryName: categoryName,
-						Expense:      make(map[string]data.ExpenseRecord, 0),
+						Expense:      make(map[string]domain.ExpenseRecord, 0),
 					}
-
 					m.addCategory = false
 					m.editInput.SetValue("")
 					m.editInput.Blur()
-
 					return m, func() tea.Msg {
 						return CategoryAddMsg{MonthKey: m.MonthKey, Category: newCategory}
 					}
 				}
-
 			case "esc":
 				m.addCategory = false
 				m.editInput.Blur()
@@ -158,33 +137,27 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		m.editInput, cmd = m.editInput.Update(msg)
-		cmds := append(cmds, cmd)
+		cmds = append(cmds, cmd)
 		return m, tea.Batch(cmds...)
 	}
 
 	if m.isEditingName {
-
 		switch msg := msg.(type) {
-
 		case FilterCategoriesMsg:
 			return m.handleFilterCategories(msg)
-
 		case tea.KeyMsg:
 			switch msg.String() {
-
 			case "enter":
 				categoryName := strings.TrimSpace(m.editInput.Value())
 				if categoryName != "" {
 					updatedCategory := m.categories[m.editingIndex]
 					updatedCategory.CategoryName = categoryName
-
 					m.isEditingName = false
 					m.editInput.Blur()
 					return m, func() tea.Msg {
 						return CategoryUpdateMsg{MonthKey: m.MonthKey, Category: updatedCategory}
 					}
 				}
-
 			case "esc":
 				m.isEditingName = false
 				m.editInput.Blur()
@@ -198,14 +171,10 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch msg := msg.(type) {
-
 	case FilterCategoriesMsg:
 		return m.handleFilterCategories(msg)
-
 	case tea.KeyMsg:
-
 		switch msg.String() {
-
 		case "q", "esc":
 			if m.IsMovingCategory() {
 				m = m.ResetMoveState()
@@ -230,22 +199,18 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			return m, nil
-
 		case "/":
 			m.isFiltering = true
 			m.filterInput.Focus()
 			return m, textinput.Blink
-
 		case "c":
 			if m.isFiltered {
-				// Clear filter
 				m.filterText = ""
 				m.filteredCategories = nil
 				m.isFiltered = false
 				m.cursor = 0
 				return m, nil
 			}
-
 		case "a", "n":
 			return m, func() tea.Msg { return SelectGroupMsg{} }
 		case "e":
@@ -264,7 +229,6 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m.focusInput()
 				}
 			}
-
 		case "d":
 			displayCategories := m.getDisplayCategories()
 			if len(displayCategories) > 0 {
@@ -273,7 +237,6 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, func() tea.Msg { return CategoryDeleteMsg{MonthKey: m.MonthKey, Category: selectedCategory} }
 				}
 			}
-
 		case "m":
 			displayCategories := m.getDisplayCategories()
 			if len(displayCategories) > 0 {
@@ -284,14 +247,12 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	}
-
 	return m, nil
 }
 
 // View renders the CategoryModel.
 func (m CategoryModel) View() string {
 	var b strings.Builder
-
 	title := "Manage Expense Categories"
 	if m.IsMovingCategory() {
 		title = fmt.Sprintf("Moving: %s", m.movingCategory.CategoryName)
@@ -312,9 +273,7 @@ func (m CategoryModel) View() string {
 			b.WriteString(MutedText.Render(fmt.Sprintf("Select a new group for category '%s'", m.movingCategory.CategoryName)))
 			b.WriteString("\n\n")
 		}
-
 		displayCategories := m.getDisplayCategories()
-
 		if len(displayCategories) == 0 {
 			if m.isFiltered {
 				b.WriteString(MutedText.Render(fmt.Sprintf("No categories found matching '%s'.", m.filterText)))
@@ -322,34 +281,23 @@ func (m CategoryModel) View() string {
 				b.WriteString(MutedText.Render("No category defined yet."))
 			}
 		} else {
-			// Show filter info if filtering is active
 			if m.isFiltered {
 				b.WriteString(MutedText.Render(fmt.Sprintf("Showing %d of %d categories matching '%s'", len(displayCategories), len(m.categories), m.filterText)))
 				b.WriteString("\n\n")
 			}
-
-			// Calculate maximum widths for dynamic column sizing
 			maxCategoryWidth := 0
 			maxGroupWidth := 0
-
 			for _, item := range displayCategories {
 				if len(item.CategoryName) > maxCategoryWidth {
 					maxCategoryWidth = len(item.CategoryName)
 				}
-
-				var groupName string
-				if group, ok := m.Data.CategoryGroups[item.GroupID]; ok {
-					groupName = group.GroupName
-				}
+				groupName := m.getGroupName(item.GroupID)
 				if len(groupName) > maxGroupWidth {
 					maxGroupWidth = len(groupName)
 				}
 			}
-
-			// Add padding to column widths
 			categoryColWidth := maxCategoryWidth + 2
 			groupColWidth := maxGroupWidth + 2
-
 			for i, item := range displayCategories {
 				style := NormalListItem
 				prefix := " "
@@ -357,25 +305,13 @@ func (m CategoryModel) View() string {
 					style = FocusedListItem
 					prefix = ">"
 				}
-
-				// Highlight the category being moved
 				if m.IsMovingCategory() && item.CatID == m.movingCategory.CatID {
 					style = FocusedListItem
 					prefix = "→ "
 				}
-
-				var groupName string
-				group, ok := m.Data.CategoryGroups[item.GroupID]
-				if ok {
-					groupName = group.GroupName
-				}
-
-				// Format category name with left alignment
+				groupName := m.getGroupName(item.GroupID)
 				categoryFormatted := fmt.Sprintf("%-*s", categoryColWidth, item.CategoryName)
-
-				// Format group name with muted style and column alignment
 				groupFormatted := MutedText.Render(fmt.Sprintf("%-*s", groupColWidth, groupName))
-
 				line := fmt.Sprintf("%s %s %s", prefix, categoryFormatted, groupFormatted)
 				b.WriteString(style.Render(line))
 				b.WriteString("\n")
@@ -391,13 +327,22 @@ func (m CategoryModel) View() string {
 		}
 		b.WriteString(MutedText.Render(keyHints))
 	}
-
 	viewStr := AppStyle.Width(m.Width).Height(m.Height - 3).Render(b.String())
 	return viewStr
 }
 
+// getGroupName finds the group name for a given group ID.
+func (m CategoryModel) getGroupName(groupID string) string {
+	for _, group := range m.categoryGroups {
+		if group.GroupID == groupID {
+			return group.GroupName
+		}
+	}
+	return "Unknown"
+}
+
 // AddCategory enables input field to create a new category in the specified group.
-func (m CategoryModel) AddCategory(group data.CategoryGroup) (CategoryModel, tea.Cmd) {
+func (m CategoryModel) AddCategory(group domain.CategoryGroup) (CategoryModel, tea.Cmd) {
 	m.addCategory = true
 	m.selectedGroup = group
 	m.editInput.Focus()
@@ -405,15 +350,11 @@ func (m CategoryModel) AddCategory(group data.CategoryGroup) (CategoryModel, tea
 }
 
 // MoveCategory moves the selected category to the specified group.
-func (m CategoryModel) MoveCategory(group data.CategoryGroup) (CategoryModel, tea.Cmd) {
+func (m CategoryModel) MoveCategory(group domain.CategoryGroup) (CategoryModel, tea.Cmd) {
 	m.moveCategory = true
 	m.selectedGroup = group
-
-	// Update the moving category's group ID
 	m.movingCategory.GroupID = group.GroupID
-
 	m.moveCategory = false
-
 	return m, func() tea.Msg {
 		return CategoryUpdateMsg{MonthKey: m.MonthKey, Category: m.movingCategory}
 	}
@@ -426,50 +367,42 @@ func (m CategoryModel) IsMovingCategory() bool {
 
 // ResetMoveState clears the moving category state.
 func (m CategoryModel) ResetMoveState() CategoryModel {
-	m.movingCategory = data.Category{}
+	m.movingCategory = domain.Category{}
 	m.moveCategory = false
 	return m
 }
 
-// getDisplayCategories returns either filtered categories or all categories
-func (m CategoryModel) getDisplayCategories() []data.Category {
+// getDisplayCategories returns either filtered categories or all categories.
+func (m CategoryModel) getDisplayCategories() []domain.Category {
 	if m.isFiltered {
 		return m.filteredCategories
 	}
 	return m.categories
 }
 
-// handleFilterCategories processes the filter message and applies filtering
+// handleFilterCategories processes the filter message and applies filtering.
 func (m CategoryModel) handleFilterCategories(msg FilterCategoriesMsg) (CategoryModel, tea.Cmd) {
 	m.filterText = msg.FilterText
-
-	var filtered []data.Category
+	var filtered []domain.Category
 	filterLower := strings.ToLower(msg.FilterText)
-
 	for _, category := range m.categories {
-		// Check if category name contains filter text
 		if strings.Contains(strings.ToLower(category.CategoryName), filterLower) {
 			filtered = append(filtered, category)
 			continue
 		}
-
-		// Check if group name contains filter text
-		if group, ok := m.Data.CategoryGroups[category.GroupID]; ok {
-			if strings.Contains(strings.ToLower(group.GroupName), filterLower) {
-				filtered = append(filtered, category)
-			}
+		groupName := m.getGroupName(category.GroupID)
+		if strings.Contains(strings.ToLower(groupName), filterLower) {
+			filtered = append(filtered, category)
 		}
 	}
-
 	m.filteredCategories = filtered
 	m.isFiltered = true
-	m.cursor = 0 // Reset cursor to first item
+	m.cursor = 0
 	m.filterInput.SetValue("")
-
 	return m, nil
 }
 
-// clearFilter clears the filter state
+// clearFilter clears the filter state.
 func (m CategoryModel) clearFilter() CategoryModel {
 	m.isFiltering = false
 	m.filterText = ""
@@ -480,12 +413,12 @@ func (m CategoryModel) clearFilter() CategoryModel {
 	return m
 }
 
-// resetEditingState resets all editing-related state flags and inputs
+// resetEditingState resets all editing-related state flags and inputs.
 func (m CategoryModel) resetEditingState() CategoryModel {
 	m.addCategory = false
 	m.moveCategory = false
-	m.selectedGroup = data.CategoryGroup{}
-	m.movingCategory = data.Category{}
+	m.selectedGroup = domain.CategoryGroup{}
+	m.movingCategory = domain.Category{}
 	m.isEditingName = false
 	m.editInput.Blur()
 	m.editInput.SetValue("")
@@ -502,20 +435,11 @@ func (m CategoryModel) focusInput() (tea.Model, tea.Cmd) {
 }
 
 // UpdateData refreshes the model with new data and resets state.
-func (m CategoryModel) UpdateData(updatedData *data.DataRoot) CategoryModel {
-	m.Data = updatedData
-
-	var categories []data.Category
-	if record, ok := m.Data.MonthlyData[m.MonthKey]; ok {
-		categories = record.Categories
-	}
-
-	m.categories = categories
+func (m CategoryModel) UpdateData(appData AppData) CategoryModel {
+	m.categories = appData.Categories
+	m.categoryGroups = appData.CategoryGroups
 	m.cursor = 0
-
-	// Reset all editing states when data is updated
 	m = m.resetEditingState()
-
 	return m
 }
 
@@ -524,27 +448,6 @@ func (m CategoryModel) SetMonthYear(month time.Month, year int) CategoryModel {
 	m.CurrentMonth = month
 	m.CurrentYear = year
 	m.MonthKey = GetMonthKey(month, year)
-
-	var categories []data.Category
-	if record, ok := m.Data.MonthlyData[m.MonthKey]; ok {
-		categories = record.Categories
-	}
-
-	if categories == nil {
-		categories = make([]data.Category, 0)
-	}
-
-	m.categories = categories
-
-	// Reset cursor
-	if len(m.categories) > 0 {
-		m.cursor = 0
-	} else {
-		m.cursor = 0
-	}
-
-	// Reset all editing states when month/year changes
 	m = m.resetEditingState()
-
 	return m
 }

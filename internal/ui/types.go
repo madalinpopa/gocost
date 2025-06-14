@@ -141,3 +141,6 @@ type ToggleExpenseStatusMsg struct {
 type ReturnToMonthlyWithFocusMsg struct {
 	Category data.Category
 }
+
+// CategoryViewMsg is sent when returning to the category view
+type CategoryViewMsg struct{}

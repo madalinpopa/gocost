@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/madalinpopa/gocost/internal/data"
+	"github.com/madalinpopa/gocost/internal/domain"
 )
 
 const (
@@ -23,7 +23,7 @@ type IncomeFormModel struct {
 	WindowSize
 	NewEntry     bool
 	MonthKey     string
-	IncomeRecord data.IncomeRecord
+	IncomeRecord domain.IncomeRecord
 
 	incomeId         string
 	descriptionInput textinput.Model
@@ -33,7 +33,7 @@ type IncomeFormModel struct {
 }
 
 // NewIncomeFormModel creates a new IncomeFormModel instance for adding or editing income.
-func NewIncomeFormModel(currentMonth time.Month, year int, income *data.IncomeRecord) IncomeFormModel {
+func NewIncomeFormModel(currentMonth time.Month, year int, income *domain.IncomeRecord) IncomeFormModel {
 
 	monthKey := GetMonthKey(currentMonth, year)
 
@@ -136,7 +136,7 @@ func (m IncomeFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						}
 					}
 
-					newIncome := data.IncomeRecord{
+					newIncome := domain.IncomeRecord{
 						IncomeID:    GenerateID(),
 						Description: m.descriptionInput.Value(),
 						Amount:      amount,

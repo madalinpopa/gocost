@@ -13,7 +13,7 @@ bootstrap:
 #   Run GO commands
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 build:
-	go build -ldflags="-X main.version=dev" -o bin/gocost ./cmd/gocost
+	go build -ldflags="-X main.version=dev" -o bin/gocost-dev ./cmd/gocost
 
 # Cross-platform builds
 build/linux:

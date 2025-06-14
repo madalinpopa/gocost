@@ -31,7 +31,7 @@ func createTestCategoryModel() CategoryModel {
 			},
 		},
 	}
-	
+
 	return NewCategoryModel(initialData, time.January, 2024)
 }
 
@@ -46,13 +46,13 @@ func createTestCategoryGroupModel() CategoryGroupModel {
 		},
 		MonthlyData: map[string]data.MonthlyRecord{},
 	}
-	
+
 	return NewCategoryGroupModel(initialData)
 }
 
 func TestCategoryModel_SetMonthYear_ResetsEditingState(t *testing.T) {
 	model := createTestCategoryModel()
-	
+
 	// Simulate being in add category mode
 	model.addCategory = true
 	model.selectedGroup = data.CategoryGroup{GroupID: "test", GroupName: "Test"}
@@ -60,62 +60,62 @@ func TestCategoryModel_SetMonthYear_ResetsEditingState(t *testing.T) {
 	model.editingIndex = 2
 	model.editInput.Focus()
 	model.editInput.SetValue("Test Value")
-	
+
 	// Also set some filter state
 	model.isFiltered = true
 	model.filterText = "test filter"
 	model.filteredCategories = []data.Category{{CatID: "test"}}
-	
+
 	// Set some move state
 	model.moveCategory = true
 	model.movingCategory = data.Category{CatID: "moving"}
-	
+
 	// Call SetMonthYear - this should reset all editing state
 	updatedModel := model.SetMonthYear(time.February, 2024)
-	
+
 	// Verify all editing flags are reset
 	if updatedModel.addCategory {
 		t.Error("Expected addCategory to be false after SetMonthYear")
 	}
-	
+
 	if updatedModel.isEditingName {
 		t.Error("Expected isEditingName to be false after SetMonthYear")
 	}
-	
+
 	if updatedModel.editingIndex != -1 {
 		t.Errorf("Expected editingIndex to be -1, got %d", updatedModel.editingIndex)
 	}
-	
+
 	if updatedModel.editInput.Value() != "" {
 		t.Errorf("Expected editInput value to be empty, got '%s'", updatedModel.editInput.Value())
 	}
-	
+
 	if updatedModel.editInput.Focused() {
 		t.Error("Expected editInput to be blurred after SetMonthYear")
 	}
-	
+
 	// Verify filter state is reset
 	if updatedModel.isFiltered {
 		t.Error("Expected isFiltered to be false after SetMonthYear")
 	}
-	
+
 	if updatedModel.filterText != "" {
 		t.Errorf("Expected filterText to be empty, got '%s'", updatedModel.filterText)
 	}
-	
+
 	if len(updatedModel.filteredCategories) != 0 {
 		t.Errorf("Expected filteredCategories to be empty, got %d items", len(updatedModel.filteredCategories))
 	}
-	
+
 	// Verify move state is reset
 	if updatedModel.moveCategory {
 		t.Error("Expected moveCategory to be false after SetMonthYear")
 	}
-	
+
 	if updatedModel.movingCategory.CatID != "" {
 		t.Error("Expected movingCategory to be empty after SetMonthYear")
 	}
-	
+
 	if updatedModel.selectedGroup.GroupID != "" {
 		t.Error("Expected selectedGroup to be empty after SetMonthYear")
 	}
@@ -123,7 +123,7 @@ func TestCategoryModel_SetMonthYear_ResetsEditingState(t *testing.T) {
 
 func TestCategoryModel_UpdateData_ResetsEditingState(t *testing.T) {
 	model := createTestCategoryModel()
-	
+
 	// Set up editing state
 	model.addCategory = true
 	model.isEditingName = true
@@ -131,33 +131,33 @@ func TestCategoryModel_UpdateData_ResetsEditingState(t *testing.T) {
 	model.editInput.SetValue("Test Value")
 	model.isFiltered = true
 	model.filterText = "filter"
-	
+
 	// Create new data
 	newData := &data.DataRoot{
 		CategoryGroups: map[string]data.CategoryGroup{},
 		MonthlyData:    map[string]data.MonthlyRecord{},
 	}
-	
+
 	// Call UpdateData
 	updatedModel := model.UpdateData(newData)
-	
+
 	// Verify editing state is reset
 	if updatedModel.addCategory {
 		t.Error("Expected addCategory to be false after UpdateData")
 	}
-	
+
 	if updatedModel.isEditingName {
 		t.Error("Expected isEditingName to be false after UpdateData")
 	}
-	
+
 	if updatedModel.editingIndex != -1 {
 		t.Errorf("Expected editingIndex to be -1, got %d", updatedModel.editingIndex)
 	}
-	
+
 	if updatedModel.isFiltered {
 		t.Error("Expected isFiltered to be false after UpdateData")
 	}
-	
+
 	if updatedModel.filterText != "" {
 		t.Error("Expected filterText to be empty after UpdateData")
 	}
@@ -165,7 +165,7 @@ func TestCategoryModel_UpdateData_ResetsEditingState(t *testing.T) {
 
 func TestCategoryModel_ResetEditingState(t *testing.T) {
 	model := createTestCategoryModel()
-	
+
 	// Set up all possible editing states
 	model.addCategory = true
 	model.moveCategory = true
@@ -178,51 +178,51 @@ func TestCategoryModel_ResetEditingState(t *testing.T) {
 	model.isFiltered = true
 	model.filterText = "test"
 	model.filteredCategories = []data.Category{{CatID: "test"}}
-	
+
 	// Call resetEditingState
 	resetModel := model.resetEditingState()
-	
+
 	// Verify everything is reset
 	if resetModel.addCategory {
 		t.Error("Expected addCategory to be false")
 	}
-	
+
 	if resetModel.moveCategory {
 		t.Error("Expected moveCategory to be false")
 	}
-	
+
 	if resetModel.selectedGroup.GroupID != "" {
 		t.Error("Expected selectedGroup to be empty")
 	}
-	
+
 	if resetModel.movingCategory.CatID != "" {
 		t.Error("Expected movingCategory to be empty")
 	}
-	
+
 	if resetModel.isEditingName {
 		t.Error("Expected isEditingName to be false")
 	}
-	
+
 	if resetModel.editingIndex != -1 {
 		t.Errorf("Expected editingIndex to be -1, got %d", resetModel.editingIndex)
 	}
-	
+
 	if resetModel.editInput.Value() != "" {
 		t.Errorf("Expected editInput value to be empty, got '%s'", resetModel.editInput.Value())
 	}
-	
+
 	if resetModel.editInput.Focused() {
 		t.Error("Expected editInput to be blurred")
 	}
-	
+
 	if resetModel.isFiltered {
 		t.Error("Expected isFiltered to be false")
 	}
-	
+
 	if resetModel.filterText != "" {
 		t.Error("Expected filterText to be empty")
 	}
-	
+
 	if len(resetModel.filteredCategories) != 0 {
 		t.Error("Expected filteredCategories to be empty")
 	}
@@ -230,7 +230,7 @@ func TestCategoryModel_ResetEditingState(t *testing.T) {
 
 func TestCategoryGroupModel_ResetSelection_ResetsEditingState(t *testing.T) {
 	model := createTestCategoryGroupModel()
-	
+
 	// Set up editing state
 	model.selectGroup = true
 	model.isEditingName = true
@@ -238,27 +238,27 @@ func TestCategoryGroupModel_ResetSelection_ResetsEditingState(t *testing.T) {
 	model.editInput = textinput.New()
 	model.editInput.Focus()
 	model.editInput.SetValue("Test Group Name")
-	
+
 	// Call ResetSelection
 	resetModel := model.ResetSelection()
-	
+
 	// Verify all state is reset
 	if resetModel.selectGroup {
 		t.Error("Expected selectGroup to be false after ResetSelection")
 	}
-	
+
 	if resetModel.isEditingName {
 		t.Error("Expected isEditingName to be false after ResetSelection")
 	}
-	
+
 	if resetModel.editingIndex != -1 {
 		t.Errorf("Expected editingIndex to be -1, got %d", resetModel.editingIndex)
 	}
-	
+
 	if resetModel.editInput.Value() != "" {
 		t.Errorf("Expected editInput value to be empty, got '%s'", resetModel.editInput.Value())
 	}
-	
+
 	if resetModel.editInput.Focused() {
 		t.Error("Expected editInput to be blurred after ResetSelection")
 	}
@@ -266,13 +266,13 @@ func TestCategoryGroupModel_ResetSelection_ResetsEditingState(t *testing.T) {
 
 func TestCategoryGroupModel_UpdateData_ResetsEditingState(t *testing.T) {
 	model := createTestCategoryGroupModel()
-	
+
 	// Set up editing state
 	model.isEditingName = true
 	model.editingIndex = 2
 	model.editInput.SetValue("Edit Value")
 	model.selectGroup = true
-	
+
 	// Create new data
 	newData := &data.DataRoot{
 		CategoryGroups: map[string]data.CategoryGroup{
@@ -284,23 +284,23 @@ func TestCategoryGroupModel_UpdateData_ResetsEditingState(t *testing.T) {
 		},
 		MonthlyData: map[string]data.MonthlyRecord{},
 	}
-	
+
 	// Call UpdateData
 	updatedModel := model.UpdateData(newData)
-	
+
 	// Verify editing state is reset
 	if updatedModel.isEditingName {
 		t.Error("Expected isEditingName to be false after UpdateData")
 	}
-	
+
 	if updatedModel.editingIndex != -1 {
 		t.Errorf("Expected editingIndex to be -1, got %d", updatedModel.editingIndex)
 	}
-	
+
 	if updatedModel.editInput.Value() != "" {
 		t.Error("Expected editInput value to be empty after UpdateData")
 	}
-	
+
 	if updatedModel.selectGroup {
 		t.Error("Expected selectGroup to be false after UpdateData")
 	}
@@ -308,34 +308,34 @@ func TestCategoryGroupModel_UpdateData_ResetsEditingState(t *testing.T) {
 
 func TestCategoryGroupModel_ResetEditingState(t *testing.T) {
 	model := createTestCategoryGroupModel()
-	
+
 	// Set up all editing states
 	model.selectGroup = true
 	model.isEditingName = true
 	model.editingIndex = 7
 	model.editInput.Focus()
 	model.editInput.SetValue("Group Name")
-	
+
 	// Call resetEditingState
 	resetModel := model.resetEditingState()
-	
+
 	// Verify everything is reset
 	if resetModel.selectGroup {
 		t.Error("Expected selectGroup to be false")
 	}
-	
+
 	if resetModel.isEditingName {
 		t.Error("Expected isEditingName to be false")
 	}
-	
+
 	if resetModel.editingIndex != -1 {
 		t.Errorf("Expected editingIndex to be -1, got %d", resetModel.editingIndex)
 	}
-	
+
 	if resetModel.editInput.Value() != "" {
 		t.Errorf("Expected editInput value to be empty, got '%s'", resetModel.editInput.Value())
 	}
-	
+
 	if resetModel.editInput.Focused() {
 		t.Error("Expected editInput to be blurred")
 	}
@@ -343,14 +343,14 @@ func TestCategoryGroupModel_ResetEditingState(t *testing.T) {
 
 func TestCategoryGroupModel_SelectMode_DisablesAddEditDelete(t *testing.T) {
 	model := createTestCategoryGroupModel()
-	
+
 	// Set model to select group mode
 	model = model.SelectGroup()
-	
+
 	if !model.selectGroup {
 		t.Fatal("Expected selectGroup to be true")
 	}
-	
+
 	// Test that "a" (add) doesn't trigger editing when in select mode
 	updatedModel, _ := model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("a")})
 	if groupModel, ok := updatedModel.(CategoryGroupModel); ok {
@@ -361,7 +361,7 @@ func TestCategoryGroupModel_SelectMode_DisablesAddEditDelete(t *testing.T) {
 			t.Error("Expected editInput to remain unfocused in select mode")
 		}
 	}
-	
+
 	// Test that "e" (edit) doesn't trigger editing when in select mode
 	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("e")})
 	if groupModel, ok := updatedModel.(CategoryGroupModel); ok {
@@ -372,7 +372,7 @@ func TestCategoryGroupModel_SelectMode_DisablesAddEditDelete(t *testing.T) {
 			t.Error("Expected editInput to remain unfocused in select mode")
 		}
 	}
-	
+
 	// Test that "d" (delete) doesn't trigger any action when in select mode
 	updatedModel, cmd := model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("d")})
 	if groupModel, ok := updatedModel.(CategoryGroupModel); ok {
@@ -383,9 +383,9 @@ func TestCategoryGroupModel_SelectMode_DisablesAddEditDelete(t *testing.T) {
 	if cmd != nil {
 		t.Error("Expected no command to be returned for delete in select mode")
 	}
-	
+
 	// Test that "enter" works correctly in select mode
-	updatedModel, cmd = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	_, cmd = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
 	if cmd == nil {
 		t.Error("Expected command to be returned for enter in select mode")
 	}

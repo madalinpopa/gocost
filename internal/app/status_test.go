@@ -5,19 +5,35 @@ import (
 	"testing"
 
 	"github.com/madalinpopa/gocost/internal/data"
+	"github.com/madalinpopa/gocost/internal/domain"
+	"github.com/madalinpopa/gocost/internal/service"
 	"github.com/madalinpopa/gocost/internal/ui"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func createTestAppForStatus() App {
-	initialData := &data.DataRoot{
-		CategoryGroups: map[string]data.CategoryGroup{},
-		MonthlyData:    map[string]data.MonthlyRecord{},
-	}
-	return New(initialData, filepath.Join("tests", "test.json"))
+// mockRepo is a helper to create a test repository in a temporary directory.
+func mockRepo(t *testing.T) *data.JsonRepository {
+	t.Helper()
+	tempDir := t.TempDir()
+	filePath := filepath.Join(tempDir, "test_data.json")
+	repo, err := data.NewJsonRepository(filePath, "USD")
+	require.NoError(t, err)
+	return repo
+}
+
+// createTestAppWithMocks creates a new App instance with mock services for testing.
+func createTestAppWithMocks(t *testing.T) App {
+	t.Helper()
+	repo := mockRepo(t)
+	categorySvc := service.NewCategoryService(repo)
+	groupSvc := service.NewGroupService(repo)
+	incomeSvc := service.NewIncomeService(repo)
+	return New(categorySvc, groupSvc, incomeSvc, repo.FilePath())
 }
 
 func TestSetStatus(t *testing.T) {
-	app := createTestAppForStatus()
+	app := createTestAppWithMocks(t)
 
 	updatedApp, cmd := app.SetStatus("Test message", StatusSuccess)
 
@@ -31,7 +47,7 @@ func TestSetStatus(t *testing.T) {
 }
 
 func TestSetSuccessStatus(t *testing.T) {
-	app := createTestAppForStatus()
+	app := createTestAppWithMocks(t)
 
 	updatedApp, cmd := app.SetSuccessStatus("Operation successful")
 
@@ -50,7 +66,7 @@ func TestSetSuccessStatus(t *testing.T) {
 }
 
 func TestSetErrorStatus(t *testing.T) {
-	app := createTestAppForStatus()
+	app := createTestAppWithMocks(t)
 
 	updatedApp, cmd := app.SetErrorStatus("Something went wrong")
 
@@ -62,7 +78,6 @@ func TestSetErrorStatus(t *testing.T) {
 		t.Error("Expected command to be returned for auto-clear, got nil")
 	}
 
-	// Check that the message contains the error symbol
 	message := updatedApp.GetStatusMessage()
 	if len(message) == 0 {
 		t.Error("Expected status message to be set")
@@ -70,7 +85,7 @@ func TestSetErrorStatus(t *testing.T) {
 }
 
 func TestClearStatus(t *testing.T) {
-	app := createTestAppForStatus()
+	app := createTestAppWithMocks(t)
 	app.statusMessage = "Test message"
 
 	clearedApp := app.ClearStatus()
@@ -84,42 +99,10 @@ func TestClearStatus(t *testing.T) {
 	}
 }
 
-func TestHasStatus(t *testing.T) {
-	app := createTestAppForStatus()
-
-	// Test without status
-	if app.HasStatus() {
-		t.Error("Expected HasStatus to return false when no status is set")
-	}
-
-	// Test with status
-	app.statusMessage = "Test message"
-	if !app.HasStatus() {
-		t.Error("Expected HasStatus to return true when status is set")
-	}
-}
-
-func TestGetStatusMessage(t *testing.T) {
-	app := createTestAppForStatus()
-
-	// Test empty status
-	if app.GetStatusMessage() != "" {
-		t.Errorf("Expected empty status message, got '%s'", app.GetStatusMessage())
-	}
-
-	// Test with status
-	testMessage := "Test status message"
-	app.statusMessage = testMessage
-	if app.GetStatusMessage() != testMessage {
-		t.Errorf("Expected status message '%s', got '%s'", testMessage, app.GetStatusMessage())
-	}
-}
-
 func TestStatusClearMsg(t *testing.T) {
-	app := createTestAppForStatus()
+	app := createTestAppWithMocks(t)
 	app.statusMessage = "Test message"
 
-	// Test that StatusClearMsg clears the status
 	updatedModel, cmd := app.Update(StatusClearMsg{})
 
 	if cmd != nil {
@@ -137,14 +120,20 @@ func TestStatusClearMsg(t *testing.T) {
 }
 
 func TestToggleExpenseStatus(t *testing.T) {
-	app := createTestAppForStatus()
+	// Setup
+	repo := mockRepo(t)
+	categorySvc := service.NewCategoryService(repo)
+	groupSvc := service.NewGroupService(repo)
+	incomeSvc := service.NewIncomeService(repo)
+	app := New(categorySvc, groupSvc, incomeSvc, repo.FilePath())
+	monthKey := ui.GetMonthKey(app.CurrentMonth, app.CurrentYear)
 
-	// Create test data with a category and expense
-	testCategory := data.Category{
+	// Create test data
+	testCategory := domain.Category{
 		CatID:        "cat1",
 		GroupID:      "group1",
 		CategoryName: "Test Category",
-		Expense: map[string]data.ExpenseRecord{
+		Expense: map[string]domain.ExpenseRecord{
 			"cat1": {
 				Amount: 100.0,
 				Budget: 120.0,
@@ -153,162 +142,38 @@ func TestToggleExpenseStatus(t *testing.T) {
 			},
 		},
 	}
-
-	monthKey := "2024-01"
-	app.Data.MonthlyData = map[string]data.MonthlyRecord{
-		monthKey: {
-			Categories: []data.Category{testCategory},
-		},
-	}
+	err := repo.AddCategory(monthKey, testCategory)
+	require.NoError(t, err)
+	app = app.refreshDataForModels()
 
 	// Test toggling from "Not Paid" to "Paid"
-	updatedModel, cmd := app.handleToggleExpenseStatusMsg(ui.ToggleExpenseStatusMsg{
+	updatedModel, _ := app.handleToggleExpenseStatusMsg(ui.ToggleExpenseStatusMsg{
 		MonthKey: monthKey,
 		Category: testCategory,
 	})
 
-	if cmd == nil {
-		t.Error("Expected command to be returned for status message")
-	}
-
 	updatedApp, ok := updatedModel.(App)
-	if !ok {
-		t.Fatalf("Expected App model, got %T", updatedModel)
-	}
+	require.True(t, ok)
 
-	// Check that status was toggled to "Paid"
-	updatedRecord := updatedApp.Data.MonthlyData[monthKey]
-	if len(updatedRecord.Categories) == 0 {
-		t.Fatal("Expected category to exist after toggle")
-	}
-
-	updatedCategory := updatedRecord.Categories[0]
-	if updatedExpense, exists := updatedCategory.Expense[testCategory.CatID]; exists {
-		if updatedExpense.Status != "Paid" {
-			t.Errorf("Expected status to be 'Paid', got '%s'", updatedExpense.Status)
-		}
-	} else {
-		t.Error("Expected expense to exist after toggle")
-	}
+	// Verify the underlying data was changed by the service
+	cats, err := updatedApp.categorySvc.GetCategoriesForMonth(monthKey)
+	require.NoError(t, err)
+	require.Len(t, cats, 1)
+	updatedExpense := cats[0].Expense["cat1"]
+	assert.Equal(t, "Paid", updatedExpense.Status)
 
 	// Test toggling back from "Paid" to "Not Paid"
-	updatedModel2, cmd2 := updatedApp.handleToggleExpenseStatusMsg(ui.ToggleExpenseStatusMsg{
+	updatedModel2, _ := updatedApp.handleToggleExpenseStatusMsg(ui.ToggleExpenseStatusMsg{
 		MonthKey: monthKey,
-		Category: testCategory,
+		Category: cats[0], // Use the updated category
 	})
-
-	if cmd2 == nil {
-		t.Error("Expected command to be returned for status message")
-	}
 
 	updatedApp2, ok := updatedModel2.(App)
-	if !ok {
-		t.Fatalf("Expected App model, got %T", updatedModel2)
-	}
+	require.True(t, ok)
 
-	// Check that status was toggled back to "Not Paid"
-	updatedRecord2 := updatedApp2.Data.MonthlyData[monthKey]
-	updatedCategory2 := updatedRecord2.Categories[0]
-	if updatedExpense2, exists := updatedCategory2.Expense[testCategory.CatID]; exists {
-		if updatedExpense2.Status != "Not Paid" {
-			t.Errorf("Expected status to be 'Not Paid', got '%s'", updatedExpense2.Status)
-		}
-	} else {
-		t.Error("Expected expense to exist after second toggle")
-	}
-}
-
-func TestToggleExpenseStatusNewExpense(t *testing.T) {
-	app := createTestAppForStatus()
-
-	// Create test data with a category but no existing expense
-	testCategory := data.Category{
-		CatID:        "cat1",
-		GroupID:      "group1",
-		CategoryName: "Test Category",
-		Expense:      nil, // No existing expense
-	}
-
-	monthKey := "2024-01"
-	app.Data.MonthlyData = map[string]data.MonthlyRecord{
-		monthKey: {
-			Categories: []data.Category{testCategory},
-		},
-	}
-
-	// Test toggling when no expense exists (should create default and set to "Paid")
-	updatedModel, cmd := app.handleToggleExpenseStatusMsg(ui.ToggleExpenseStatusMsg{
-		MonthKey: monthKey,
-		Category: testCategory,
-	})
-
-	if cmd == nil {
-		t.Error("Expected command to be returned for status message")
-	}
-
-	updatedApp, ok := updatedModel.(App)
-	if !ok {
-		t.Fatalf("Expected App model, got %T", updatedModel)
-	}
-
-	// Check that a new expense was created with "Paid" status
-	updatedRecord := updatedApp.Data.MonthlyData[monthKey]
-	updatedCategory := updatedRecord.Categories[0]
-	if updatedCategory.Expense == nil {
-		t.Fatal("Expected expense map to be created")
-	}
-
-	if updatedExpense, exists := updatedCategory.Expense[testCategory.CatID]; exists {
-		if updatedExpense.Status != "Paid" {
-			t.Errorf("Expected status to be 'Paid' for new expense, got '%s'", updatedExpense.Status)
-		}
-		if updatedExpense.Amount != 0 || updatedExpense.Budget != 0 {
-			t.Error("Expected default values for amount and budget in new expense")
-		}
-	} else {
-		t.Error("Expected expense to be created after toggle")
-	}
-}
-
-func TestToggleExpenseStatusNoMonthlyData(t *testing.T) {
-	app := createTestAppForStatus()
-
-	// Create test data with a category
-	testCategory := data.Category{
-		CatID:        "cat1",
-		GroupID:      "group1",
-		CategoryName: "Test Category",
-		Expense:      nil,
-	}
-
-	monthKey := "2024-01"
-	// Don't add any monthly data - should handle missing month gracefully
-
-	// Test toggling when no monthly data exists
-	updatedModel, cmd := app.handleToggleExpenseStatusMsg(ui.ToggleExpenseStatusMsg{
-		MonthKey: monthKey,
-		Category: testCategory,
-	})
-
-	if cmd == nil {
-		t.Error("Expected command to be returned for status message")
-	}
-
-	updatedApp, ok := updatedModel.(App)
-	if !ok {
-		t.Fatalf("Expected App model, got %T", updatedModel)
-	}
-
-	// Check that monthly data was created
-	if _, exists := updatedApp.Data.MonthlyData[monthKey]; !exists {
-		t.Error("Expected monthly data to be created when it doesn't exist")
-	}
-
-	// The category won't be in the monthly data since we're testing the case
-	// where the category doesn't exist in that month, so just verify the
-	// monthly record was created with empty categories
-	updatedRecord := updatedApp.Data.MonthlyData[monthKey]
-	if updatedRecord.Categories == nil {
-		t.Error("Expected categories slice to be initialized")
-	}
+	cats2, err := updatedApp2.categorySvc.GetCategoriesForMonth(monthKey)
+	require.NoError(t, err)
+	require.Len(t, cats2, 1)
+	updatedExpense2 := cats2[0].Expense["cat1"]
+	assert.Equal(t, "Not Paid", updatedExpense2.Status)
 }

@@ -543,7 +543,7 @@ func (m CategoryModel) SetMonthYear(month time.Month, year int) CategoryModel {
 		m.cursor = 0
 	}
 
-	// Reset all editing state when month/year changes
+	// Reset all editing states when month/year changes
 	m = m.resetEditingState()
 
 	return m

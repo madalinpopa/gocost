@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -11,7 +12,19 @@ import (
 	"github.com/spf13/viper"
 )
 
+// version will be set during build time
+var version = "dev"
+
 func main() {
+	// Define version flag
+	versionFlag := flag.Bool("version", false, "Print version information and exit")
+	flag.Parse()
+
+	// If version flag is set, print version and exit
+	if *versionFlag {
+		fmt.Printf("gocost version %s\n", version)
+		os.Exit(0)
+	}
 
 	if err := config.LoadConfig(); err != nil {
 		if _, err := fmt.Fprintf(os.Stderr, "Error loading config file: %v", err); err != nil {

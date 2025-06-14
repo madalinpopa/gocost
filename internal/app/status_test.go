@@ -8,7 +8,7 @@ import (
 	"github.com/madalinpopa/gocost/internal/ui"
 )
 
-func createTestAppForStatus(t testing.TB) App {
+func createTestAppForStatus() App {
 	initialData := &data.DataRoot{
 		CategoryGroups: map[string]data.CategoryGroup{},
 		MonthlyData:    map[string]data.MonthlyRecord{},
@@ -17,7 +17,7 @@ func createTestAppForStatus(t testing.TB) App {
 }
 
 func TestSetStatus(t *testing.T) {
-	app := createTestAppForStatus(t)
+	app := createTestAppForStatus()
 
 	updatedApp, cmd := app.SetStatus("Test message", StatusSuccess)
 
@@ -31,7 +31,7 @@ func TestSetStatus(t *testing.T) {
 }
 
 func TestSetSuccessStatus(t *testing.T) {
-	app := createTestAppForStatus(t)
+	app := createTestAppForStatus()
 
 	updatedApp, cmd := app.SetSuccessStatus("Operation successful")
 
@@ -50,7 +50,7 @@ func TestSetSuccessStatus(t *testing.T) {
 }
 
 func TestSetErrorStatus(t *testing.T) {
-	app := createTestAppForStatus(t)
+	app := createTestAppForStatus()
 
 	updatedApp, cmd := app.SetErrorStatus("Something went wrong")
 
@@ -70,7 +70,7 @@ func TestSetErrorStatus(t *testing.T) {
 }
 
 func TestClearStatus(t *testing.T) {
-	app := createTestAppForStatus(t)
+	app := createTestAppForStatus()
 	app.statusMessage = "Test message"
 
 	clearedApp := app.ClearStatus()
@@ -85,7 +85,7 @@ func TestClearStatus(t *testing.T) {
 }
 
 func TestHasStatus(t *testing.T) {
-	app := createTestAppForStatus(t)
+	app := createTestAppForStatus()
 
 	// Test without status
 	if app.HasStatus() {
@@ -100,7 +100,7 @@ func TestHasStatus(t *testing.T) {
 }
 
 func TestGetStatusMessage(t *testing.T) {
-	app := createTestAppForStatus(t)
+	app := createTestAppForStatus()
 
 	// Test empty status
 	if app.GetStatusMessage() != "" {
@@ -116,14 +116,14 @@ func TestGetStatusMessage(t *testing.T) {
 }
 
 func TestStatusClearMsg(t *testing.T) {
-	app := createTestAppForStatus(t)
+	app := createTestAppForStatus()
 	app.statusMessage = "Test message"
 
 	// Test that StatusClearMsg clears the status
 	updatedModel, cmd := app.Update(StatusClearMsg{})
 
 	if cmd != nil {
-		t.Errorf("Expected nil command, got %v", cmd)
+		t.Errorf("Expected nil command, got %T", cmd)
 	}
 
 	updatedApp, ok := updatedModel.(App)
@@ -137,7 +137,7 @@ func TestStatusClearMsg(t *testing.T) {
 }
 
 func TestToggleExpenseStatus(t *testing.T) {
-	app := createTestAppForStatus(t)
+	app := createTestAppForStatus()
 
 	// Create test data with a category and expense
 	testCategory := data.Category{
@@ -219,7 +219,7 @@ func TestToggleExpenseStatus(t *testing.T) {
 }
 
 func TestToggleExpenseStatusNewExpense(t *testing.T) {
-	app := createTestAppForStatus(t)
+	app := createTestAppForStatus()
 
 	// Create test data with a category but no existing expense
 	testCategory := data.Category{
@@ -271,7 +271,7 @@ func TestToggleExpenseStatusNewExpense(t *testing.T) {
 }
 
 func TestToggleExpenseStatusNoMonthlyData(t *testing.T) {
-	app := createTestAppForStatus(t)
+	app := createTestAppForStatus()
 
 	// Create test data with a category
 	testCategory := data.Category{

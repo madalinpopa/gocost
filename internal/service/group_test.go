@@ -22,7 +22,7 @@ func (m *mockGroupRepo) GetAllGroups() ([]domain.CategoryGroup, error) {
 	return m.groups, nil
 }
 func (m *mockGroupRepo) GetGroupByID(groupID string) (domain.CategoryGroup, error) {
-	return domain.CategoryGroup{}, m.err
+	return domain.CategoryGroup{GroupID: groupID}, m.err
 }
 func (m *mockGroupRepo) AddGroup(group domain.CategoryGroup) error {
 	if m.err != nil {
@@ -32,9 +32,11 @@ func (m *mockGroupRepo) AddGroup(group domain.CategoryGroup) error {
 	return nil
 }
 func (m *mockGroupRepo) UpdateGroup(group domain.CategoryGroup) error {
+	_ = group
 	return m.err
 }
 func (m *mockGroupRepo) DeleteGroup(groupID string) error {
+	_ = groupID
 	return m.err
 }
 

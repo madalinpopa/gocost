@@ -10,19 +10,9 @@ type Category struct {
 
 // CategoryRepository defines the interface for interacting with category data.
 type CategoryRepository interface {
-	// GetForMonth retrieves all categories for a specific month.
-	GetForMonth(monthKey string) ([]Category, error)
-
-	// Add saves a new category for a specific month.
-	Add(monthKey string, category Category) error
-
-	// Update modifies an existing category for a specific month.
-	Update(monthKey string, category Category) error
-
-	// Delete removes a category for a specific month using its ID.
-	Delete(monthKey string, categoryID string) error
-
-	// CopyFromMonth copies all categories from a previous month to the current one,
-	// returning the number of categories copied.
-	CopyFromMonth(fromMonthKey, toMonthKey string) (int, error)
+	GetCategoriesForMonth(monthKey string) ([]Category, error)
+	AddCategory(monthKey string, category Category) error
+	UpdateCategory(monthKey string, category Category) error
+	DeleteCategory(monthKey string, categoryID string) error
+	CopyCategoriesFromMonth(fromMonthKey, toMonthKey string) (int, error)
 }

@@ -7,15 +7,14 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/madalinpopa/gocost/internal/data"
+	"github.com/madalinpopa/gocost/internal/domain"
 )
 
 type CategoryGroupModel struct {
-	AppData
 	WindowSize
 
 	cursor int
-	groups []data.CategoryGroup
+	groups []domain.CategoryGroup
 
 	selectGroup bool
 
@@ -25,25 +24,18 @@ type CategoryGroupModel struct {
 }
 
 // NewCategoryGroupModel creates a new CategoryGroupModel instance.
-func NewCategoryGroupModel(initialData *data.DataRoot) CategoryGroupModel {
+func NewCategoryGroupModel(groups []domain.CategoryGroup) CategoryGroupModel {
 	ti := textinput.New()
 	ti.Placeholder = "Group Name"
 	ti.CharLimit = 30
 	ti.Width = 30
 
-	var groups []data.CategoryGroup
-	for _, value := range initialData.CategoryGroups {
-		groups = append(groups, value)
-	}
-
+	// Sort the initial groups
 	sort.Slice(groups, func(i, j int) bool {
 		return groups[i].Order < groups[j].Order
 	})
 
 	return CategoryGroupModel{
-		AppData: AppData{
-			Data: initialData,
-		},
 		groups:       groups,
 		editInput:    ti,
 		editingIndex: -1,
@@ -81,7 +73,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							}
 						}
 
-						newGroup := data.CategoryGroup{
+						newGroup := domain.CategoryGroup{
 							GroupID:   newGroupId,
 							GroupName: groupName,
 							Order:     maxOrder + 1,
@@ -242,17 +234,11 @@ func (m CategoryGroupModel) View() string {
 }
 
 // UpdateData refreshes the model with new data and resets cursor if needed.
-func (m CategoryGroupModel) UpdateData(updatedData *data.DataRoot) CategoryGroupModel {
-	var groups []data.CategoryGroup
-	for _, value := range m.Data.CategoryGroups {
-		groups = append(groups, value)
-	}
-
-	sort.Slice(groups, func(i int, j int) bool {
+func (m CategoryGroupModel) UpdateData(groups []domain.CategoryGroup) CategoryGroupModel {
+	sort.Slice(groups, func(i, j int) bool {
 		return groups[i].Order < groups[j].Order
 	})
 
-	m.Data = updatedData
 	m.groups = groups
 	if m.cursor >= len(m.groups) && len(m.groups) > 0 {
 		m.cursor = len(m.groups) - 1

@@ -3,12 +3,19 @@ package ui
 import (
 	"errors"
 	"strconv"
+	"strings"
 )
 
 // ValidAmount validates and converts a string to a float64 amount, ensuring it's not zero.
 func ValidAmount(v string) (float64, error) {
 
-	floatValue, err := strconv.ParseFloat(v, 64)
+	if v == "" {
+		return 0, errors.New("amount cannot be empty")
+	}
+
+	amountStr := strings.TrimSpace(v)
+
+	floatValue, err := strconv.ParseFloat(amountStr, 64)
 	if err != nil {
 		return 0, err
 	}

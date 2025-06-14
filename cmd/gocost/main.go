@@ -9,6 +9,7 @@ import (
 	"github.com/madalinpopa/gocost/internal/app"
 	"github.com/madalinpopa/gocost/internal/config"
 	"github.com/madalinpopa/gocost/internal/data"
+	"github.com/madalinpopa/gocost/internal/service"
 	"github.com/spf13/viper"
 )
 
@@ -47,8 +48,7 @@ func main() {
 	}
 
 	dataFilePath := viper.GetString(config.DataFileField)
-	defaultCurrency := viper.GetString(config.CurrencyField)
-	initialData, err := data.LoadData(dataFilePath, defaultCurrency)
+	repo, err := data.NewJsonRepository(dataFilePath, selectedCurrency)
 	if err != nil {
 		if _, err := fmt.Fprintf(os.Stderr, "Error loading data from %s: %v", dataFilePath, err); err != nil {
 			os.Exit(2)
@@ -56,7 +56,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	a := app.New(initialData, dataFilePath)
+	categorySvc := service.NewCategoryService(repo)
+	groupSvc := service.NewGroupService(repo)
+	incomeSvc := service.NewIncomeService(repo)
+
+	a := app.New(categorySvc, groupSvc, incomeSvc, dataFilePath)
+
 	p := tea.NewProgram(a, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		if _, err := fmt.Fprintf(os.Stderr, "Error running program: %v\n", err); err != nil {
@@ -64,5 +69,4 @@ func main() {
 		}
 		os.Exit(1)
 	}
-
 }

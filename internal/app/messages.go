@@ -237,7 +237,7 @@ func (m App) handleToggleExpenseStatusMsg(msg ui.ToggleExpenseStatusMsg) (tea.Mo
 
 	// Get the updated expense to show the new status
 	updatedRecord := m.Data.MonthlyData[msg.MonthKey]
-	var newStatus string = "Not Paid"
+	newStatus := "Not Paid"
 	for _, category := range updatedRecord.Categories {
 		if category.CatID == msg.Category.CatID {
 			if expense, exists := category.Expense[category.CatID]; exists {
@@ -259,7 +259,7 @@ func (m App) handleMonthlyViewMsg() (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// handleGroupAddMsg handles the addition of a new category group. It updates the data model,
+// handleGroupAddMsg handles the addition of a new category group. It updates the data model.
 func (m App) handleGroupAddMsg(msg ui.GroupAddMsg) (tea.Model, tea.Cmd) {
 
 	m.Data.CategoryGroups[msg.Group.GroupID] = msg.Group
@@ -324,14 +324,14 @@ func (m App) handleGroupUpdateMsg(msg ui.GroupUpdateMsg) (tea.Model, tea.Cmd) {
 }
 
 // handleAddIncomeFormMsg handles the display of the income form.
-func (m App) handleAddIncomeFormMsg(msg ui.AddIncomeFormMsg) (tea.Model, tea.Cmd) {
+func (m App) handleAddIncomeFormMsg() (tea.Model, tea.Cmd) {
 	m.IncomeFormModel = ui.NewIncomeFormModel(m.CurrentMonth, m.CurrentYear, nil)
 	m.activeView = viewIncomeForm
 	return m, nil
 }
 
 // handleIncomeViewMsg handles the display of income data.
-func (m App) handleIncomeViewMsg(msg ui.IncomeViewMsg) (tea.Model, tea.Cmd) {
+func (m App) handleIncomeViewMsg() (tea.Model, tea.Cmd) {
 	m.IncomeModel = ui.NewIncomeModel(m.Data, m.CurrentMonth, m.CurrentYear)
 	m.activeView = viewIncome
 	return m, nil
@@ -410,7 +410,7 @@ func (m App) handleDeleteIncomeMsg(msg ui.DeleteIncomeMsg) (tea.Model, tea.Cmd) 
 }
 
 // handleSelectGroupMsg handles the selection of a category group.
-func (m App) handleSelectGroupMsg(msg ui.SelectGroupMsg) (tea.Model, tea.Cmd) {
+func (m App) handleSelectGroupMsg() (tea.Model, tea.Cmd) {
 	m.CategoryGroupModel = m.CategoryGroupModel.SelectGroup()
 	m.activeView = viewCategoryGroup
 	return m, nil

@@ -41,7 +41,7 @@ func (m *mockCategoryRepo) DeleteCategory(monthKey string, categoryID string) er
 	return m.err
 }
 func (m *mockCategoryRepo) CopyCategoriesFromMonth(fromMonthKey, toMonthKey string) (int, error) {
-	_ = fromMonthKey
+	_, _ = fromMonthKey, toMonthKey
 	if m.err != nil {
 		return 0, m.err
 	}

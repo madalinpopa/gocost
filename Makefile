@@ -1,6 +1,13 @@
 .PHONY: test staticcheck check build run
 
 .DEFAULT_GOAL := test
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#   Bootstrap project for development
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+bootstrap:
+	cp ./envrc.template .envrc
+	go mod download
+	direnv allow .
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #   Run GO commands

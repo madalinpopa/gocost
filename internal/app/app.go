@@ -185,10 +185,10 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.handleMonthlyViewMsg()
 
 	case ui.IncomeViewMsg:
-		return m.handleIncomeViewMsg(msg)
+		return m.handleIncomeViewMsg()
 
 	case ui.AddIncomeFormMsg:
-		return m.handleAddIncomeFormMsg(msg)
+		return m.handleAddIncomeFormMsg()
 
 	case ui.SaveIncomeMsg:
 		return m.handleSaveIncomeMsg(msg)
@@ -209,7 +209,7 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.handleGroupUpdateMsg(msg)
 
 	case ui.SelectGroupMsg:
-		return m.handleSelectGroupMsg(msg)
+		return m.handleSelectGroupMsg()
 
 	case ui.SelectedGroupMsg:
 		return m.handleSelectedGroupMsg(msg)

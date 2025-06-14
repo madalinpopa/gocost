@@ -290,8 +290,12 @@ func TestLoadConfig(t *testing.T) {
 		// Clear viper state
 		viper.Reset()
 
-		// Test the function
-		err = LoadConfig()
+		// Get config file path
+		configDir := filepath.Join(mockHomeDir, dataDir)
+		configFilePath := filepath.Join(configDir, "config.json")
+
+		// Test the function with default currency and testing=true to bypass prompt
+		err = LoadConfig(DefaultCurrency, configFilePath, true)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -303,8 +307,8 @@ func TestLoadConfig(t *testing.T) {
 		}
 
 		// Verify default values are set
-		if viper.GetString(CurrencyField) != defaultCurrency {
-			t.Errorf("expected currency %s, got %s", defaultCurrency, viper.GetString(CurrencyField))
+		if viper.GetString(CurrencyField) != DefaultCurrency {
+			t.Errorf("expected currency %s, got %s", DefaultCurrency, viper.GetString(CurrencyField))
 		}
 	})
 
@@ -348,8 +352,8 @@ func TestLoadConfig(t *testing.T) {
 		// Clear viper state
 		viper.Reset()
 
-		// Test the function
-		err = LoadConfig()
+		// Test the function with default currency and testing=true to bypass prompt
+		err = LoadConfig(DefaultCurrency, configPath, true)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -400,8 +404,8 @@ func TestLoadConfig(t *testing.T) {
 		// Clear viper state
 		viper.Reset()
 
-		// Test the function
-		err = LoadConfig()
+		// Test the function with default currency and testing=true to bypass prompt
+		err = LoadConfig(DefaultCurrency, configPath, true)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -465,8 +469,8 @@ func TestLoadConfig(t *testing.T) {
 		// Clear viper state
 		viper.Reset()
 
-		// Test the function
-		err = LoadConfig()
+		// Test the function with default currency and testing=true to bypass prompt
+		err = LoadConfig(DefaultCurrency, configPath, true)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -526,7 +530,7 @@ func TestLoadConfig(t *testing.T) {
 		viper.Reset()
 
 		// Test the function - should return an error
-		err = LoadConfig()
+		err = LoadConfig(DefaultCurrency, configPath, true)
 		if err == nil {
 			t.Errorf("expected error when reading invalid JSON config, got nil")
 		}

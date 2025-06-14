@@ -293,17 +293,15 @@ func (m App) handleGroupDeleteMsg(msg ui.GroupDeleteMsg) (tea.Model, tea.Cmd) {
 		return m.SetErrorStatus(fmt.Sprintf("Cannot delete group '%s': group is still being used by existing categories", msg.Group.GroupName))
 	}
 
-	if canDelete {
-		delete(m.Data.CategoryGroups, msg.Group.GroupID)
+	delete(m.Data.CategoryGroups, msg.Group.GroupID)
 
-		if err := data.SaveData(m.FilePath, m.Data); err != nil {
-			return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
-		}
-
-		m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
-		return m.SetSuccessStatus(fmt.Sprintf("Group '%s' deleted successfully", msg.Group.GroupName))
+	if err := data.SaveData(m.FilePath, m.Data); err != nil {
+		return m.SetErrorStatus(fmt.Sprintf("Error while saving data: %v", err))
 	}
-	return m, nil
+
+	m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(m.Data)
+	return m.SetSuccessStatus(fmt.Sprintf("Group '%s' deleted successfully", msg.Group.GroupName))
+
 }
 
 // handleGroupUpdateMsg handles the update of a category group.

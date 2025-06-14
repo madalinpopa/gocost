@@ -52,7 +52,10 @@ func (r *JsonRepository) save() error {
 	return saveData(r.filePath, r.store)
 }
 
-// --- GroupRepository Implementation ---
+// FilePath returns the path to the JSON file store.
+func (r *JsonRepository) FilePath() string {
+	return r.filePath
+}
 
 func (r *JsonRepository) GetAllGroups() ([]domain.CategoryGroup, error) {
 	var groups []domain.CategoryGroup
@@ -104,8 +107,6 @@ func (r *JsonRepository) DeleteGroup(groupID string) error {
 	delete(r.store.CategoryGroups, groupID)
 	return r.save()
 }
-
-// --- IncomeRepository Implementation ---
 
 func (r *JsonRepository) GetIncomesForMonth(monthKey string) ([]domain.IncomeRecord, error) {
 	if record, ok := r.store.MonthlyData[monthKey]; ok {
@@ -173,8 +174,6 @@ func (r *JsonRepository) DeleteIncome(monthKey string, incomeID string) error {
 	r.store.MonthlyData[monthKey] = monthRecord
 	return r.save()
 }
-
-// --- CategoryRepository Implementation ---
 
 func (r *JsonRepository) GetCategoriesForMonth(monthKey string) ([]domain.Category, error) {
 	if record, ok := r.store.MonthlyData[monthKey]; ok {
@@ -267,8 +266,6 @@ func (r *JsonRepository) CopyCategoriesFromMonth(fromMonthKey, toMonthKey string
 	}
 	return len(newCategories), nil
 }
-
-// --- Unexported persistence helpers ---
 
 func loadData(filePath string, currency string) (*jsonStore, error) {
 	fileData, err := os.ReadFile(filePath)

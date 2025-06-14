@@ -16,12 +16,14 @@ type mockIncomeRepo struct {
 }
 
 func (m *mockIncomeRepo) GetIncomesForMonth(monthKey string) ([]domain.IncomeRecord, error) {
+	_ = monthKey
 	if m.err != nil {
 		return nil, m.err
 	}
 	return m.incomes, nil
 }
 func (m *mockIncomeRepo) AddIncome(monthKey string, income domain.IncomeRecord) error {
+	_, _ = monthKey, income
 	if m.err != nil {
 		return m.err
 	}
@@ -29,9 +31,11 @@ func (m *mockIncomeRepo) AddIncome(monthKey string, income domain.IncomeRecord) 
 	return nil
 }
 func (m *mockIncomeRepo) UpdateIncome(monthKey string, income domain.IncomeRecord) error {
+	_, _ = income, monthKey
 	return m.err
 }
 func (m *mockIncomeRepo) DeleteIncome(monthKey string, incomeID string) error {
+	_, _ = incomeID, monthKey
 	return m.err
 }
 

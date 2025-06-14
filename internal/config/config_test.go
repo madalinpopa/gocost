@@ -19,7 +19,10 @@ func TestGetDefaultDataDir(t *testing.T) {
 		expectedPath := filepath.Join(homeDir, dataDir)
 
 		// Remove directory if it exists to test creation
-		os.RemoveAll(expectedPath)
+		err = os.RemoveAll(expectedPath)
+		if err != nil {
+			t.Fatalf("Could not remove test directory: %v", err)
+		}
 
 		result, err := getDefaultDataDir()
 		if err != nil {
@@ -65,8 +68,12 @@ func TestGetDefaultDataDir(t *testing.T) {
 		}
 
 		// Verify directory still exists
-		if _, err := os.Stat(secondResult); os.IsNotExist(err) {
-			t.Errorf("expected directory to exist after second call")
+		info, err := os.Stat(secondResult)
+		if err != nil {
+			t.Fatalf("failed to verify directory exists: %v", err)
+		}
+		if !info.IsDir() {
+			t.Errorf("expected directory to exist after second call, but found a file")
 		}
 	})
 
@@ -101,17 +108,26 @@ func TestGetDefaultDataDir(t *testing.T) {
 		expectedPath := filepath.Join(homeDir, dataDir)
 
 		// Remove directory if it exists
-		os.RemoveAll(expectedPath)
+		err = os.RemoveAll(expectedPath)
+		if err != nil {
+			t.Fatalf("Could not remove test directory: %v", err)
+		}
 
 		// Create a file with the same name as the expected directory
 		file, err := os.Create(expectedPath)
 		if err != nil {
 			t.Fatalf("Could not create test file: %v", err)
 		}
-		file.Close()
+		if err := file.Close(); err != nil {
+			t.Fatalf("Could not close test file: %v", err)
+		}
 
 		// Clean up after test
-		defer os.Remove(expectedPath)
+		defer func() {
+			if err := os.Remove(expectedPath); err != nil {
+				t.Fatalf("Could not remove test file: %v", err)
+			}
+		}()
 
 		// NOTE: This documents current behavior - function doesn't validate if path is a directory
 		// The function returns the path even if it's a file, not a directory
@@ -169,8 +185,12 @@ func TestGetDefaultDataDir(t *testing.T) {
 		}
 
 		// Verify directory was created
-		if _, err := os.Stat(result); os.IsNotExist(err) {
-			t.Errorf("expected directory to be created")
+		info, err := os.Stat(result)
+		if err != nil {
+			t.Fatalf("failed to verify directory was created: %v", err)
+		}
+		if !info.IsDir() {
+			t.Errorf("expected path to be a directory")
 		}
 	})
 
@@ -238,7 +258,11 @@ func TestGetDefaultDataDir(t *testing.T) {
 		}
 
 		// Restore permissions after test
-		defer os.Chmod(mockHomeDir, 0755)
+		defer func() {
+			if err := os.Chmod(mockHomeDir, 0755); err != nil {
+				t.Logf("Warning: Failed to restore directory permissions: %v", err)
+			}
+		}()
 
 		// Temporarily change HOME environment variable
 		originalHome := os.Getenv("HOME")
@@ -279,10 +303,14 @@ func TestLoadConfig(t *testing.T) {
 		// Temporarily change HOME environment variable
 		originalHome := os.Getenv("HOME")
 		defer func() {
+			var err error
 			if originalHome != "" {
-				os.Setenv("HOME", originalHome)
+				err = os.Setenv("HOME", originalHome)
 			} else {
-				os.Unsetenv("HOME")
+				err = os.Unsetenv("HOME")
+			}
+			if err != nil {
+				t.Logf("Warning: Failed to restore HOME environment variable: %v", err)
 			}
 		}()
 		os.Setenv("HOME", mockHomeDir)
@@ -294,16 +322,23 @@ func TestLoadConfig(t *testing.T) {
 		configDir := filepath.Join(mockHomeDir, dataDir)
 		configFilePath := filepath.Join(configDir, "config.json")
 
+		// Create the config directory
+		err = os.MkdirAll(configDir, 0755)
+		if err != nil {
+			t.Fatalf("Failed to create config directory: %v", err)
+		}
+
 		// Test the function with default currency and testing=true to bypass prompt
-		err = LoadConfig(DefaultCurrency, configFilePath, true)
+		err = LoadConfig(DefaultCurrency, configFilePath)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
 		// Verify config file was created
 		expectedConfigPath := filepath.Join(mockHomeDir, dataDir, "config.json")
-		if _, err := os.Stat(expectedConfigPath); os.IsNotExist(err) {
-			t.Errorf("expected config file to be created at %s", expectedConfigPath)
+		_, err = os.Stat(expectedConfigPath)
+		if err != nil {
+			t.Errorf("expected config file to be created at %s: %v", expectedConfigPath, err)
 		}
 
 		// Verify default values are set
@@ -326,10 +361,14 @@ func TestLoadConfig(t *testing.T) {
 		// Temporarily change HOME environment variable
 		originalHome := os.Getenv("HOME")
 		defer func() {
+			var err error
 			if originalHome != "" {
-				os.Setenv("HOME", originalHome)
+				err = os.Setenv("HOME", originalHome)
 			} else {
-				os.Unsetenv("HOME")
+				err = os.Unsetenv("HOME")
+			}
+			if err != nil {
+				t.Logf("Warning: Failed to restore HOME environment variable: %v", err)
 			}
 		}()
 		os.Setenv("HOME", mockHomeDir)
@@ -353,7 +392,7 @@ func TestLoadConfig(t *testing.T) {
 		viper.Reset()
 
 		// Test the function with default currency and testing=true to bypass prompt
-		err = LoadConfig(DefaultCurrency, configPath, true)
+		err = LoadConfig(DefaultCurrency, configPath)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -403,9 +442,10 @@ func TestLoadConfig(t *testing.T) {
 
 		// Clear viper state
 		viper.Reset()
+		// Note: viper.Reset() doesn't return an error so no error handling needed
 
 		// Test the function with default currency and testing=true to bypass prompt
-		err = LoadConfig(DefaultCurrency, configPath, true)
+		err = LoadConfig(DefaultCurrency, configPath)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -469,8 +509,8 @@ func TestLoadConfig(t *testing.T) {
 		// Clear viper state
 		viper.Reset()
 
-		// Test the function with default currency and testing=true to bypass prompt
-		err = LoadConfig(DefaultCurrency, configPath, true)
+		// Test the function with default currency
+		err = LoadConfig(DefaultCurrency, configPath)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -530,7 +570,7 @@ func TestLoadConfig(t *testing.T) {
 		viper.Reset()
 
 		// Test the function - should return an error
-		err = LoadConfig(DefaultCurrency, configPath, true)
+		err = LoadConfig(DefaultCurrency, configPath)
 		if err == nil {
 			t.Errorf("expected error when reading invalid JSON config, got nil")
 		}

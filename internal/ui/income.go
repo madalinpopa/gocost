@@ -7,40 +7,29 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/madalinpopa/gocost/internal/config"
-	"github.com/madalinpopa/gocost/internal/data"
+	"github.com/madalinpopa/gocost/internal/domain"
 	"github.com/spf13/viper"
 )
 
 type IncomeModel struct {
-	AppData
 	WindowSize
 	MonthYear
 
-	cursor        int
-	monthKey      string
-	incomeEntries []data.IncomeRecord
+	cursor   int
+	monthKey string
+	incomes  []domain.IncomeRecord
 }
 
 // NewIncomeModel creates a new IncomeModel instance.
-func NewIncomeModel(initialData *data.DataRoot, month time.Month, year int) IncomeModel {
+func NewIncomeModel(incomes []domain.IncomeRecord, month time.Month, year int) IncomeModel {
 	monthKey := GetMonthKey(month, year)
-	var incomeEntries []data.IncomeRecord
-
-	if incomes, ok := initialData.MonthlyData[monthKey]; ok {
-		incomeEntries = incomes.Incomes
-	} else {
-		incomeEntries = make([]data.IncomeRecord, 0)
-	}
 
 	return IncomeModel{
-		incomeEntries: incomeEntries,
-		monthKey:      monthKey,
+		incomes:  incomes,
+		monthKey: monthKey,
 		MonthYear: MonthYear{
 			CurrentMonth: month,
 			CurrentYear:  year,
-		},
-		AppData: AppData{
-			Data: initialData,
 		},
 	}
 }
@@ -67,18 +56,18 @@ func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, func() tea.Msg { return MonthlyViewMsg{} }
 
 		case "j", "down":
-			if len(m.incomeEntries) > 0 {
+			if len(m.incomes) > 0 {
 				m.cursor++
-				if m.cursor >= len(m.incomeEntries) {
+				if m.cursor >= len(m.incomes) {
 					m.cursor = 0
 				}
 			}
 
 		case "k", "up":
-			if len(m.incomeEntries) > 0 {
+			if len(m.incomes) > 0 {
 				m.cursor--
 				if m.cursor < 0 {
-					m.cursor = len(m.incomeEntries) - 1
+					m.cursor = len(m.incomes) - 1
 				}
 			}
 
@@ -88,8 +77,8 @@ func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "e", "enter":
-			if len(m.incomeEntries) > 0 && m.cursor >= 0 && m.cursor < len(m.incomeEntries) {
-				incomeRecord := m.incomeEntries[m.cursor]
+			if len(m.incomes) > 0 && m.cursor >= 0 && m.cursor < len(m.incomes) {
+				incomeRecord := m.incomes[m.cursor]
 				return m, func() tea.Msg {
 					return EditIncomeMsg{
 						MonthKey: m.monthKey,
@@ -99,8 +88,8 @@ func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "d":
-			if len(m.incomeEntries) > 0 && m.cursor >= 0 && m.cursor < len(m.incomeEntries) {
-				incomeRecord := m.incomeEntries[m.cursor]
+			if len(m.incomes) > 0 && m.cursor >= 0 && m.cursor < len(m.incomes) {
+				incomeRecord := m.incomes[m.cursor]
 				return m, func() tea.Msg {
 					return DeleteIncomeMsg{
 						MonthKey: m.monthKey,
@@ -123,10 +112,10 @@ func (m IncomeModel) View() string {
 	b.WriteString(HeaderText.Render(title))
 	b.WriteString("\n\n")
 
-	if len(m.incomeEntries) == 0 {
+	if len(m.incomes) == 0 {
 		b.WriteString(MutedText.Render("No income entries for this month."))
 	} else {
-		for i, entry := range m.incomeEntries {
+		for i, entry := range m.incomes {
 			lineStyle := NormalListItem
 			prefix := "  "
 			if i == m.cursor {
@@ -154,36 +143,20 @@ func (m IncomeModel) View() string {
 
 // SetMonthYear updates the current month/year and loads corresponding income entries.
 func (m IncomeModel) SetMonthYear(month time.Month, year int) IncomeModel {
-
 	m.CurrentMonth = month
 	m.CurrentYear = year
 	m.monthKey = GetMonthKey(month, year)
-
-	if monthRecord, ok := m.Data.MonthlyData[m.monthKey]; ok {
-		m.incomeEntries = monthRecord.Incomes
-	} else {
-		m.incomeEntries = make([]data.IncomeRecord, 0)
-	}
 	m.cursor = 0 // Reset cursor
-
 	return m
 }
 
 // UpdateData refreshes the model with new data and resets state.
-func (m IncomeModel) UpdateData(updatedData *data.DataRoot) IncomeModel {
-	m.Data = updatedData
-	
-	if monthRecord, ok := m.Data.MonthlyData[m.monthKey]; ok {
-		m.incomeEntries = monthRecord.Incomes
-	} else {
-		m.incomeEntries = make([]data.IncomeRecord, 0)
-	}
-	
-	if m.cursor >= len(m.incomeEntries) && len(m.incomeEntries) > 0 {
-		m.cursor = len(m.incomeEntries) - 1
-	} else if len(m.incomeEntries) == 0 {
+func (m IncomeModel) UpdateData(incomes []domain.IncomeRecord) IncomeModel {
+	m.incomes = incomes
+	if m.cursor >= len(m.incomes) && len(m.incomes) > 0 {
+		m.cursor = len(m.incomes) - 1
+	} else if len(m.incomes) == 0 {
 		m.cursor = 0
 	}
-	
 	return m
 }

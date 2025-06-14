@@ -76,32 +76,29 @@ The filter searches both category names and group names (case-insensitive). When
 gocost/
 ├── cmd/
 │   └── gocost/
-│       └── main.go          # Application entry point
+│       └── main.go              # Entry point: Initializes and injects dependencies
 ├── internal/
-│   ├── app/
-│   │   ├── app.go           # Main application model and state management
-│   │   ├── messages.go      # Message handlers for different actions
-│   │   ├── status.go        # Status message management
-│   │   └── status_test.go   # Status tests
-│   ├── config/
-│   │   ├── config.go        # Configuration management
-│   │   └── config_test.go   # Configuration tests
-│   ├── data/
-│   │   ├── models.go        # Data structures (Income, Expense, Category, etc.)
-│   │   ├── persistence.go   # JSON file load/save operations
-│   │   └── persistence_test.go
-│   └── ui/
-│       ├── overview.go      # Monthly overview view
-│       ├── income.go        # Income list view
-│       ├── income_form.go   # Income add/edit form
-│       ├── category.go      # Category management view
-│       ├── category_group.go # Category group management
-│       ├── expense.go       # Expense entry form
-│       ├── style.go         # UI styling and colors
-│       ├── types.go         # UI type definitions and messages
-│       ├── util.go          # Utility functions
-│       ├── util_test.go
-│       └── validation.go    # Input validation
+│   ├── app/                     # UI Controller: Manages views and dispatches messages
+│   │   ├── app.go
+│   │   ├── messages.go
+│   │   └── status.go
+│   ├── config/                  # Configuration management
+│   │   └── config.go
+│   ├── data/                    # Data Layer: Implements repository interfaces
+│   │   └── json_repository.go
+│   ├── domain/                  # Core models and repository interfaces
+│   │   ├── category.go
+│   │   ├── group.go
+│   │   ├── income.go
+│   │   └── monthly.go
+│   ├── service/                 # Business Logic Layer
+│   │   ├── category.go
+│   │   ├── group.go
+│   │   └── income.go
+│   └── ui/                      # UI Views/Components
+│       ├── overview.go
+│       ├── category.go
+│       └── ...
 ├── go.mod
 ├── go.sum
 └── README.md

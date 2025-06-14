@@ -16,7 +16,6 @@ import (
 var version = "dev"
 
 func main() {
-	// Define version flag
 	versionFlag := flag.Bool("version", false, "Print version information and exit")
 	flag.Parse()
 

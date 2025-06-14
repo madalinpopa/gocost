@@ -61,8 +61,6 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-
-
 	if m.isEditingName {
 
 		switch msg := msg.(type) {
@@ -125,7 +123,11 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 
 		case "q", "esc":
+			isSelectMode := m.selectGroup
 			m = m.ResetSelection()
+			if isSelectMode {
+				return m, func() tea.Msg { return CategoryViewMsg{} }
+			}
 			return m, func() tea.Msg { return MonthlyViewMsg{} }
 
 		case "j", "down":

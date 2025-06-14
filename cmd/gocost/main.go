@@ -14,7 +14,9 @@ import (
 func main() {
 
 	if err := config.LoadConfig(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error loading config file: %v", err)
+		if _, err := fmt.Fprintf(os.Stderr, "Error loading config file: %v", err); err != nil {
+			os.Exit(2)
+		}
 		os.Exit(1)
 	}
 
@@ -22,14 +24,18 @@ func main() {
 	defaultCurrency := viper.GetString(config.CurrencyField)
 	initialData, err := data.LoadData(dataFilePath, defaultCurrency)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error loading data from %s: %v", dataFilePath, err)
+		if _, err := fmt.Fprintf(os.Stderr, "Error loading data from %s: %v", dataFilePath, err); err != nil {
+			os.Exit(2)
+		}
 		os.Exit(1)
 	}
 
-	app := app.New(initialData, dataFilePath)
-	p := tea.NewProgram(app, tea.WithAltScreen())
+	a := app.New(initialData, dataFilePath)
+	p := tea.NewProgram(a, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error running program: %v\n", err)
+		if _, err := fmt.Fprintf(os.Stderr, "Error running program: %v\n", err); err != nil {
+			os.Exit(2)
+		}
 		os.Exit(1)
 	}
 

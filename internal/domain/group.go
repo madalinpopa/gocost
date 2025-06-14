@@ -9,18 +9,9 @@ type CategoryGroup struct {
 
 // GroupRepository defines the interface for interacting with category group data.
 type GroupRepository interface {
-	// GetAll retrieves all category groups.
-	GetAll() ([]CategoryGroup, error)
-
-	// GetByID retrieves a single category group by its ID.
-	GetByID(groupID string) (CategoryGroup, error)
-
-	// Add saves a new category group.
-	Add(group CategoryGroup) error
-
-	// Update modifies an existing category group.
-	Update(group CategoryGroup) error
-
-	// Delete removes a category group using its ID.
-	Delete(groupID string) error
+	GetAllGroups() ([]CategoryGroup, error)
+	GetGroupByID(groupID string) (CategoryGroup, error)
+	AddGroup(group CategoryGroup) error
+	UpdateGroup(group CategoryGroup) error
+	DeleteGroup(groupID string) error
 }

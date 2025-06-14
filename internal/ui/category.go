@@ -513,7 +513,7 @@ func (m CategoryModel) UpdateData(updatedData *data.DataRoot) CategoryModel {
 	m.categories = categories
 	m.cursor = 0
 
-	// Reset all editing state when data is updated
+	// Reset all editing states when data is updated
 	m = m.resetEditingState()
 
 	return m

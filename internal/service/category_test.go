@@ -16,6 +16,7 @@ type mockCategoryRepo struct {
 }
 
 func (m *mockCategoryRepo) GetCategoriesForMonth(monthKey string) ([]domain.Category, error) {
+	_ = monthKey
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -23,6 +24,7 @@ func (m *mockCategoryRepo) GetCategoriesForMonth(monthKey string) ([]domain.Cate
 }
 
 func (m *mockCategoryRepo) AddCategory(monthKey string, category domain.Category) error {
+	_ = monthKey
 	if m.err != nil {
 		return m.err
 	}
@@ -31,12 +33,15 @@ func (m *mockCategoryRepo) AddCategory(monthKey string, category domain.Category
 }
 
 func (m *mockCategoryRepo) UpdateCategory(monthKey string, category domain.Category) error {
+	_, _ = monthKey, category
 	return m.err
 }
 func (m *mockCategoryRepo) DeleteCategory(monthKey string, categoryID string) error {
+	_, _ = categoryID, monthKey
 	return m.err
 }
 func (m *mockCategoryRepo) CopyCategoriesFromMonth(fromMonthKey, toMonthKey string) (int, error) {
+	_ = fromMonthKey
 	if m.err != nil {
 		return 0, m.err
 	}

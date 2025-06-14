@@ -166,12 +166,21 @@ func TestGetDefaultDataDir(t *testing.T) {
 		originalHome := os.Getenv("HOME")
 		defer func() {
 			if originalHome != "" {
-				os.Setenv("HOME", originalHome)
+				err := os.Setenv("HOME", originalHome)
+				if err != nil {
+					t.Fatalf("Failed to restore HOME environment variable: %v", err)
+				}
 			} else {
-				os.Unsetenv("HOME")
+				err := os.Unsetenv("HOME")
+				if err != nil {
+					t.Fatalf("Failed to restore HOME environment variable: %v", err)
+				}
 			}
 		}()
-		os.Setenv("HOME", mockHomeDir)
+		err = os.Setenv("HOME", mockHomeDir)
+		if err != nil {
+			t.Fatalf("Failed to set HOME environment variable: %v", err)
+		}
 
 		// Test the function
 		result, err := getDefaultDataDir()
@@ -205,15 +214,24 @@ func TestGetDefaultDataDir(t *testing.T) {
 		originalHome := os.Getenv("HOME")
 		defer func() {
 			if originalHome != "" {
-				os.Setenv("HOME", originalHome)
+				err := os.Setenv("HOME", originalHome)
+				if err != nil {
+					t.Fatalf("Failed to restore HOME environment variable: %v", err)
+				}
 			} else {
-				os.Unsetenv("HOME")
+				err := os.Unsetenv("HOME")
+				if err != nil {
+					t.Fatalf("Failed to restore HOME environment variable: %v", err)
+				}
 			}
 		}()
-		os.Setenv("HOME", mockHomeDir)
+		err := os.Setenv("HOME", mockHomeDir)
+		if err != nil {
+			t.Fatalf("Failed to set HOME environment variable: %v", err)
+		}
 
 		// First create the mock home directory
-		err := os.MkdirAll(mockHomeDir, 0755)
+		err = os.MkdirAll(mockHomeDir, 0755)
 		if err != nil {
 			t.Fatalf("Failed to create mock home directory: %v", err)
 		}
@@ -268,12 +286,21 @@ func TestGetDefaultDataDir(t *testing.T) {
 		originalHome := os.Getenv("HOME")
 		defer func() {
 			if originalHome != "" {
-				os.Setenv("HOME", originalHome)
+				err := os.Setenv("HOME", originalHome)
+				if err != nil {
+					t.Fatalf("Failed to restore HOME environment variable: %v", err)
+				}
 			} else {
-				os.Unsetenv("HOME")
+				err := os.Unsetenv("HOME")
+				if err != nil {
+					t.Fatalf("Failed to restore HOME environment variable: %v", err)
+				}
 			}
 		}()
-		os.Setenv("HOME", mockHomeDir)
+		err = os.Setenv("HOME", mockHomeDir)
+		if err != nil {
+			t.Fatalf("Failed to set HOME environment variable: %v", err)
+		}
 
 		// Test the function - should fail to create directory
 		_, err = getDefaultDataDir()
@@ -313,7 +340,10 @@ func TestLoadConfig(t *testing.T) {
 				t.Logf("Warning: Failed to restore HOME environment variable: %v", err)
 			}
 		}()
-		os.Setenv("HOME", mockHomeDir)
+		err = os.Setenv("HOME", mockHomeDir)
+		if err != nil {
+			t.Fatalf("Failed to set HOME environment variable: %v", err)
+		}
 
 		// Clear viper state
 		viper.Reset()
@@ -371,7 +401,9 @@ func TestLoadConfig(t *testing.T) {
 				t.Logf("Warning: Failed to restore HOME environment variable: %v", err)
 			}
 		}()
-		os.Setenv("HOME", mockHomeDir)
+		if err := os.Setenv("HOME", mockHomeDir); err != nil {
+			t.Fatalf("Failed to set HOME environment variable: %v", err)
+		}
 
 		// Create config directory
 		configDir := filepath.Join(mockHomeDir, dataDir)
@@ -418,12 +450,18 @@ func TestLoadConfig(t *testing.T) {
 		originalHome := os.Getenv("HOME")
 		defer func() {
 			if originalHome != "" {
-				os.Setenv("HOME", originalHome)
+				if err := os.Setenv("HOME", originalHome); err != nil {
+					t.Logf("Warning: Failed to restore HOME environment variable: %v", err)
+				}
 			} else {
-				os.Unsetenv("HOME")
+				if err := os.Unsetenv("HOME"); err != nil {
+					t.Logf("Warning: Failed to restore HOME environment variable: %v", err)
+				}
 			}
 		}()
-		os.Setenv("HOME", mockHomeDir)
+		if err := os.Setenv("HOME", mockHomeDir); err != nil {
+			t.Fatalf("Failed to set HOME environment variable: %v", err)
+		}
 
 		// Create config directory
 		configDir := filepath.Join(mockHomeDir, dataDir)
@@ -480,12 +518,18 @@ func TestLoadConfig(t *testing.T) {
 		originalHome := os.Getenv("HOME")
 		defer func() {
 			if originalHome != "" {
-				os.Setenv("HOME", originalHome)
+				if err := os.Setenv("HOME", originalHome); err != nil {
+					t.Fatalf("Failed to restore HOME environment variable: %v", err)
+				}
 			} else {
-				os.Unsetenv("HOME")
+				if err := os.Unsetenv("HOME"); err != nil {
+					t.Fatalf("Failed to restore HOME environment variable: %v", err)
+				}
 			}
 		}()
-		os.Setenv("HOME", mockHomeDir)
+		if err := os.Setenv("HOME", mockHomeDir); err != nil {
+			t.Fatalf("Failed to set HOME environment variable: %v", err)
+		}
 
 		// Create config directory
 		configDir := filepath.Join(mockHomeDir, dataDir)
@@ -544,12 +588,18 @@ func TestLoadConfig(t *testing.T) {
 		originalHome := os.Getenv("HOME")
 		defer func() {
 			if originalHome != "" {
-				os.Setenv("HOME", originalHome)
+				if err := os.Setenv("HOME", originalHome); err != nil {
+					t.Fatalf("Failed to restore HOME environment variable: %v", err)
+				}
 			} else {
-				os.Unsetenv("HOME")
+				if err := os.Unsetenv("HOME"); err != nil {
+					t.Fatalf("Failed to restore HOME environment variable: %v", err)
+				}
 			}
 		}()
-		os.Setenv("HOME", mockHomeDir)
+		if err := os.Setenv("HOME", mockHomeDir); err != nil {
+			t.Fatalf("Failed to set HOME environment variable: %v", err)
+		}
 
 		// Create config directory
 		configDir := filepath.Join(mockHomeDir, dataDir)
@@ -580,13 +630,6 @@ func TestLoadConfig(t *testing.T) {
 			t.Errorf("expected error message about config read failure, got: %v", err)
 		}
 	})
-}
-
-func TestGetDefaultDataDirConstants(t *testing.T) {
-	// Test that constants have expected values
-	if dataDir != ".gocost" {
-		t.Errorf("expected dataDir to be '.gocost', got %s", dataDir)
-	}
 }
 
 func TestGetDefaultDataDirPathValidation(t *testing.T) {

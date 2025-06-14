@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/madalinpopa/gocost/internal/data"
+	"github.com/madalinpopa/gocost/internal/domain"
 )
 
 const (
@@ -21,9 +21,7 @@ const (
 )
 
 type ExpenseModel struct {
-	AppData
 	WindowSize
-	MonthYear
 
 	amountInput textinput.Model
 	budgetInput textinput.Model
@@ -31,15 +29,14 @@ type ExpenseModel struct {
 
 	focusIndex int // 0. amount, 1: budget, 2: notes, 3: Save, 4: Cancel
 
-
-	expenseCategory data.Category
-	existingExpense data.ExpenseRecord
-	monthKey        string
+	expenseCategory    domain.Category
+	existingExpense    domain.ExpenseRecord
+	monthKey           string
 	hasExistingExpense bool
 }
 
 // NewExpenseModel creates a new ExpenseModel instance for managing expense data.
-func NewExpenseModel(initialData *data.DataRoot, category data.Category, monthKey string) ExpenseModel {
+func NewExpenseModel(category domain.Category, monthKey string) ExpenseModel {
 
 	ai := textinput.New()
 	ai.Placeholder = "0.00"
@@ -57,15 +54,15 @@ func NewExpenseModel(initialData *data.DataRoot, category data.Category, monthKe
 	ni.SetHeight(3)
 	ni.SetWidth(30)
 
-	var expenseRecord data.ExpenseRecord
+	var expenseRecord domain.ExpenseRecord
 	var existing bool
-	
+
 	if category.Expense != nil {
 		expenseRecord, existing = category.Expense[category.CatID]
 	}
-	
+
 	if !existing {
-		expenseRecord = data.ExpenseRecord{}
+		expenseRecord = domain.ExpenseRecord{}
 	} else {
 		ai.SetValue(fmt.Sprintf("%.2f", expenseRecord.Amount))
 		bi.SetValue(fmt.Sprintf("%.2f", expenseRecord.Budget))
@@ -73,9 +70,6 @@ func NewExpenseModel(initialData *data.DataRoot, category data.Category, monthKe
 	}
 
 	m := ExpenseModel{
-		AppData: AppData{
-			Data: initialData,
-		},
 		amountInput:        ai,
 		budgetInput:        bi,
 		notesInput:         ni,
@@ -116,7 +110,7 @@ func (m ExpenseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 
 		case "esc":
-			return m, func() tea.Msg { 
+			return m, func() tea.Msg {
 				return ReturnToMonthlyWithFocusMsg{
 					Category: m.expenseCategory,
 				}
@@ -195,7 +189,7 @@ func (m ExpenseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					status = "Not Paid" // Default status for new expenses
 				}
 
-				expense := data.ExpenseRecord{
+				expense := domain.ExpenseRecord{
 					Amount: amount,
 					Budget: budget,
 					Status: status,
@@ -210,7 +204,7 @@ func (m ExpenseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			} else if m.focusIndex == focusCancel {
-				return m, func() tea.Msg { 
+				return m, func() tea.Msg {
 					return ReturnToMonthlyWithFocusMsg{
 						Category: m.expenseCategory,
 					}
@@ -223,7 +217,6 @@ func (m ExpenseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			}
-
 
 		// Handle spacebar for focused inputs
 		case " ":
@@ -291,7 +284,7 @@ func (m ExpenseModel) View() string {
 	}
 	b.WriteString(buttons)
 	b.WriteString("\n\n")
-	
+
 	helpText := "(Tab/Shift+Tab to navigate, Enter to select/save, Esc to cancel"
 	if m.hasExistingExpense {
 		helpText += ", Clear to reset"

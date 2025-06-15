@@ -253,11 +253,16 @@ func (m App) handleSelectGroupMsg() (tea.Model, tea.Cmd) {
 // handleSelectedGroupMsg handles the selected category group and returns to Category view.
 func (m App) handleSelectedGroupMsg(msg ui.SelectedGroupMsg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+	var updatedCatModel tea.Model
+
 	if m.CategoryModel.IsMovingCategory() {
-		m.CategoryModel, cmd = m.CategoryModel.MoveCategory(msg.Group)
+		updatedCatModel, cmd = m.CategoryModel.MoveCategory(msg.Group)
+		m.CategoryModel, _ = updatedCatModel.(ui.CategoryModel)
 	} else {
-		m.CategoryModel, cmd = m.CategoryModel.AddCategory(msg.Group)
+		updatedCatModel, cmd = m.CategoryModel.AddCategory(msg.Group)
+		m.CategoryModel, _ = updatedCatModel.(ui.CategoryModel)
 	}
+
 	m.activeView = viewCategory
 	return m, cmd
 }

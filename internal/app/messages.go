@@ -158,8 +158,8 @@ func (m App) handleGroupAddMsg(msg ui.GroupAddMsg) (tea.Model, tea.Cmd) {
 	if err != nil {
 		return m.SetErrorStatus(fmt.Sprintf("Failed to add group: %v", err))
 	}
-	m = m.refreshDataForModels()
-	return m.SetSuccessStatus(fmt.Sprintf("Group '%s' added successfully", msg.Group.GroupName))
+	app := m.refreshDataForModels()
+	return app.SetSuccessStatus(fmt.Sprintf("Group '%s' added successfully", msg.Group.GroupName))
 }
 
 // handleGroupDeleteMsg handles the deletion of a category group.

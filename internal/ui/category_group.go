@@ -10,6 +10,8 @@ import (
 	"github.com/madalinpopa/gocost/internal/domain"
 )
 
+// CategoryGroupModel represents the model for managing and interacting with category groups.
+// It handles group rendering, selection, editing, and interaction logic for user input.
 type CategoryGroupModel struct {
 	WindowSize
 

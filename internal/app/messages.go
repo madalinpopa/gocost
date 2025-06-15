@@ -312,10 +312,10 @@ func (m App) handleFilterCategoriesMsg(msg ui.FilterCategoriesMsg) (tea.Model, t
 
 // handleReturnToMonthlyWithFocusMsg handles the return to monthly view with focus on a specific category.
 func (m App) handleReturnToMonthlyWithFocusMsg(msg ui.ReturnToMonthlyWithFocusMsg) (tea.Model, tea.Cmd) {
-	m = m.refreshDataForModels()
-	m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
-	m.activeView = viewMonthlyOverview
-	return m, nil
+	app := m.refreshDataForModels()
+	app.MonthlyModel = app.MonthlyModel.SetFocusToCategory(msg.Category)
+	app.activeView = viewMonthlyOverview
+	return app, nil
 }
 
 // handleCategoryViewMsg handles the return to category view.

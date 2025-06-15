@@ -297,8 +297,8 @@ func (m App) handleCategoryDeleteMsg(msg ui.CategoryDeleteMsg) (tea.Model, tea.C
 	if err != nil {
 		return m.SetErrorStatus(fmt.Sprintf("Failed to delete category: %v", err))
 	}
-	m = m.refreshDataForModels()
-	return m.SetSuccessStatus(fmt.Sprintf("Category '%s' has been deleted", msg.Category.CategoryName))
+	app := m.refreshDataForModels()
+	return app.SetSuccessStatus(fmt.Sprintf("Category '%s' has been deleted", msg.Category.CategoryName))
 }
 
 // handleFilterCategoriesMsg handles filtering categories by the provided filter text.

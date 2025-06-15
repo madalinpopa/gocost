@@ -244,7 +244,7 @@ func (m CategoryGroupModel) UpdateData(groups []domain.CategoryGroup) CategoryGr
 	m.groups = groups
 	if m.cursor >= len(m.groups) && len(m.groups) > 0 {
 		m.cursor = len(m.groups) - 1
-	} else {
+	} else if len(m.groups) == 0 {
 		m.cursor = 0
 	}
 

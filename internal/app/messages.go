@@ -221,9 +221,9 @@ func (m App) handleSaveIncomeMsg(msg ui.SaveIncomeMsg) (tea.Model, tea.Cmd) {
 		return m.SetErrorStatus(fmt.Sprintf("Failed to save income: %v", err))
 	}
 
-	m = m.refreshDataForModels()
-	m.activeView = viewIncome
-	return m.SetSuccessStatus(successMsg)
+	app := m.refreshDataForModels()
+	app.activeView = viewIncome
+	return app.SetSuccessStatus(successMsg)
 }
 
 // handleEditIncomeMsg handles the editing of income data.

@@ -273,8 +273,8 @@ func (m App) handleCategoryAddMsg(msg ui.CategoryAddMsg) (tea.Model, tea.Cmd) {
 	if err != nil {
 		return m.SetErrorStatus(fmt.Sprintf("Failed to add category: %v", err))
 	}
-	m = m.refreshDataForModels()
-	return m.SetSuccessStatus(fmt.Sprintf("Category '%s' has been created successfully", msg.Category.CategoryName))
+	app := m.refreshDataForModels()
+	return app.SetSuccessStatus(fmt.Sprintf("Category '%s' has been created successfully", msg.Category.CategoryName))
 }
 
 // handleCategoryUpdateMsg handles the update of a category.

@@ -18,8 +18,8 @@ func (m App) handlePopulateCategoriesMsg(msg ui.PopulateCategoriesMsg) (tea.Mode
 		return m.SetErrorStatus(fmt.Sprintf("No categories found in %s to copy from", msg.PreviousMonthKey))
 	}
 
-	m = m.refreshDataForModels()
-	m.MonthlyModel = m.MonthlyModel.ResetFocus()
+	app := m.refreshDataForModels()
+	app.MonthlyModel = app.MonthlyModel.ResetFocus()
 
 	return m.SetSuccessStatus(fmt.Sprintf("Successfully copied %d categories from %s", count, msg.PreviousMonthKey))
 }

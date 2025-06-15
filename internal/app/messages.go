@@ -168,8 +168,8 @@ func (m App) handleGroupDeleteMsg(msg ui.GroupDeleteMsg) (tea.Model, tea.Cmd) {
 	if err != nil {
 		return m.SetErrorStatus(fmt.Sprintf("Failed to delete group: %v", err))
 	}
-	m = m.refreshDataForModels()
-	return m.SetSuccessStatus(fmt.Sprintf("Group '%s' deleted successfully", msg.Group.GroupName))
+	app := m.refreshDataForModels()
+	return app.SetSuccessStatus(fmt.Sprintf("Group '%s' deleted successfully", msg.Group.GroupName))
 }
 
 // handleGroupUpdateMsg handles the update of a category group.

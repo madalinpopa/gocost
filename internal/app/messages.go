@@ -21,7 +21,7 @@ func (m App) handlePopulateCategoriesMsg(msg ui.PopulateCategoriesMsg) (tea.Mode
 	app := m.refreshDataForModels()
 	app.MonthlyModel = app.MonthlyModel.ResetFocus()
 
-	return m.SetSuccessStatus(fmt.Sprintf("Successfully copied %d categories from %s", count, msg.PreviousMonthKey))
+	return app.SetSuccessStatus(fmt.Sprintf("Successfully copied %d categories from %s", count, msg.PreviousMonthKey))
 }
 
 // handleModelsWindowResize updates the width and height within views.

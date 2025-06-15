@@ -283,8 +283,12 @@ func (m App) handleCategoryUpdateMsg(msg ui.CategoryUpdateMsg) (tea.Model, tea.C
 	if err != nil {
 		return m.SetErrorStatus(fmt.Sprintf("Failed to update category: %v", err))
 	}
-	m = m.refreshDataForModels()
-	return m.SetSuccessStatus(fmt.Sprintf("Category '%s' has been updated successfully", msg.Category.CategoryName))
+	app := m.refreshDataForModels()
+	// After moving a category, reset the state in the UI model
+	if app.CategoryModel.IsMovingCategory() {
+		app.CategoryModel = app.CategoryModel.ResetMoveState()
+	}
+	return app.SetSuccessStatus(fmt.Sprintf("Category '%s' has been updated successfully", msg.Category.CategoryName))
 }
 
 // handleCategoryDeleteMsg handles the deletion of a category.

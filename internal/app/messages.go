@@ -86,10 +86,10 @@ func (m App) handleSaveExpenseMsg(msg ui.SaveExpenseMsg) (tea.Model, tea.Cmd) {
 		return m.SetErrorStatus(fmt.Sprintf("Failed to save expense: %v", err))
 	}
 
-	m = m.refreshDataForModels()
-	m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
-	m.activeView = viewMonthlyOverview
-	return m.SetSuccessStatus(fmt.Sprintf("Expense for '%s' saved successfully", msg.Category.CategoryName))
+	app := m.refreshDataForModels()
+	app.MonthlyModel = app.MonthlyModel.SetFocusToCategory(msg.Category)
+	app.activeView = viewMonthlyOverview
+	return app.SetSuccessStatus(fmt.Sprintf("Expense for '%s' saved successfully", msg.Category.CategoryName))
 }
 
 // handleEditExpenseMsg handles edit expense message.

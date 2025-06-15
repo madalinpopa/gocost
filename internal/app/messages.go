@@ -148,8 +148,8 @@ func (m App) handleToggleExpenseStatusMsg(msg ui.ToggleExpenseStatusMsg) (tea.Mo
 // handleMonthlyViewMsg switches the active view to the monthly overview.
 func (m App) handleMonthlyViewMsg() (tea.Model, tea.Cmd) {
 	m.activeView = viewMonthlyOverview
-	m = m.refreshDataForModels()
-	return m, nil
+	app := m.refreshDataForModels()
+	return app, nil
 }
 
 // handleGroupAddMsg handles the addition of a new category group.

@@ -245,7 +245,6 @@ func (m App) handleDeleteIncomeMsg(msg ui.DeleteIncomeMsg) (tea.Model, tea.Cmd) 
 
 // handleSelectGroupMsg handles the selection of a category group.
 func (m App) handleSelectGroupMsg() (tea.Model, tea.Cmd) {
-	m = m.refreshDataForModels()
 	m.CategoryGroupModel = m.CategoryGroupModel.SelectGroup()
 	m.activeView = viewCategoryGroup
 	return m, nil

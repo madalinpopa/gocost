@@ -312,7 +312,7 @@ func (m App) handleReturnToMonthlyWithFocusMsg(msg ui.ReturnToMonthlyWithFocusMs
 
 // handleCategoryViewMsg handles the return to category view.
 func (m App) handleCategoryViewMsg() (tea.Model, tea.Cmd) {
-	m.activeView = viewCategory
-	m = m.refreshDataForModels()
-	return m, nil
+	app := m.refreshDataForModels()
+	app.activeView = viewCategory
+	return app, nil
 }

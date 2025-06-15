@@ -191,9 +191,9 @@ func (m App) handleAddIncomeFormMsg() (tea.Model, tea.Cmd) {
 
 // handleIncomeViewMsg handles the display of income data.
 func (m App) handleIncomeViewMsg() (tea.Model, tea.Cmd) {
-	m = m.refreshDataForModels()
-	m.activeView = viewIncome
-	return m, nil
+	app := m.refreshDataForModels()
+	app.activeView = viewIncome
+	return app, nil
 }
 
 // handleSaveIncomeMsg handles the saving of income data.

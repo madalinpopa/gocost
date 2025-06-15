@@ -178,8 +178,8 @@ func (m App) handleGroupUpdateMsg(msg ui.GroupUpdateMsg) (tea.Model, tea.Cmd) {
 	if err != nil {
 		return m.SetErrorStatus(fmt.Sprintf("Failed to update group: %v", err))
 	}
-	m = m.refreshDataForModels()
-	return m.SetSuccessStatus(fmt.Sprintf("Group '%s' updated successfully", msg.Group.GroupName))
+	app := m.refreshDataForModels()
+	return app.SetSuccessStatus(fmt.Sprintf("Group '%s' updated successfully", msg.Group.GroupName))
 }
 
 // handleAddIncomeFormMsg handles the display of the income form.

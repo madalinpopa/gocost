@@ -114,10 +114,10 @@ func (m App) handleDeleteExpenseMsg(msg ui.DeleteExpenseMsg) (tea.Model, tea.Cmd
 		return m.SetErrorStatus(fmt.Sprintf("Failed to clear expense: %v", err))
 	}
 
-	m = m.refreshDataForModels()
-	m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(msg.Category)
-	m.activeView = viewMonthlyOverview
-	return m.SetSuccessStatus(fmt.Sprintf("Expense for category '%s' has been cleared", msg.Category.CategoryName))
+	app := m.refreshDataForModels()
+	app.MonthlyModel = app.MonthlyModel.SetFocusToCategory(msg.Category)
+	app.activeView = viewMonthlyOverview
+	return app.SetSuccessStatus(fmt.Sprintf("Expense for category '%s' has been cleared", msg.Category.CategoryName))
 }
 
 // handleToggleExpenseStatusMsg toggles the status of an expense.

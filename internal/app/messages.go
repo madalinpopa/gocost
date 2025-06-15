@@ -239,8 +239,8 @@ func (m App) handleDeleteIncomeMsg(msg ui.DeleteIncomeMsg) (tea.Model, tea.Cmd) 
 	if err != nil {
 		return m.SetErrorStatus(fmt.Sprintf("Failed to delete income: %v", err))
 	}
-	m = m.refreshDataForModels()
-	return m.SetSuccessStatus(fmt.Sprintf("Income '%s' has been deleted", msg.Income.Description))
+	app := m.refreshDataForModels()
+	return app.SetSuccessStatus(fmt.Sprintf("Income '%s' has been deleted", msg.Income.Description))
 }
 
 // handleSelectGroupMsg handles the selection of a category group.

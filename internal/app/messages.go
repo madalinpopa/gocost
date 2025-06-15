@@ -140,9 +140,9 @@ func (m App) handleToggleExpenseStatusMsg(msg ui.ToggleExpenseStatusMsg) (tea.Mo
 		return m.SetErrorStatus(fmt.Sprintf("Failed to toggle status: %v", err))
 	}
 
-	m = m.refreshDataForModels()
-	m.MonthlyModel = m.MonthlyModel.SetFocusToCategory(category)
-	return m.SetSuccessStatus(fmt.Sprintf("Status for '%s' toggled to '%s'", category.CategoryName, currentExpense.Status))
+	app := m.refreshDataForModels()
+	app.MonthlyModel = app.MonthlyModel.SetFocusToCategory(category)
+	return app.SetSuccessStatus(fmt.Sprintf("Status for '%s' toggled to '%s'", category.CategoryName, currentExpense.Status))
 }
 
 // handleMonthlyViewMsg switches the active view to the monthly overview.

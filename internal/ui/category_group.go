@@ -153,6 +153,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "j", "down":
 			if len(m.groups) > 0 {
 				m.cursor = (m.cursor + 1) % len(m.groups)
+				(&m).ensureCursorVisible()
 			}
 			return m, nil
 
@@ -162,6 +163,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cursor < 0 {
 					m.cursor = len(m.groups) - 1
 				}
+				(&m).ensureCursorVisible()
 			}
 			return m, nil
 
@@ -213,17 +215,22 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	return m, nil
+	if m.ready && !m.isEditingName {
+		m.viewport, cmd = m.viewport.Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
 // View renders the CategoryGroupModel.
 func (m CategoryGroupModel) View() string {
+	if !m.ready {
+		return AppStyle.Width(m.Width).Height(m.Height).Render("\n  Initializing...")
+	}
 
-	var b strings.Builder
-
-	title := "Manage Category Groups"
-	if m.selectGroup {
-		title = "Select group"
+	if m.ready && !m.isEditingName {
+		m.viewport.SetContent(m.getGroupsContent())
 	}
 	b.WriteString(HeaderText.Render(title))
 	b.WriteString("\n\n")

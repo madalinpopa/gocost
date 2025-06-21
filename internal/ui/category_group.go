@@ -280,6 +280,20 @@ func (m CategoryGroupModel) UpdateData(groups []domain.CategoryGroup) CategoryGr
 		m.cursor = 0
 	}
 
+	// Recalculate viewport height when groups data changes
+	if m.ready && m.Height > 0 {
+		normalHeaderHeight := m.getNormalHeaderHeight()
+		footerHeight := lipgloss.Height(m.footerView())
+		verticalMarginHeight := normalHeaderHeight + footerHeight
+		availableHeight := m.Height - verticalMarginHeight - 8 // -8 for padding
+		viewportHeight := m.calculateViewportHeight(availableHeight)
+		m.viewport.Height = viewportHeight
+		m.viewport.SetContent(m.getGroupsContent())
+
+		// Reset viewport position when data changes significantly
+		m.viewport.GotoTop()
+	}
+
 	m = m.resetEditingState()
 	return m
 }

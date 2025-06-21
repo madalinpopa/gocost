@@ -179,7 +179,28 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case FilterCategoriesMsg:
-		return m.handleFilterCategories(msg)
+		m = m.handleFilterCategories(msg)
+		return m, nil
+	case tea.WindowSizeMsg:
+		m.Width = msg.Width
+		m.Height = msg.Height
+
+		headerHeight := lipgloss.Height(m.headerView())
+		footerHeight := lipgloss.Height(m.footerView())
+		verticalMarginHeight := headerHeight + footerHeight
+
+		if !m.ready {
+			viewportHeight := max(1, msg.Height-verticalMarginHeight-6) // -6 for padding
+			m.viewport = viewport.New(msg.Width, viewportHeight)
+			m.viewport.YPosition = headerHeight
+			m.viewport.SetContent(m.getCategoriesContent())
+			m.ready = true
+		} else {
+			m.viewport.Width = msg.Width
+			viewportHeight := max(1, msg.Height-verticalMarginHeight-6) // -6 for padding
+			m.viewport.Height = viewportHeight
+		}
+		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q", "esc":

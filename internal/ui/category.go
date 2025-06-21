@@ -400,6 +400,18 @@ func (m *CategoryModel) ensureCursorVisible() {
 	}
 }
 
+func (m *CategoryModel) updateViewportHeight() {
+	if !m.ready {
+		return
+	}
+	headerHeight := lipgloss.Height(m.headerView())
+	footerHeight := lipgloss.Height(m.footerView())
+	verticalMarginHeight := headerHeight + footerHeight
+	availableHeight := m.Height - verticalMarginHeight - 6 // -6 for padding
+	viewportHeight := m.calculateViewportHeight(availableHeight)
+	m.viewport.Height = viewportHeight
+}
+
 // handleFilterCategories processes the filter message and applies filtering.
 func (m CategoryModel) handleFilterCategories(msg FilterCategoriesMsg) CategoryModel {
 	m.filterText = msg.FilterText
@@ -420,6 +432,8 @@ func (m CategoryModel) handleFilterCategories(msg FilterCategoriesMsg) CategoryM
 	m.cursor = 0
 	m.filterInput.SetValue("")
 	(&m).ensureCursorVisible()
+	(&m).updateViewportHeight()
+
 	return m
 }
 
@@ -431,6 +445,9 @@ func (m CategoryModel) clearFilter() CategoryModel {
 	m.isFiltered = false
 	m.filterInput.SetValue("")
 	m.filterInput.Blur()
+	(&m).ensureCursorVisible()
+	(&m).updateViewportHeight()
+
 	return m
 }
 
@@ -573,6 +590,8 @@ func (m CategoryModel) UpdateData(appData AppData) CategoryModel {
 	m.cursor = 0
 	m = m.resetEditingState()
 	(&m).ensureCursorVisible()
+	(&m).updateViewportHeight()
+
 	return m
 }
 

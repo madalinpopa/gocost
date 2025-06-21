@@ -232,30 +232,10 @@ func (m CategoryGroupModel) View() string {
 	if m.ready && !m.isEditingName {
 		m.viewport.SetContent(m.getGroupsContent())
 	}
-	b.WriteString(HeaderText.Render(title))
-	b.WriteString("\n\n")
 
 	if m.isEditingName {
-		b.WriteString("Enter Category Group Name (Enter to save, Esc to cancel):\n")
-		b.WriteString(m.editInput.View())
-		b.WriteString("\n")
-	} else {
-		if len(m.groups) == 0 {
-			b.WriteString(MutedText.Render("No category groups defined yet."))
-		} else {
-			for i, item := range m.groups {
-				style := NormalListItem
-				prefix := "  "
-				if i == m.cursor {
-					style = FocusedListItem
-					prefix = "> "
-				}
-				groupId := MutedText.Render(item.GroupID)
-				line := fmt.Sprintf("%s %d. %s (ID: %s)", prefix, item.Order, item.GroupName, groupId)
-				b.WriteString(style.Render(line))
-				b.WriteString("\n")
-			}
-		}
+		var b strings.Builder
+		b.WriteString(m.headerView())
 		b.WriteString("\n\n")
 		b.WriteString(m.footerView())
 		return AppStyle.Render(b.String())
@@ -293,7 +273,6 @@ func (m CategoryGroupModel) UpdateData(groups []domain.CategoryGroup) CategoryGr
 		m.viewport.Height = viewportHeight
 		m.viewport.SetContent(m.getGroupsContent())
 
-		// Reset viewport position when data changes significantly
 		m.viewport.GotoTop()
 	}
 

@@ -381,25 +381,20 @@ func (m *CategoryModel) ensureCursorVisible() {
 		return
 	}
 
-	// Calculate the current viewport bounds
 	viewportTop := m.viewport.YOffset
 	viewportBottom := viewportTop + m.viewport.Height - 1
 
-	// Adjust for filter info line if present
 	contentOffset := 0
 	if m.isFiltered {
 		contentOffset = 1 // Account for the filter info line
 	}
 
-	// Adjust cursor position for content offset
 	adjustedCursor := m.cursor + contentOffset
 
-	// If cursor is below viewport, scroll down
 	if adjustedCursor > viewportBottom {
 		newOffset := max(adjustedCursor-m.viewport.Height+1, 0)
 		m.viewport.SetYOffset(newOffset)
 	}
-	// If cursor is above viewport, scroll up
 	if adjustedCursor < viewportTop {
 		m.viewport.SetYOffset(adjustedCursor)
 	}

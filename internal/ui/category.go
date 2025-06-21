@@ -113,7 +113,8 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.addCategory {
 		switch msg := msg.(type) {
 		case FilterCategoriesMsg:
-			return m.handleFilterCategories(msg)
+			m = m.handleFilterCategories(msg)
+			return m, nil
 		case tea.KeyMsg:
 			switch msg.String() {
 			case "enter":
@@ -149,7 +150,8 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.isEditingName {
 		switch msg := msg.(type) {
 		case FilterCategoriesMsg:
-			return m.handleFilterCategories(msg)
+			m = m.handleFilterCategories(msg)
+			return m, nil
 		case tea.KeyMsg:
 			switch msg.String() {
 			case "enter":

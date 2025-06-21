@@ -19,7 +19,7 @@ type CategoryModel struct {
 
 	MonthKey string
 	cursor   int
-	// Data is now passed in as slices
+
 	categories     []domain.Category
 	categoryGroups []domain.CategoryGroup
 

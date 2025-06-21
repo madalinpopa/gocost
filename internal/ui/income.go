@@ -5,7 +5,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/madalinpopa/gocost/internal/config"
 	"github.com/madalinpopa/gocost/internal/domain"
 	"github.com/spf13/viper"
@@ -18,6 +20,9 @@ type IncomeModel struct {
 	cursor   int
 	monthKey string
 	incomes  []domain.IncomeRecord
+
+	viewport viewport.Model
+	ready    bool
 }
 
 // NewIncomeModel creates a new IncomeModel instance.
@@ -31,6 +36,8 @@ func NewIncomeModel(incomes []domain.IncomeRecord, month time.Month, year int) I
 			CurrentMonth: month,
 			CurrentYear:  year,
 		},
+		viewport: viewport.New(70, 20),
+		ready:    false,
 	}
 }
 
@@ -41,12 +48,32 @@ func (m IncomeModel) Init() tea.Cmd {
 
 // Update handles messages and updates the IncomeModel state.
 func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 		m.Height = msg.Height
+
+		headerHeight := lipgloss.Height(m.headerView())
+		footerHeight := lipgloss.Height(m.footerView())
+		verticalMarginHeight := headerHeight + footerHeight
+
+		if !m.ready {
+			availableHeight := msg.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
+			viewportHeight := m.calculateViewportHeight(availableHeight)
+			m.viewport = viewport.New(msg.Width, viewportHeight)
+			m.viewport.YPosition = headerHeight
+			m.viewport.SetContent(m.getIncomesContent())
+			m.ready = true
+		} else {
+			m.viewport.Width = msg.Width
+			availableHeight := msg.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
+			viewportHeight := m.calculateViewportHeight(availableHeight)
+			m.viewport.Height = viewportHeight
+		}
 		return m, nil
 
 	case tea.KeyMsg:
@@ -61,7 +88,9 @@ func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cursor >= len(m.incomes) {
 					m.cursor = 0
 				}
+				(&m).ensureCursorVisible()
 			}
+			return m, nil
 
 		case "k", "up":
 			if len(m.incomes) > 0 {
@@ -69,7 +98,9 @@ func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cursor < 0 {
 					m.cursor = len(m.incomes) - 1
 				}
+				(&m).ensureCursorVisible()
 			}
+			return m, nil
 
 		case "a", "n":
 			return m, func() tea.Msg {
@@ -98,19 +129,54 @@ func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
-
+		return m, nil
 	}
 
-	return m, nil
+	if m.ready {
+		m.viewport, cmd = m.viewport.Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
 // View renders the IncomeModel.
 func (m IncomeModel) View() string {
-	var b strings.Builder
+	if !m.ready {
+		return AppStyle.Width(m.Width).Height(m.Height).Render("\n  Initializing...")
+	}
 
+	if m.ready {
+		m.viewport.SetContent(m.getIncomesContent())
+	}
+
+	var b strings.Builder
+	b.WriteString(m.headerView())
+	b.WriteString("\n")
+	b.WriteString(m.viewport.View())
+	b.WriteString("\n")
+	b.WriteString(m.footerView())
+	return AppStyle.Render(b.String())
+}
+
+// headerView renders the header section of the view.
+func (m IncomeModel) headerView() string {
 	title := fmt.Sprintf("Manage Income - %s", m.monthKey)
+	var b strings.Builder
 	b.WriteString(HeaderText.Render(title))
-	b.WriteString("\n\n")
+	b.WriteString("\n")
+	return b.String()
+}
+
+// footerView renders the footer section with key hints.
+func (m IncomeModel) footerView() string {
+	keyHints := "(j/k: Nav, a/n: Add, e/Enter: Edit, d: Delete, Esc/q: Back)"
+	return MutedText.Render(keyHints)
+}
+
+// getIncomesContent generates the content for the viewport.
+func (m IncomeModel) getIncomesContent() string {
+	var b strings.Builder
 
 	if len(m.incomes) == 0 {
 		b.WriteString(MutedText.Render("No income entries for this month."))
@@ -132,13 +198,53 @@ func (m IncomeModel) View() string {
 			b.WriteString("\n")
 		}
 	}
+	return b.String()
+}
 
-	b.WriteString("\n\n")
-	keyHints := "(j/k: Nav, a/n: Add, e/Enter: Edit, d: Delete, Esc/q: Back)"
-	b.WriteString(MutedText.Render(keyHints))
+// calculateViewportHeight calculates the appropriate height for the viewport.
+func (m IncomeModel) calculateViewportHeight(availableHeight int) int {
+	desiredHeight := max(len(m.incomes)+1, 1)
+	return min(desiredHeight, max(1, availableHeight))
+}
 
-	viewStr := AppStyle.Width(m.Width).Height(m.Height - 3).Render(b.String())
-	return viewStr
+// ensureCursorVisible ensures the cursor is visible in the viewport.
+func (m *IncomeModel) ensureCursorVisible() {
+	if !m.ready {
+		return
+	}
+
+	content := m.getIncomesContent()
+	m.viewport.SetContent(content)
+
+	if len(m.incomes) == 0 {
+		return
+	}
+
+	viewportTop := m.viewport.YOffset
+	viewportBottom := viewportTop + m.viewport.Height - 1
+
+	if m.cursor > viewportBottom {
+		newOffset := max(m.cursor-m.viewport.Height+1, 0)
+		m.viewport.SetYOffset(newOffset)
+	}
+	if m.cursor < viewportTop {
+		m.viewport.SetYOffset(m.cursor)
+	}
+}
+
+// updateViewportHeight updates the viewport height based on current window size.
+func (m *IncomeModel) updateViewportHeight() {
+	if !m.ready {
+		return
+	}
+
+	headerHeight := lipgloss.Height(m.headerView())
+	footerHeight := lipgloss.Height(m.footerView())
+
+	verticalMarginHeight := headerHeight + footerHeight
+	availableHeight := m.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
+	viewportHeight := m.calculateViewportHeight(availableHeight)
+	m.viewport.Height = viewportHeight
 }
 
 // SetMonthYear updates the current month/year and loads corresponding income entries.
@@ -158,5 +264,13 @@ func (m IncomeModel) UpdateData(incomes []domain.IncomeRecord) IncomeModel {
 	} else if len(m.incomes) == 0 {
 		m.cursor = 0
 	}
+
+	// Update viewport height when income data changes
+	m.updateViewportHeight()
+	if m.ready {
+		m.viewport.SetContent(m.getIncomesContent())
+		m.viewport.GotoTop()
+	}
+
 	return m
 }

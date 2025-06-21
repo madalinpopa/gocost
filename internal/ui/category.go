@@ -37,6 +37,9 @@ type CategoryModel struct {
 	filterText         string
 	filteredCategories []domain.Category
 	isFiltered         bool
+
+	viewport viewport.Model
+	ready    bool
 }
 
 // NewCategoryModel creates a new CategoryModel instance.

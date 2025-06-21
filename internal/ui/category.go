@@ -63,6 +63,8 @@ func NewCategoryModel(appData AppData, month time.Month, year int) CategoryModel
 		editInput:      ti,
 		editingIndex:   -1,
 		filterInput:    filterTi,
+		viewport:       viewport.New(80, 20),
+		ready:          false,
 	}
 }
 
@@ -363,8 +365,46 @@ func (m CategoryModel) getDisplayCategories() []domain.Category {
 	return m.categories
 }
 
+// ensureCursorVisible updates viewport content and scrolls to keep cursor visible
+func (m *CategoryModel) ensureCursorVisible() {
+	if !m.ready {
+		return
+	}
+
+	content := m.getCategoriesContent()
+	m.viewport.SetContent(content)
+
+	displayCategories := m.getDisplayCategories()
+	if len(displayCategories) == 0 {
+		return
+	}
+
+	// Calculate the current viewport bounds
+	viewportTop := m.viewport.YOffset
+	viewportBottom := viewportTop + m.viewport.Height - 1
+
+	// Adjust for filter info line if present
+	contentOffset := 0
+	if m.isFiltered {
+		contentOffset = 1 // Account for the filter info line
+	}
+
+	// Adjust cursor position for content offset
+	adjustedCursor := m.cursor + contentOffset
+
+	// If cursor is below viewport, scroll down
+	if adjustedCursor > viewportBottom {
+		newOffset := max(adjustedCursor-m.viewport.Height+1, 0)
+		m.viewport.SetYOffset(newOffset)
+	}
+	// If cursor is above viewport, scroll up
+	if adjustedCursor < viewportTop {
+		m.viewport.SetYOffset(adjustedCursor)
+	}
+}
+
 // handleFilterCategories processes the filter message and applies filtering.
-func (m CategoryModel) handleFilterCategories(msg FilterCategoriesMsg) (CategoryModel, tea.Cmd) {
+func (m CategoryModel) handleFilterCategories(msg FilterCategoriesMsg) CategoryModel {
 	m.filterText = msg.FilterText
 	var filtered []domain.Category
 	filterLower := strings.ToLower(msg.FilterText)
@@ -382,7 +422,8 @@ func (m CategoryModel) handleFilterCategories(msg FilterCategoriesMsg) (Category
 	m.isFiltered = true
 	m.cursor = 0
 	m.filterInput.SetValue("")
-	return m, nil
+	(&m).ensureCursorVisible()
+	return m
 }
 
 // clearFilter clears the filter state.
@@ -417,12 +458,117 @@ func (m CategoryModel) focusInput() (tea.Model, tea.Cmd) {
 	return m, textinput.Blink
 }
 
+// headerView renders the header section
+func (m CategoryModel) headerView() string {
+	var b strings.Builder
+
+	title := "Manage Expense Categories"
+	if m.isFiltering {
+		title = "Filter Categories"
+	} else if m.isEditingName {
+		title = "Edit Category Name"
+	} else if m.addCategory {
+		title = fmt.Sprintf("Add Category to %s", m.selectedGroup.GroupName)
+	} else if m.IsMovingCategory() {
+		title = fmt.Sprintf("Moving: %s", m.movingCategory.CategoryName)
+	}
+
+	b.WriteString(HeaderText.Render(title))
+	b.WriteString("\n")
+
+	if m.isFiltering {
+		b.WriteString("\n")
+		b.WriteString("Filter Categories (Enter to apply filter, Esc to cancel):\n")
+		b.WriteString(m.filterInput.View())
+	} else if m.isEditingName {
+		b.WriteString("\n")
+		b.WriteString("Enter Category Name (Enter to save, Esc to cancel):\n")
+		b.WriteString(m.editInput.View())
+	} else if m.addCategory {
+		b.WriteString("\n")
+		b.WriteString("Enter Category Name (Enter to save, Esc to cancel):\n")
+		b.WriteString(m.editInput.View())
+	} else if m.IsMovingCategory() {
+		b.WriteString("\n")
+		b.WriteString(MutedText.Render(fmt.Sprintf("Select a new group for category '%s'", m.movingCategory.CategoryName)))
+	}
+
+	return b.String()
+}
+
+// footerView renders the footer section
+func (m CategoryModel) footerView() string {
+	var b strings.Builder
+	b.WriteString("\n")
+	keyHints := "(j/k: Nav, /: Filter, a/n: Add, e: Edit, d: Delete, m: Move, Esc/q: Back)"
+	if m.IsMovingCategory() {
+		keyHints = "(Select a group to move the category, Esc/q: Cancel)"
+	}
+	if m.isFiltered {
+		keyHints = "(j/k: Nav, /: Filter, a/n: Add, e: Edit, d: Delete, m: Move, c: Clear filter, Esc/q: Back)"
+	}
+	b.WriteString(MutedText.Render(keyHints))
+	return b.String()
+}
+
+// getCategoriesContent generates the content for the viewport
+func (m CategoryModel) getCategoriesContent() string {
+	var b strings.Builder
+	displayCategories := m.getDisplayCategories()
+
+	if len(displayCategories) == 0 {
+		if m.isFiltered {
+			b.WriteString(MutedText.Render(fmt.Sprintf("No categories found matching '%s'.", m.filterText)))
+		} else {
+			b.WriteString(MutedText.Render("No category defined yet."))
+		}
+	} else {
+		if m.isFiltered {
+			b.WriteString(MutedText.Render(fmt.Sprintf("Showing %d of %d categories matching '%s'", len(displayCategories), len(m.categories), m.filterText)))
+			b.WriteString("\n")
+		}
+		maxCategoryWidth := 0
+		maxGroupWidth := 0
+		for _, item := range displayCategories {
+			if len(item.CategoryName) > maxCategoryWidth {
+				maxCategoryWidth = len(item.CategoryName)
+			}
+			groupName := m.getGroupName(item.GroupID)
+			if len(groupName) > maxGroupWidth {
+				maxGroupWidth = len(groupName)
+			}
+		}
+		categoryColWidth := maxCategoryWidth + 2
+		groupColWidth := maxGroupWidth + 2
+		for i, item := range displayCategories {
+			style := NormalListItem
+			prefix := " "
+			if i == m.cursor {
+				style = FocusedListItem
+				prefix = ">"
+			}
+			if m.IsMovingCategory() && item.CatID == m.movingCategory.CatID {
+				style = FocusedListItem
+				prefix = "→ "
+			}
+			groupName := m.getGroupName(item.GroupID)
+			categoryFormatted := fmt.Sprintf("%-*s", categoryColWidth, item.CategoryName)
+			groupFormatted := MutedText.Render(fmt.Sprintf("%-*s", groupColWidth, groupName))
+			line := fmt.Sprintf("%s %s %s", prefix, categoryFormatted, groupFormatted)
+			b.WriteString(style.Render(line))
+			b.WriteString("\n")
+		}
+	}
+	return b.String()
+}
+
 // UpdateData refreshes the model with new data and resets state.
 func (m CategoryModel) UpdateData(appData AppData) CategoryModel {
 	m.categories = appData.Categories
 	m.categoryGroups = appData.CategoryGroups
 	m.cursor = 0
 	m = m.resetEditingState()
+	(&m).ensureCursorVisible()
 	return m
 }
 
@@ -432,5 +578,6 @@ func (m CategoryModel) SetMonthYear(month time.Month, year int) CategoryModel {
 	m.CurrentYear = year
 	m.MonthKey = GetMonthKey(month, year)
 	m = m.resetEditingState()
+	(&m).ensureCursorVisible()
 	return m
 }

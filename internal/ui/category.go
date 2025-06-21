@@ -511,11 +511,7 @@ func (m CategoryModel) footerView() string {
 // calculateViewportHeight calculates dynamic viewport height based on category count
 func (m CategoryModel) calculateViewportHeight(availableHeight int) int {
 	displayCategories := m.getDisplayCategories()
-
-	// Minimum height: len(categories) + 1, Maximum: 10
 	desiredHeight := max(len(displayCategories)+1, 1)
-
-	// Don't exceed available screen space
 	return min(desiredHeight, max(1, availableHeight))
 }
 

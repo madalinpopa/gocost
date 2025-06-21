@@ -124,7 +124,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		verticalMarginHeight := headerHeight + footerHeight
 
 		if !m.ready {
-			availableHeight := msg.Height - verticalMarginHeight - 6 // -6 for padding
+			availableHeight := msg.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
 			viewportHeight := m.calculateViewportHeight(availableHeight)
 			m.viewport = viewport.New(msg.Width, viewportHeight)
 			m.viewport.YPosition = headerHeight
@@ -132,7 +132,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ready = true
 		} else {
 			m.viewport.Width = msg.Width
-			availableHeight := msg.Height - verticalMarginHeight - 6 // -6 for padding
+			availableHeight := msg.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
 			viewportHeight := m.calculateViewportHeight(availableHeight)
 			m.viewport.Height = viewportHeight
 		}
@@ -320,13 +320,12 @@ func (m CategoryGroupModel) headerView() string {
 
 	var b strings.Builder
 	b.WriteString(HeaderText.Render(title))
+	b.WriteString("\n")
 
 	if m.isEditingName {
-		b.WriteString("\n\n")
+		b.WriteString("\n")
 		b.WriteString("Enter Category Group Name (Enter to save, Esc to cancel):\n")
 		b.WriteString(m.editInput.View())
-	} else {
-		b.WriteString("\n")
 	}
 
 	return b.String()
@@ -334,11 +333,14 @@ func (m CategoryGroupModel) headerView() string {
 
 // footerView renders the footer section with key hints.
 func (m CategoryGroupModel) footerView() string {
+	var b strings.Builder
+	b.WriteString("\n")
 	keyHints := "(j/k: Nav, a/n: Add, e: Edit, d: Delete, Esc/q: Back)"
 	if m.selectGroup {
 		keyHints = "(j/k: Nav, Enter: Select, Esc/q: Back)"
 	}
-	return MutedText.Render(keyHints)
+	b.WriteString(MutedText.Render(keyHints))
+	return b.String()
 }
 
 // updateViewportHeight updates the viewport height based on current window size.
@@ -346,10 +348,16 @@ func (m *CategoryGroupModel) updateViewportHeight() {
 	if !m.ready {
 		return
 	}
+
+	// Temporarily disable editing mode to measure normal header height
+	wasEditing := m.isEditingName
+	m.isEditingName = false
 	headerHeight := lipgloss.Height(m.headerView())
 	footerHeight := lipgloss.Height(m.footerView())
+	m.isEditingName = wasEditing // Restore editing state
+
 	verticalMarginHeight := headerHeight + footerHeight
-	availableHeight := m.Height - verticalMarginHeight - 6 // -6 for padding
+	availableHeight := m.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
 	viewportHeight := m.calculateViewportHeight(availableHeight)
 	m.viewport.Height = viewportHeight
 }

@@ -31,7 +31,7 @@ type CategoryGroupModel struct {
 }
 
 // NewCategoryGroupModel creates a new CategoryGroupModel instance.
-func NewCategoryGroupModel(groups []domain.CategoryGroup) CategoryGroupModel {
+func NewCategoryGroupModel(groups []domain.CategoryGroup, width, height int) CategoryGroupModel {
 	ti := textinput.New()
 	ti.Placeholder = "Group Name"
 	ti.CharLimit = 30

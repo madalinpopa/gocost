@@ -124,7 +124,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		verticalMarginHeight := normalHeaderHeight + footerHeight
 
 		if !m.ready {
-			availableHeight := msg.Height - verticalMarginHeight - 8 // -8 for padding
+			availableHeight := msg.Height - verticalMarginHeight - 6
 			viewportHeight := m.calculateViewportHeight(availableHeight)
 			m.viewport = viewport.New(msg.Width, viewportHeight)
 			m.viewport.YPosition = normalHeaderHeight
@@ -132,7 +132,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ready = true
 		} else {
 			m.viewport.Width = msg.Width
-			availableHeight := msg.Height - verticalMarginHeight - 8 // -8 for padding
+			availableHeight := msg.Height - verticalMarginHeight - 6
 			viewportHeight := m.calculateViewportHeight(availableHeight)
 			m.viewport.Height = viewportHeight
 		}
@@ -268,7 +268,7 @@ func (m CategoryGroupModel) UpdateData(groups []domain.CategoryGroup) CategoryGr
 		normalHeaderHeight := m.getNormalHeaderHeight()
 		footerHeight := lipgloss.Height(m.footerView())
 		verticalMarginHeight := normalHeaderHeight + footerHeight
-		availableHeight := m.Height - verticalMarginHeight - 8 // -8 for padding
+		availableHeight := m.Height - verticalMarginHeight - 12 // -12 for padding
 		viewportHeight := m.calculateViewportHeight(availableHeight)
 		m.viewport.Height = viewportHeight
 		m.viewport.SetContent(m.getGroupsContent())

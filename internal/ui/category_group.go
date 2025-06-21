@@ -43,9 +43,12 @@ func NewCategoryGroupModel(groups []domain.CategoryGroup, width, height int) Cat
 	})
 
 	return CategoryGroupModel{
+		WindowSize:   WindowSize{Width: width, Height: height},
 		groups:       groups,
 		editInput:    ti,
 		editingIndex: -1,
+		viewport:     viewport.New(width, height),
+		ready:        false,
 	}
 }
 
@@ -115,6 +118,24 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 		m.Height = msg.Height
+
+		normalHeaderHeight := m.getNormalHeaderHeight()
+		footerHeight := lipgloss.Height(m.footerView())
+		verticalMarginHeight := normalHeaderHeight + footerHeight
+
+		if !m.ready {
+			availableHeight := msg.Height - verticalMarginHeight - 8 // -8 for padding
+			viewportHeight := m.calculateViewportHeight(availableHeight)
+			m.viewport = viewport.New(msg.Width, viewportHeight)
+			m.viewport.YPosition = normalHeaderHeight
+			m.viewport.SetContent(m.getGroupsContent())
+			m.ready = true
+		} else {
+			m.viewport.Width = msg.Width
+			availableHeight := msg.Height - verticalMarginHeight - 8 // -8 for padding
+			viewportHeight := m.calculateViewportHeight(availableHeight)
+			m.viewport.Height = viewportHeight
+		}
 		return m, nil
 
 	case tea.KeyMsg:

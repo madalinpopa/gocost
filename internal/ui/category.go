@@ -239,11 +239,7 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, textinput.Blink
 		case "c":
 			if m.isFiltered {
-				m.filterText = ""
-				m.filteredCategories = nil
-				m.isFiltered = false
-				m.cursor = 0
-				(&m).ensureCursorVisible()
+				m = m.clearFilter()
 				return m, nil
 			}
 		case "a", "n":

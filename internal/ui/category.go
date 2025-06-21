@@ -215,6 +215,7 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			displayCategories := m.getDisplayCategories()
 			if len(displayCategories) > 0 {
 				m.cursor = (m.cursor + 1) % len(displayCategories)
+				(&m).ensureCursorVisible()
 			}
 			return m, nil
 
@@ -225,6 +226,7 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cursor < 0 {
 					m.cursor = len(displayCategories) - 1
 				}
+				(&m).ensureCursorVisible()
 			}
 			return m, nil
 		case "/":
@@ -237,6 +239,7 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.filteredCategories = nil
 				m.isFiltered = false
 				m.cursor = 0
+				(&m).ensureCursorVisible()
 				return m, nil
 			}
 		case "a", "n":
@@ -275,88 +278,40 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	}
-	return m, nil
+
+	if m.ready && !m.isFiltering && !m.addCategory && !m.isEditingName {
+		m.viewport, cmd = m.viewport.Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
 // View renders the CategoryModel.
 func (m CategoryModel) View() string {
-	var b strings.Builder
-	title := "Manage Expense Categories"
-	if m.IsMovingCategory() {
-		title = fmt.Sprintf("Moving: %s", m.movingCategory.CategoryName)
+	if !m.ready {
+		return AppStyle.Width(m.Width).Height(m.Height).Render("\n  Initializing...")
 	}
-	b.WriteString(HeaderText.Render(title))
-	b.WriteString("\n\n")
 
-	if m.isFiltering {
-		b.WriteString("Filter Categories (Enter to apply filter, Esc to cancel):\n")
-		b.WriteString(m.filterInput.View())
-		b.WriteString("\n\n")
-	} else if m.isEditingName || m.addCategory {
-		b.WriteString("Enter Category Name (Enter to save, Esc to cancel):\n")
-		b.WriteString(m.editInput.View())
-		b.WriteString("\n")
-	} else {
-		if m.IsMovingCategory() {
-			b.WriteString(MutedText.Render(fmt.Sprintf("Select a new group for category '%s'", m.movingCategory.CategoryName)))
-			b.WriteString("\n\n")
-		}
-		displayCategories := m.getDisplayCategories()
-		if len(displayCategories) == 0 {
-			if m.isFiltered {
-				b.WriteString(MutedText.Render(fmt.Sprintf("No categories found matching '%s'.", m.filterText)))
-			} else {
-				b.WriteString(MutedText.Render("No category defined yet."))
-			}
-		} else {
-			if m.isFiltered {
-				b.WriteString(MutedText.Render(fmt.Sprintf("Showing %d of %d categories matching '%s'", len(displayCategories), len(m.categories), m.filterText)))
-				b.WriteString("\n\n")
-			}
-			maxCategoryWidth := 0
-			maxGroupWidth := 0
-			for _, item := range displayCategories {
-				if len(item.CategoryName) > maxCategoryWidth {
-					maxCategoryWidth = len(item.CategoryName)
-				}
-				groupName := m.getGroupName(item.GroupID)
-				if len(groupName) > maxGroupWidth {
-					maxGroupWidth = len(groupName)
-				}
-			}
-			categoryColWidth := maxCategoryWidth + 2
-			groupColWidth := maxGroupWidth + 2
-			for i, item := range displayCategories {
-				style := NormalListItem
-				prefix := " "
-				if i == m.cursor {
-					style = FocusedListItem
-					prefix = ">"
-				}
-				if m.IsMovingCategory() && item.CatID == m.movingCategory.CatID {
-					style = FocusedListItem
-					prefix = "→ "
-				}
-				groupName := m.getGroupName(item.GroupID)
-				categoryFormatted := fmt.Sprintf("%-*s", categoryColWidth, item.CategoryName)
-				groupFormatted := MutedText.Render(fmt.Sprintf("%-*s", groupColWidth, groupName))
-				line := fmt.Sprintf("%s %s %s", prefix, categoryFormatted, groupFormatted)
-				b.WriteString(style.Render(line))
-				b.WriteString("\n")
-			}
-		}
-		b.WriteString("\n\n")
-		keyHints := "(j/k: Nav, /: Filter, a/n: Add, e: Edit, d: Delete, m: Move, Esc/q: Back)"
-		if m.IsMovingCategory() {
-			keyHints = "(Select a group to move the category, Esc/q: Cancel)"
-		}
-		if m.isFiltered {
-			keyHints = "(j/k: Nav, /: Filter, a/n: Add, e: Edit, d: Delete, m: Move, c: Clear filter, Esc/q: Back)"
-		}
-		b.WriteString(MutedText.Render(keyHints))
+	if m.ready && !m.isFiltering && !m.addCategory && !m.isEditingName {
+		m.viewport.SetContent(m.getCategoriesContent())
 	}
-	viewStr := AppStyle.Width(m.Width).Height(m.Height - 3).Render(b.String())
-	return viewStr
+
+	if m.isFiltering || m.addCategory || m.isEditingName {
+		var b strings.Builder
+		b.WriteString(m.headerView())
+		b.WriteString("\n")
+		b.WriteString(m.footerView())
+		return AppStyle.Render(b.String())
+	}
+
+	var b strings.Builder
+	b.WriteString(m.headerView())
+	b.WriteString("\n")
+	b.WriteString(m.viewport.View())
+	b.WriteString("\n")
+	b.WriteString(m.footerView())
+	return AppStyle.Render(b.String())
 }
 
 // getGroupName finds the group name for a given group ID.

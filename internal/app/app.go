@@ -278,7 +278,7 @@ func (m App) View() string {
 	}
 
 	// Add status message at the bottom if present
-	statusLine := "\n\n"
+	statusLine := "\n"
 	if m.HasStatus() {
 		statusLine += m.GetStatusMessage()
 	}

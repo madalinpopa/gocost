@@ -192,14 +192,16 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		verticalMarginHeight := headerHeight + footerHeight
 
 		if !m.ready {
-			viewportHeight := max(1, msg.Height-verticalMarginHeight-6) // -6 for padding
+			availableHeight := msg.Height - verticalMarginHeight - 6 // -6 for padding
+			viewportHeight := m.calculateViewportHeight(availableHeight)
 			m.viewport = viewport.New(msg.Width, viewportHeight)
 			m.viewport.YPosition = headerHeight
 			m.viewport.SetContent(m.getCategoriesContent())
 			m.ready = true
 		} else {
 			m.viewport.Width = msg.Width
-			viewportHeight := max(1, msg.Height-verticalMarginHeight-6) // -6 for padding
+			availableHeight := msg.Height - verticalMarginHeight - 6 // -6 for padding
+			viewportHeight := m.calculateViewportHeight(availableHeight)
 			m.viewport.Height = viewportHeight
 		}
 		return m, nil
@@ -509,6 +511,18 @@ func (m CategoryModel) footerView() string {
 	}
 	b.WriteString(MutedText.Render(keyHints))
 	return b.String()
+}
+
+// calculateViewportHeight calculates dynamic viewport height based on category count
+func (m CategoryModel) calculateViewportHeight(availableHeight int) int {
+	displayCategories := m.getDisplayCategories()
+
+	// Minimum height: len(categories) + 1, Maximum: 10
+	desiredHeight := max(len(displayCategories)+1, 1)
+	desiredHeight = min(desiredHeight, 10)
+
+	// Don't exceed available screen space
+	return min(desiredHeight, max(1, availableHeight))
 }
 
 // getCategoriesContent generates the content for the viewport

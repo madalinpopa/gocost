@@ -192,7 +192,7 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		verticalMarginHeight := headerHeight + footerHeight
 
 		if !m.ready {
-			availableHeight := msg.Height - verticalMarginHeight - 6 // -6 for padding
+			availableHeight := msg.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
 			viewportHeight := m.calculateViewportHeight(availableHeight)
 			m.viewport = viewport.New(msg.Width, viewportHeight)
 			m.viewport.YPosition = headerHeight
@@ -200,7 +200,7 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ready = true
 		} else {
 			m.viewport.Width = msg.Width
-			availableHeight := msg.Height - verticalMarginHeight - 6 // -6 for padding
+			availableHeight := msg.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
 			viewportHeight := m.calculateViewportHeight(availableHeight)
 			m.viewport.Height = viewportHeight
 		}
@@ -407,7 +407,7 @@ func (m *CategoryModel) updateViewportHeight() {
 	headerHeight := lipgloss.Height(m.headerView())
 	footerHeight := lipgloss.Height(m.footerView())
 	verticalMarginHeight := headerHeight + footerHeight
-	availableHeight := m.Height - verticalMarginHeight - 6 // -6 for padding
+	availableHeight := m.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
 	viewportHeight := m.calculateViewportHeight(availableHeight)
 	m.viewport.Height = viewportHeight
 }

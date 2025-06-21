@@ -96,7 +96,7 @@ func (m App) refreshDataForModels() App {
 	if !m.isInitialized {
 		m.MonthlyModel = ui.NewMonthlyModel(appData, m.CurrentMonth, m.CurrentYear)
 		m.CategoryModel = ui.NewCategoryModel(appData, m.CurrentMonth, m.CurrentYear)
-		m.CategoryGroupModel = ui.NewCategoryGroupModel(groups)
+		m.CategoryGroupModel = ui.NewCategoryGroupModel(groups, m.Width, m.Height)
 		m.IncomeModel = ui.NewIncomeModel(incomes, m.CurrentMonth, m.CurrentYear)
 		m.ExpenseModel = ui.NewExpenseModel(domain.Category{}, "")
 		m.isInitialized = true

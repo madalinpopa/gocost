@@ -170,8 +170,11 @@ func (m IncomeModel) headerView() string {
 
 // footerView renders the footer section with key hints.
 func (m IncomeModel) footerView() string {
+	var b strings.Builder
+	b.WriteString("\n")
 	keyHints := "(j/k: Nav, a/n: Add, e/Enter: Edit, d: Delete, Esc/q: Back)"
-	return MutedText.Render(keyHints)
+	b.WriteString(MutedText.Render(keyHints))
+	return b.String()
 }
 
 // getIncomesContent generates the content for the viewport.

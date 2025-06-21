@@ -320,3 +320,108 @@ func (m CategoryGroupModel) resetEditingState() CategoryGroupModel {
 func (m CategoryGroupModel) ResetSelection() CategoryGroupModel {
 	return m.resetEditingState()
 }
+
+// headerView renders the header section of the view.
+func (m CategoryGroupModel) headerView() string {
+	title := "Manage Category Groups"
+	if m.selectGroup {
+		title = "Select group"
+	}
+
+	var b strings.Builder
+	b.WriteString(HeaderText.Render(title))
+
+	if m.isEditingName {
+		b.WriteString("\n\n")
+		b.WriteString("Enter Category Group Name (Enter to save, Esc to cancel):\n")
+		b.WriteString(m.editInput.View())
+	} else {
+		b.WriteString("\n")
+	}
+
+	return b.String()
+}
+
+// footerView renders the footer section with key hints.
+func (m CategoryGroupModel) footerView() string {
+	keyHints := "(j/k: Nav, a/n: Add, e: Edit, d: Delete, Esc/q: Back)"
+	if m.selectGroup {
+		keyHints = "(j/k: Nav, Enter: Select, Esc/q: Back)"
+	}
+	return MutedText.Render(keyHints)
+}
+
+// getNormalHeaderHeight returns the height of the header in normal (non-editing) mode.
+func (m CategoryGroupModel) getNormalHeaderHeight() int {
+	title := "Manage Category Groups"
+	if m.selectGroup {
+		title = "Select group"
+	}
+
+	var b strings.Builder
+	b.WriteString(HeaderText.Render(title))
+	b.WriteString("\n")
+
+	return lipgloss.Height(b.String())
+}
+
+// calculateViewportHeight calculates the appropriate height for the viewport.
+func (m CategoryGroupModel) calculateViewportHeight(availableHeight int) int {
+	// Minimum height: len(groups) + 1, Maximum: 10
+	desiredHeight := max(len(m.groups)+1, 1)
+	desiredHeight = min(desiredHeight, 10)
+
+	// Don't exceed available screen space
+	return min(desiredHeight, max(1, availableHeight))
+}
+
+// getGroupsContent generates the content for the viewport.
+func (m CategoryGroupModel) getGroupsContent() string {
+	var b strings.Builder
+
+	if len(m.groups) == 0 {
+		b.WriteString(MutedText.Render("No category groups defined yet."))
+	} else {
+		for i, item := range m.groups {
+			style := NormalListItem
+			prefix := "  "
+			if i == m.cursor {
+				style = FocusedListItem
+				prefix = "> "
+			}
+			groupId := MutedText.Render(item.GroupID)
+			line := fmt.Sprintf("%s %d. %s (ID: %s)", prefix, item.Order, item.GroupName, groupId)
+			b.WriteString(style.Render(line))
+			b.WriteString("\n")
+		}
+	}
+	return b.String()
+}
+
+// ensureCursorVisible ensures the cursor is visible in the viewport.
+func (m *CategoryGroupModel) ensureCursorVisible() {
+	if !m.ready {
+		return
+	}
+
+	content := m.getGroupsContent()
+	m.viewport.SetContent(content)
+
+	if len(m.groups) == 0 {
+		return
+	}
+
+	// Calculate the current viewport bounds
+	viewportTop := m.viewport.YOffset
+	viewportBottom := viewportTop + m.viewport.Height - 1
+
+	// If cursor is below viewport, scroll down
+	if m.cursor > viewportBottom {
+		newOffset := max(m.cursor-m.viewport.Height+1, 0)
+		m.viewport.SetYOffset(newOffset)
+	}
+	// If cursor is above viewport, scroll up
+	if m.cursor < viewportTop {
+		m.viewport.SetYOffset(m.cursor)
+	}
+}

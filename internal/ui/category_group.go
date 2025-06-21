@@ -119,20 +119,20 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Width = msg.Width
 		m.Height = msg.Height
 
-		normalHeaderHeight := m.getNormalHeaderHeight()
+		headerHeight := lipgloss.Height(m.headerView())
 		footerHeight := lipgloss.Height(m.footerView())
-		verticalMarginHeight := normalHeaderHeight + footerHeight
+		verticalMarginHeight := headerHeight + footerHeight
 
 		if !m.ready {
-			availableHeight := msg.Height - verticalMarginHeight - 6
+			availableHeight := msg.Height - verticalMarginHeight - 6 // -6 for padding
 			viewportHeight := m.calculateViewportHeight(availableHeight)
 			m.viewport = viewport.New(msg.Width, viewportHeight)
-			m.viewport.YPosition = normalHeaderHeight
+			m.viewport.YPosition = headerHeight
 			m.viewport.SetContent(m.getGroupsContent())
 			m.ready = true
 		} else {
 			m.viewport.Width = msg.Width
-			availableHeight := msg.Height - verticalMarginHeight - 6
+			availableHeight := msg.Height - verticalMarginHeight - 6 // -6 for padding
 			viewportHeight := m.calculateViewportHeight(availableHeight)
 			m.viewport.Height = viewportHeight
 		}
@@ -263,16 +263,10 @@ func (m CategoryGroupModel) UpdateData(groups []domain.CategoryGroup) CategoryGr
 		m.cursor = 0
 	}
 
-	// Recalculate viewport height when groups data changes
-	if m.ready && m.Height > 0 {
-		normalHeaderHeight := m.getNormalHeaderHeight()
-		footerHeight := lipgloss.Height(m.footerView())
-		verticalMarginHeight := normalHeaderHeight + footerHeight
-		availableHeight := m.Height - verticalMarginHeight - 12 // -12 for padding
-		viewportHeight := m.calculateViewportHeight(availableHeight)
-		m.viewport.Height = viewportHeight
+	// Update viewport height when groups data changes
+	m.updateViewportHeight()
+	if m.ready {
 		m.viewport.SetContent(m.getGroupsContent())
-
 		m.viewport.GotoTop()
 	}
 
@@ -347,27 +341,22 @@ func (m CategoryGroupModel) footerView() string {
 	return MutedText.Render(keyHints)
 }
 
-// getNormalHeaderHeight returns the height of the header in normal (non-editing) mode.
-func (m CategoryGroupModel) getNormalHeaderHeight() int {
-	title := "Manage Category Groups"
-	if m.selectGroup {
-		title = "Select group"
+// updateViewportHeight updates the viewport height based on current window size.
+func (m *CategoryGroupModel) updateViewportHeight() {
+	if !m.ready {
+		return
 	}
-
-	var b strings.Builder
-	b.WriteString(HeaderText.Render(title))
-	b.WriteString("\n")
-
-	return lipgloss.Height(b.String())
+	headerHeight := lipgloss.Height(m.headerView())
+	footerHeight := lipgloss.Height(m.footerView())
+	verticalMarginHeight := headerHeight + footerHeight
+	availableHeight := m.Height - verticalMarginHeight - 6 // -6 for padding
+	viewportHeight := m.calculateViewportHeight(availableHeight)
+	m.viewport.Height = viewportHeight
 }
 
 // calculateViewportHeight calculates the appropriate height for the viewport.
 func (m CategoryGroupModel) calculateViewportHeight(availableHeight int) int {
-	// Minimum height: len(groups) + 1, Maximum: 10
 	desiredHeight := max(len(m.groups)+1, 1)
-	desiredHeight = min(desiredHeight, 10)
-
-	// Don't exceed available screen space
 	return min(desiredHeight, max(1, availableHeight))
 }
 
@@ -407,16 +396,13 @@ func (m *CategoryGroupModel) ensureCursorVisible() {
 		return
 	}
 
-	// Calculate the current viewport bounds
 	viewportTop := m.viewport.YOffset
 	viewportBottom := viewportTop + m.viewport.Height - 1
 
-	// If cursor is below viewport, scroll down
 	if m.cursor > viewportBottom {
 		newOffset := max(m.cursor-m.viewport.Height+1, 0)
 		m.viewport.SetYOffset(newOffset)
 	}
-	// If cursor is above viewport, scroll up
 	if m.cursor < viewportTop {
 		m.viewport.SetYOffset(m.cursor)
 	}

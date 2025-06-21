@@ -514,7 +514,6 @@ func (m CategoryModel) calculateViewportHeight(availableHeight int) int {
 
 	// Minimum height: len(categories) + 1, Maximum: 10
 	desiredHeight := max(len(displayCategories)+1, 1)
-	desiredHeight = min(desiredHeight, 10)
 
 	// Don't exceed available screen space
 	return min(desiredHeight, max(1, availableHeight))

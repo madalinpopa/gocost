@@ -257,13 +257,16 @@ func (m CategoryGroupModel) View() string {
 			}
 		}
 		b.WriteString("\n\n")
-		keyHints := "(j/k: Nav, a/n: Add, e: Edit, d: Delete, Esc/q: Back)"
-		if m.selectGroup {
-			keyHints = "(j/k: Nav, Enter: Select, Esc/q: Back)"
-		}
-		b.WriteString(MutedText.Render(keyHints))
+		b.WriteString(m.footerView())
+		return AppStyle.Render(b.String())
 	}
 
+	var b strings.Builder
+	b.WriteString(m.headerView())
+	b.WriteString("\n")
+	b.WriteString(m.viewport.View())
+	b.WriteString("\n")
+	b.WriteString(m.footerView())
 	return AppStyle.Render(b.String())
 }
 

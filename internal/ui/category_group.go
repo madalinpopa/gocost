@@ -25,6 +25,9 @@ type CategoryGroupModel struct {
 	isEditingName bool            // True if currently editing a group name or adding new one
 	editInput     textinput.Model // Text input for the group name
 	editingIndex  int             // Index of the group being edited, -1 for new group
+
+	viewport viewport.Model
+	ready    bool
 }
 
 // NewCategoryGroupModel creates a new CategoryGroupModel instance.

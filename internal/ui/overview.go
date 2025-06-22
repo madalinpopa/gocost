@@ -409,7 +409,7 @@ func (m MonthlyModel) getFooter(totalExpenses, balance decimal.Decimal, defaultC
 	footerSummary := lipgloss.JoinHorizontal(lipgloss.Top, totalExpensesStr, space, balanceStr)
 
 	b.WriteString("\n\n")
-	b.WriteString(footerStyle.Render(lipgloss.JoinVertical(lipgloss.Left, footerSummary, MutedText.Render(keyHints))))
+	b.WriteString(footerStyle.Render(lipgloss.JoinVertical(lipgloss.Left, footerSummary, "", MutedText.Render(keyHints))))
 
 	return b.String()
 }

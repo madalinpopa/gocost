@@ -178,6 +178,13 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
+		case "c": // Switch to category view (only when not selecting)
+			if !m.selectGroup {
+				return m, func() tea.Msg {
+					return CategoryViewWithMonthMsg{MonthYear: m.MonthYear}
+				}
+			}
+
 		case "a", "n": // Add new category group name (only when not selecting)
 			if !m.selectGroup {
 				m.editingIndex = -1

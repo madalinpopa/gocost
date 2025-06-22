@@ -112,7 +112,18 @@ func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return m, nil
+	if m.ready {
+		switch m.Level {
+		case focusLevelGroups:
+			m.groupsViewport, cmd = m.groupsViewport.Update(msg)
+			cmds = append(cmds, cmd)
+		case focusLevelCategories:
+			m.categoriesViewport, cmd = m.categoriesViewport.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
 // View renders the MonthlyModel displaying the monthly overview.

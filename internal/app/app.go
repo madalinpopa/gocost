@@ -92,23 +92,20 @@ func (m App) refreshDataForModels() App {
 		Incomes:        incomes,
 	}
 
-	// Use constructors on first run, then update methods
 	if !m.isInitialized {
-		m.MonthlyModel = ui.NewMonthlyModel(appData, m.CurrentMonth, m.CurrentYear)
-		m.CategoryModel = ui.NewCategoryModel(appData, m.CurrentMonth, m.CurrentYear)
 		monthYear := ui.MonthYear{CurrentMonth: m.CurrentMonth, CurrentYear: m.CurrentYear}
+		m.MonthlyModel = ui.NewMonthlyModel(appData, monthYear)
+		m.CategoryModel = ui.NewCategoryModel(appData, monthYear)
 		m.CategoryGroupModel = ui.NewCategoryGroupModel(groups, m.Width, m.Height, monthYear)
-		m.IncomeModel = ui.NewIncomeModel(incomes, m.CurrentMonth, m.CurrentYear)
+		m.IncomeModel = ui.NewIncomeModel(incomes, monthYear)
 		m.ExpenseModel = ui.NewExpenseModel(domain.Category{}, "")
 		m.isInitialized = true
 	} else {
-		// First, update the data slices in each model
 		m.MonthlyModel = m.MonthlyModel.UpdateData(appData)
 		m.CategoryModel = m.CategoryModel.UpdateData(appData)
 		m.CategoryGroupModel = m.CategoryGroupModel.UpdateData(groups)
 		m.IncomeModel = m.IncomeModel.UpdateData(incomes)
 
-		// Then, update the month/year for each model that tracks it
 		m.MonthlyModel = m.MonthlyModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 		m.CategoryModel = m.CategoryModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)
 		m.CategoryGroupModel = m.CategoryGroupModel.SetMonthYear(m.CurrentMonth, m.CurrentYear)

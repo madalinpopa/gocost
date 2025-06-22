@@ -171,3 +171,8 @@ type ReturnToMonthlyWithFocusMsg struct {
 
 // CategoryViewMsg is sent when returning to the category view
 type CategoryViewMsg struct{}
+
+// CategoryViewWithMonthMsg is sent when switching to category view with specific month context
+type CategoryViewWithMonthMsg struct {
+	MonthYear
+}

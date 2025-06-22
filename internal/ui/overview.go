@@ -34,6 +34,10 @@ type MonthlyModel struct {
 	categories     []domain.Category
 	categoryGroups []domain.CategoryGroup
 	incomes        []domain.IncomeRecord
+
+	groupsViewport     viewport.Model
+	categoriesViewport viewport.Model
+	ready              bool
 }
 
 // NewMonthlyModel creates a new MonthlyModel instance.

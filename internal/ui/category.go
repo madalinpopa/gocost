@@ -276,6 +276,8 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, func() tea.Msg { return SelectGroupMsg{} }
 				}
 			}
+		case "g":
+			return m, func() tea.Msg { return ManageGroupsMsg{} }
 		}
 	}
 

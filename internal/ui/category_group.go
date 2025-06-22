@@ -417,3 +417,10 @@ func (m CategoryGroupModel) ensureCursorVisible() CategoryGroupModel {
 	}
 	return m
 }
+
+// SetMonthYear updates the current month/year context.
+func (m CategoryGroupModel) SetMonthYear(month time.Month, year int) CategoryGroupModel {
+	m.CurrentMonth = month
+	m.CurrentYear = year
+	return m
+}

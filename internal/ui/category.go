@@ -43,8 +43,8 @@ type CategoryModel struct {
 }
 
 // NewCategoryModel creates a new CategoryModel instance.
-func NewCategoryModel(appData AppData, month time.Month, year int) CategoryModel {
-	monthKey := GetMonthKey(month, year)
+func NewCategoryModel(appData AppData, monthYear MonthYear) CategoryModel {
+	monthKey := GetMonthKey(monthYear.CurrentMonth, monthYear.CurrentYear)
 
 	ti := textinput.New()
 	ti.Placeholder = "Category name"

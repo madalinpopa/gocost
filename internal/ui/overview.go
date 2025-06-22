@@ -168,8 +168,7 @@ func (m MonthlyModel) View() string {
 			b.WriteString(groupHeader)
 			b.WriteString("\n")
 		}
-		expenseTotals = expenseTotals.Add(categoryTotal)
-		groupTotals[category.GroupID] = groupTotals[category.GroupID].Add(categoryTotal)
+		b.WriteString(m.categoriesViewport.View())
 	}
 
 	return expenseTotals, groupTotals

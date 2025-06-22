@@ -88,7 +88,7 @@ func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cursor >= len(m.incomes) {
 					m.cursor = 0
 				}
-				(&m).ensureCursorVisible()
+				m = m.ensureCursorVisible()
 			}
 			return m, nil
 
@@ -98,7 +98,7 @@ func (m IncomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cursor < 0 {
 					m.cursor = len(m.incomes) - 1
 				}
-				(&m).ensureCursorVisible()
+				m = m.ensureCursorVisible()
 			}
 			return m, nil
 
@@ -211,16 +211,16 @@ func (m IncomeModel) calculateViewportHeight(availableHeight int) int {
 }
 
 // ensureCursorVisible ensures the cursor is visible in the viewport.
-func (m *IncomeModel) ensureCursorVisible() {
+func (m IncomeModel) ensureCursorVisible() IncomeModel {
 	if !m.ready {
-		return
+		return m
 	}
 
 	content := m.getIncomesContent()
 	m.viewport.SetContent(content)
 
 	if len(m.incomes) == 0 {
-		return
+		return m
 	}
 
 	viewportTop := m.viewport.YOffset
@@ -233,12 +233,13 @@ func (m *IncomeModel) ensureCursorVisible() {
 	if m.cursor < viewportTop {
 		m.viewport.SetYOffset(m.cursor)
 	}
+	return m
 }
 
 // updateViewportHeight updates the viewport height based on current window size.
-func (m *IncomeModel) updateViewportHeight() {
+func (m IncomeModel) updateViewportHeight() IncomeModel {
 	if !m.ready {
-		return
+		return m
 	}
 
 	headerHeight := lipgloss.Height(m.headerView())
@@ -248,6 +249,7 @@ func (m *IncomeModel) updateViewportHeight() {
 	availableHeight := m.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
 	viewportHeight := m.calculateViewportHeight(availableHeight)
 	m.viewport.Height = viewportHeight
+	return m
 }
 
 // SetMonthYear updates the current month/year and loads corresponding income entries.
@@ -269,7 +271,7 @@ func (m IncomeModel) UpdateData(incomes []domain.IncomeRecord) IncomeModel {
 	}
 
 	// Update viewport height when income data changes
-	m.updateViewportHeight()
+	m = m.updateViewportHeight()
 	if m.ready {
 		m.viewport.SetContent(m.getIncomesContent())
 		m.viewport.GotoTop()

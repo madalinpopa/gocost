@@ -171,22 +171,23 @@ func (m MonthlyModel) View() string {
 		b.WriteString(m.categoriesViewport.View())
 	}
 
-	return expenseTotals, groupTotals
+	b.WriteString("\n")
+	b.WriteString(footer)
+
+	return AppStyle.Render(b.String())
 }
 
-// getContent renders the main content area with groups and categories.
-func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, currency string) string {
+// getGroupsContent generates the content for the groups viewport.
+func (m MonthlyModel) getGroupsContent(totalGroupExpenses map[string]decimal.Decimal, currency string) string {
 	var b strings.Builder
 
 	if len(m.categoryGroups) == 0 {
 		b.WriteString(MutedText.Render("No category groups. (g)"))
-		b.WriteString("\n")
 		return b.String()
 	}
 
 	if len(m.categories) == 0 {
 		b.WriteString(MutedText.Render("No categories for this month."))
-		b.WriteString("\n")
 		return b.String()
 	}
 
@@ -202,24 +203,16 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 
 	if len(visibleGroups) == 0 {
 		b.WriteString(MutedText.Render("No categories for this month"))
-		b.WriteString("\n")
 		return b.String()
 	}
 
-	var expenseSectionContent []string
 	for visibleIdx, group := range visibleGroups {
 		groupStyle := NormalListItem
 		groupPrefix := "  "
 
-		if m.Level == focusLevelGroups && visibleIdx == m.focusedGroupIndex {
+		if visibleIdx == m.focusedGroupIndex {
 			groupStyle = FocusedListItem
 			groupPrefix = "> "
-		} else if m.Level == focusLevelCategories && visibleIdx == m.focusedGroupIndex {
-			groupStyle = ActiveGroupStyle
-			groupPrefix = ">> "
-		} else if m.Level == focusLevelCategories && visibleIdx != m.focusedGroupIndex {
-			groupStyle = MutedGroupStyle
-			groupPrefix = "  "
 		}
 
 		var groupTotal decimal.Decimal
@@ -232,154 +225,405 @@ func (m MonthlyModel) getContent(totalGroupExpenses map[string]decimal.Decimal, 
 
 		groupHeaderSpacerWidth := max(m.Width-lipgloss.Width(groupNameRender)-lipgloss.Width(groupTotalRender)-AppStyle.GetHorizontalPadding(), 0)
 		groupHeader := lipgloss.JoinHorizontal(lipgloss.Left, groupNameRender, CreateSpacer(groupHeaderSpacerWidth).Render(""), groupTotalRender)
-		expenseSectionContent = append(expenseSectionContent, groupHeader)
 
-		// Display categories within this group if we're in category navigation mode and this is the focused group
-		if m.Level == focusLevelCategories && visibleIdx == m.focusedGroupIndex {
-			// Calculate dynamic column widths based on content
-			categories := categoriesByGroup[group.GroupID]
-			amountColWidth := len("Amount")
-			budgetColWidth := len("/Budget")
-			statusColWidth := len("Status")
-			notesColWidth := len("Notes")
-			columnSpacing := 2 // Space between columns
-
-			// Scan through categories to find maximum widths needed
-			for _, category := range categories {
-				var expense domain.ExpenseRecord
-				var hasExpense bool
-				if len(category.Expense) > 0 {
-					for _, exp := range category.Expense {
-						expense = exp
-						hasExpense = true
-						break
-					}
-				}
-
-				// Calculate required widths for this category
-				amountStr := "0.00"
-				budgetStr := "0.00"
-				statusStr := "Not Set"
-				notesIndicator := ""
-
-				if hasExpense {
-					amountStr = fmt.Sprintf("%.2f", expense.Amount)
-					budgetStr = fmt.Sprintf("%.2f", expense.Budget)
-					statusStr = expense.Status
-					if expense.Notes != "" {
-						notesIndicator = " (N)"
-					}
-				}
-
-				amountText := fmt.Sprintf("%s %s", amountStr, currency)
-				budgetText := fmt.Sprintf("/%s %s", budgetStr, currency)
-				statusText := fmt.Sprintf("[%s]", statusStr) // Plain text for width calculation
-
-				if len(amountText) > amountColWidth {
-					amountColWidth = len(amountText)
-				}
-				if len(budgetText) > budgetColWidth {
-					budgetColWidth = len(budgetText)
-				}
-				if len(statusText) > statusColWidth {
-					statusColWidth = len(statusText)
-				}
-				if len(notesIndicator) > notesColWidth {
-					notesColWidth = len(notesIndicator)
-				}
-			}
-
-			// Add column headers
-			headerStyle := MutedText
-			amountHeader := headerStyle.Render(CreateLeftAlignedColumn(amountColWidth).Render("Amount"))
-			budgetHeader := headerStyle.Render(CreateLeftAlignedColumn(budgetColWidth).Render("/Budget"))
-			statusHeader := headerStyle.Render(CreateLeftAlignedColumn(statusColWidth).Render("Status"))
-			notesHeader := headerStyle.Render(CreateLeftAlignedColumn(notesColWidth).Render("Notes"))
-
-			totalColumnsWidth := amountColWidth + budgetColWidth + statusColWidth + notesColWidth + (columnSpacing * 3)
-			headerSpacerWidth := max(m.Width-totalColumnsWidth-AppStyle.GetHorizontalPadding(), 1)
-
-			headerLine := lipgloss.JoinHorizontal(
-				lipgloss.Left,
-				CreateSpacer(headerSpacerWidth).Render(""),
-				amountHeader,
-				CreateColumnSpacer(columnSpacing).Render(""),
-				budgetHeader,
-				CreateColumnSpacer(columnSpacing).Render(""),
-				statusHeader,
-				CreateColumnSpacer(columnSpacing).Render(""),
-				notesHeader,
-			)
-			expenseSectionContent = append(expenseSectionContent, headerLine)
-
-			for catIdx, category := range categories {
-				catStyle := NormalListItem
-				catPrefix := "    "
-
-				if catIdx == m.focusedCategoryIndex {
-					catStyle = FocusedListItem
-					catPrefix = "  > "
-				}
-
-				// Get expense data for this category
-				var expense domain.ExpenseRecord
-				var hasExpense bool
-				if len(category.Expense) > 0 {
-					// Get the first (and should be only) expense for this category
-					for _, exp := range category.Expense {
-						expense = exp
-						hasExpense = true
-						break
-					}
-				}
-
-				// Format expense data
-				amountStr := "0.00"
-				budgetStr := "0.00"
-				statusStr := "Not Set"
-				notesIndicator := ""
-
-				if hasExpense {
-					amountStr = fmt.Sprintf("%.2f", expense.Amount)
-					budgetStr = fmt.Sprintf("%.2f", expense.Budget)
-					statusStr = expense.Status
-					if expense.Notes != "" {
-						notesIndicator = " (N)"
-					}
-				}
-
-				// Build category line with columns using consistent widths
-				catNameRender := catStyle.Render(fmt.Sprintf("%s%s", catPrefix, category.CategoryName))
-				amountRender := catStyle.Render(CreateRightAlignedColumn(amountColWidth).Render(fmt.Sprintf("%s %s", amountStr, currency)))
-				budgetRender := catStyle.Render(CreateRightAlignedColumn(budgetColWidth).Render(fmt.Sprintf("/%s %s", budgetStr, currency)))
-				statusRender := catStyle.Render(CreateCenterAlignedColumn(statusColWidth).Render(RenderStatusBadge(statusStr)))
-				notesRender := catStyle.Render(CreateCenterAlignedColumn(notesColWidth).Render(notesIndicator))
-
-				// Calculate spacing for category name
-				nameWidth := lipgloss.Width(catNameRender)
-				totalColumnsWidth := amountColWidth + budgetColWidth + statusColWidth + notesColWidth + (columnSpacing * 3)
-				availableWidth := m.Width - AppStyle.GetHorizontalPadding()
-				spacerWidth := max(availableWidth-nameWidth-totalColumnsWidth, 1)
-
-				categoryLine := lipgloss.JoinHorizontal(
-					lipgloss.Left,
-					catNameRender,
-					CreateSpacer(spacerWidth).Render(""),
-					amountRender,
-					CreateColumnSpacer(columnSpacing).Render(""),
-					budgetRender,
-					CreateColumnSpacer(columnSpacing).Render(""),
-					statusRender,
-					CreateColumnSpacer(columnSpacing).Render(""),
-					notesRender,
-				)
-				expenseSectionContent = append(expenseSectionContent, categoryLine)
-			}
+		b.WriteString(groupHeader)
+		if visibleIdx < len(visibleGroups)-1 {
+			b.WriteString("\n")
 		}
 	}
 
-	b.WriteString(strings.Join(expenseSectionContent, "\n"))
 	return b.String()
+}
+
+// getCategoriesContent generates the content for the categories viewport (without group header).
+func (m MonthlyModel) getCategoriesContent(totalGroupExpenses map[string]decimal.Decimal, currency string) string {
+	var b strings.Builder
+
+	if len(m.categoryGroups) == 0 {
+		b.WriteString(MutedText.Render("No category groups. (g)"))
+		return b.String()
+	}
+
+	if len(m.categories) == 0 {
+		b.WriteString(MutedText.Render("No categories for this month."))
+		return b.String()
+	}
+
+	// Group categories by their GroupID
+	categoriesByGroup := make(map[string][]domain.Category)
+	for _, category := range m.categories {
+		categoriesByGroup[category.GroupID] = append(categoriesByGroup[category.GroupID], category)
+	}
+
+	// Get ordered list of groups and filter for visible ones
+	orderedGroups := m.getOrderedGroups()
+	visibleGroups := m.getVisibleGroups(orderedGroups, categoriesByGroup)
+
+	if len(visibleGroups) == 0 {
+		b.WriteString(MutedText.Render("No categories for this month"))
+		return b.String()
+	}
+
+	if m.focusedGroupIndex >= len(visibleGroups) {
+		b.WriteString(MutedText.Render("Invalid group selection"))
+		return b.String()
+	}
+
+	// Get the focused group
+	selectedGroup := visibleGroups[m.focusedGroupIndex]
+	categories := categoriesByGroup[selectedGroup.GroupID]
+
+	amountColWidth := len("Amount")
+	budgetColWidth := len("/Budget")
+	statusColWidth := len("Status")
+	notesColWidth := len("Notes")
+	columnSpacing := 2
+
+	for _, category := range categories {
+		var expense domain.ExpenseRecord
+		var hasExpense bool
+		if len(category.Expense) > 0 {
+			for _, exp := range category.Expense {
+				expense = exp
+				hasExpense = true
+				break
+			}
+		}
+
+		amountStr := "0.00"
+		budgetStr := "0.00"
+		statusStr := "Not Set"
+		notesIndicator := ""
+
+		if hasExpense {
+			amountStr = fmt.Sprintf("%.2f", expense.Amount)
+			budgetStr = fmt.Sprintf("%.2f", expense.Budget)
+			statusStr = expense.Status
+			if expense.Notes != "" {
+				notesIndicator = " (N)"
+			}
+		}
+
+		amountText := fmt.Sprintf("%s %s", amountStr, currency)
+		budgetText := fmt.Sprintf("/%s %s", budgetStr, currency)
+		statusText := fmt.Sprintf("[%s]", statusStr)
+
+		if len(amountText) > amountColWidth {
+			amountColWidth = len(amountText)
+		}
+		if len(budgetText) > budgetColWidth {
+			budgetColWidth = len(budgetText)
+		}
+		if len(statusText) > statusColWidth {
+			statusColWidth = len(statusText)
+		}
+		if len(notesIndicator) > notesColWidth {
+			notesColWidth = len(notesIndicator)
+		}
+	}
+
+	// Add column headers
+	headerStyle := MutedText
+	amountHeader := headerStyle.Render(CreateLeftAlignedColumn(amountColWidth).Render("Amount"))
+	budgetHeader := headerStyle.Render(CreateLeftAlignedColumn(budgetColWidth).Render("/Budget"))
+	statusHeader := headerStyle.Render(CreateLeftAlignedColumn(statusColWidth).Render("Status"))
+	notesHeader := headerStyle.Render(CreateLeftAlignedColumn(notesColWidth).Render("Notes"))
+
+	totalColumnsWidth := amountColWidth + budgetColWidth + statusColWidth + notesColWidth + (columnSpacing * 3)
+	headerSpacerWidth := max(m.Width-totalColumnsWidth-AppStyle.GetHorizontalPadding(), 1)
+
+	headerLine := lipgloss.JoinHorizontal(
+		lipgloss.Left,
+		CreateSpacer(headerSpacerWidth).Render(""),
+		amountHeader,
+		CreateColumnSpacer(columnSpacing).Render(""),
+		budgetHeader,
+		CreateColumnSpacer(columnSpacing).Render(""),
+		statusHeader,
+		CreateColumnSpacer(columnSpacing).Render(""),
+		notesHeader,
+	)
+	b.WriteString(headerLine)
+	b.WriteString("\n")
+
+	// Display categories
+	for catIdx, category := range categories {
+		catStyle := NormalListItem
+		catPrefix := "    "
+
+		if catIdx == m.focusedCategoryIndex {
+			catStyle = FocusedListItem
+			catPrefix = "  > "
+		}
+
+		var expense domain.ExpenseRecord
+		var hasExpense bool
+		if len(category.Expense) > 0 {
+			// Get the first (and should be only) expense for this category
+			for _, exp := range category.Expense {
+				expense = exp
+				hasExpense = true
+				break
+			}
+		}
+
+		// Format expense data
+		amountStr := "0.00"
+		budgetStr := "0.00"
+		statusStr := "Not Set"
+		notesIndicator := ""
+
+		if hasExpense {
+			amountStr = fmt.Sprintf("%.2f", expense.Amount)
+			budgetStr = fmt.Sprintf("%.2f", expense.Budget)
+			statusStr = expense.Status
+			if expense.Notes != "" {
+				notesIndicator = " (N)"
+			}
+		}
+
+		// Build category line with columns using consistent widths
+		catNameRender := catStyle.Render(fmt.Sprintf("%s%s", catPrefix, category.CategoryName))
+		amountRender := catStyle.Render(CreateRightAlignedColumn(amountColWidth).Render(fmt.Sprintf("%s %s", amountStr, currency)))
+		budgetRender := catStyle.Render(CreateRightAlignedColumn(budgetColWidth).Render(fmt.Sprintf("/%s %s", budgetStr, currency)))
+		statusRender := catStyle.Render(CreateCenterAlignedColumn(statusColWidth).Render(RenderStatusBadge(statusStr)))
+		notesRender := catStyle.Render(CreateCenterAlignedColumn(notesColWidth).Render(notesIndicator))
+
+		// Calculate spacing for category name
+		nameWidth := lipgloss.Width(catNameRender)
+		totalColumnsWidth := amountColWidth + budgetColWidth + statusColWidth + notesColWidth + (columnSpacing * 3)
+		availableWidth := m.Width - AppStyle.GetHorizontalPadding()
+		spacerWidth := max(availableWidth-nameWidth-totalColumnsWidth, 1)
+
+		categoryLine := lipgloss.JoinHorizontal(
+			lipgloss.Left,
+			catNameRender,
+			CreateSpacer(spacerWidth).Render(""),
+			amountRender,
+			CreateColumnSpacer(columnSpacing).Render(""),
+			budgetRender,
+			CreateColumnSpacer(columnSpacing).Render(""),
+			statusRender,
+			CreateColumnSpacer(columnSpacing).Render(""),
+			notesRender,
+		)
+		b.WriteString(categoryLine)
+		if catIdx < len(categories)-1 {
+			b.WriteString("\n")
+		}
+	}
+
+	return b.String()
+}
+
+// getCategoryGroupHeader generates the sticky group header for category navigation.
+func (m MonthlyModel) getCategoryGroupHeader(totalGroupExpenses map[string]decimal.Decimal, currency string) string {
+	if len(m.categoryGroups) == 0 || len(m.categories) == 0 {
+		return ""
+	}
+
+	// Group categories by their GroupID
+	categoriesByGroup := make(map[string][]domain.Category)
+	for _, category := range m.categories {
+		categoriesByGroup[category.GroupID] = append(categoriesByGroup[category.GroupID], category)
+	}
+
+	// Get visible groups
+	orderedGroups := m.getOrderedGroups()
+	visibleGroups := m.getVisibleGroups(orderedGroups, categoriesByGroup)
+
+	if len(visibleGroups) == 0 || m.focusedGroupIndex >= len(visibleGroups) {
+		return ""
+	}
+
+	// Get the focused group
+	selectedGroup := visibleGroups[m.focusedGroupIndex]
+
+	// Display group header
+	var groupTotal decimal.Decimal
+	if totalGroupExpenses != nil {
+		groupTotal = totalGroupExpenses[selectedGroup.GroupID]
+	}
+	groupNameRender := ActiveGroupStyle.Render(fmt.Sprintf(">> %s", selectedGroup.GroupName))
+	totalRender := MutedText.Render("Total:")
+	groupTotalRender := ActiveGroupStyle.Render(fmt.Sprintf("%s %s %s", totalRender, groupTotal.String(), currency))
+
+	groupHeaderSpacerWidth := max(m.Width-lipgloss.Width(groupNameRender)-lipgloss.Width(groupTotalRender)-AppStyle.GetHorizontalPadding(), 0)
+	groupHeader := lipgloss.JoinHorizontal(lipgloss.Left, groupNameRender, CreateSpacer(groupHeaderSpacerWidth).Render(""), groupTotalRender)
+
+	return groupHeader
+}
+
+// calculateGroupsViewportHeight calculates the appropriate height for the groups viewport.
+func (m MonthlyModel) calculateGroupsViewportHeight(availableHeight int) int {
+	// Group categories by their GroupID
+	categoriesByGroup := make(map[string][]domain.Category)
+	for _, category := range m.categories {
+		categoriesByGroup[category.GroupID] = append(categoriesByGroup[category.GroupID], category)
+	}
+
+	// Get visible groups
+	orderedGroups := m.getOrderedGroups()
+	visibleGroups := m.getVisibleGroups(orderedGroups, categoriesByGroup)
+
+	desiredHeight := max(len(visibleGroups)+1, 1)
+	return min(desiredHeight, max(1, availableHeight))
+}
+
+// calculateCategoriesViewportHeight calculates the appropriate height for the categories viewport.
+func (m MonthlyModel) calculateCategoriesViewportHeight(availableHeight int) int {
+	// Group categories by their GroupID
+	categoriesByGroup := make(map[string][]domain.Category)
+	for _, category := range m.categories {
+		categoriesByGroup[category.GroupID] = append(categoriesByGroup[category.GroupID], category)
+	}
+
+	// Get visible groups
+	orderedGroups := m.getOrderedGroups()
+	visibleGroups := m.getVisibleGroups(orderedGroups, categoriesByGroup)
+
+	if len(visibleGroups) == 0 || m.focusedGroupIndex >= len(visibleGroups) {
+		return max(1, availableHeight)
+	}
+
+	selectedGroup := visibleGroups[m.focusedGroupIndex]
+	categories := categoriesByGroup[selectedGroup.GroupID]
+
+	// Account for sticky group header (1 line) when calculating available height
+	groupHeaderHeight := 1
+	adjustedAvailableHeight := max(availableHeight-groupHeaderHeight, 1)
+
+	desiredHeight := max(len(categories)+2, 1)
+	return min(desiredHeight, max(1, adjustedAvailableHeight))
+}
+
+// ensureGroupsCursorVisible ensures the cursor is visible in the groups viewport.
+func (m MonthlyModel) ensureGroupsCursorVisible() MonthlyModel {
+	if !m.ready {
+		return m
+	}
+
+	content := m.getGroupsContent(nil, "")
+	m.groupsViewport.SetContent(content)
+
+	// Group categories by their GroupID
+	categoriesByGroup := make(map[string][]domain.Category)
+	for _, category := range m.categories {
+		categoriesByGroup[category.GroupID] = append(categoriesByGroup[category.GroupID], category)
+	}
+
+	// Get visible groups
+	orderedGroups := m.getOrderedGroups()
+	visibleGroups := m.getVisibleGroups(orderedGroups, categoriesByGroup)
+
+	if len(visibleGroups) == 0 {
+		return m
+	}
+
+	viewportTop := m.groupsViewport.YOffset
+	viewportBottom := viewportTop + m.groupsViewport.Height - 1
+
+	if m.focusedGroupIndex > viewportBottom {
+		newOffset := max(m.focusedGroupIndex-m.groupsViewport.Height+1, 0)
+		m.groupsViewport.SetYOffset(newOffset)
+	}
+	if m.focusedGroupIndex < viewportTop {
+		m.groupsViewport.SetYOffset(m.focusedGroupIndex)
+	}
+	return m
+}
+
+// ensureCategoriesCursorVisible ensures the cursor is visible in the categories viewport.
+func (m MonthlyModel) ensureCategoriesCursorVisible() MonthlyModel {
+	if !m.ready {
+		return m
+	}
+
+	content := m.getCategoriesContent(nil, "")
+	m.categoriesViewport.SetContent(content)
+
+	// Group categories by their GroupID
+	categoriesByGroup := make(map[string][]domain.Category)
+	for _, category := range m.categories {
+		categoriesByGroup[category.GroupID] = append(categoriesByGroup[category.GroupID], category)
+	}
+
+	// Get visible groups
+	orderedGroups := m.getOrderedGroups()
+	visibleGroups := m.getVisibleGroups(orderedGroups, categoriesByGroup)
+
+	if len(visibleGroups) == 0 || m.focusedGroupIndex >= len(visibleGroups) {
+		return m
+	}
+
+	selectedGroup := visibleGroups[m.focusedGroupIndex]
+	categories := categoriesByGroup[selectedGroup.GroupID]
+
+	if len(categories) == 0 {
+		return m
+	}
+
+	viewportTop := m.categoriesViewport.YOffset
+	viewportBottom := viewportTop + m.categoriesViewport.Height - 1
+
+	// +1 offset for column headers (group header is now sticky and outside viewport)
+	adjustedCursor := m.focusedCategoryIndex + 1
+
+	if adjustedCursor > viewportBottom {
+		newOffset := max(adjustedCursor-m.categoriesViewport.Height+1, 0)
+		m.categoriesViewport.SetYOffset(newOffset)
+	}
+	if adjustedCursor < viewportTop {
+		m.categoriesViewport.SetYOffset(adjustedCursor)
+	}
+	return m
+}
+
+// updateViewportHeight updates the viewport heights based on current window size.
+func (m MonthlyModel) updateViewportHeight() MonthlyModel {
+	if !m.ready {
+		return m
+	}
+
+	headerHeight := lipgloss.Height(m.getHeader(decimal.Zero, ""))
+	footerHeight := lipgloss.Height(m.getFooter(decimal.Zero, decimal.Zero, ""))
+	verticalMarginHeight := headerHeight + footerHeight
+	availableHeight := m.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
+
+	groupsViewportHeight := m.calculateGroupsViewportHeight(availableHeight)
+	categoriesViewportHeight := m.calculateCategoriesViewportHeight(availableHeight)
+
+	m.groupsViewport.Height = groupsViewportHeight
+	m.categoriesViewport.Height = categoriesViewportHeight
+	return m
+}
+
+// getMonthIncome calculates the total income for the month.
+func (m MonthlyModel) getMonthIncome() decimal.Decimal {
+	var totalIncome decimal.Decimal
+	for _, income := range m.incomes {
+		amount := decimal.NewFromFloat(income.Amount)
+		totalIncome = totalIncome.Add(amount)
+	}
+	return totalIncome
+}
+
+// getMonthExpenses calculates total expenses and group totals for the month.
+func (m MonthlyModel) getMonthExpenses() (decimal.Decimal, map[string]decimal.Decimal) {
+	var expenseTotals decimal.Decimal
+	groupTotals := make(map[string]decimal.Decimal)
+
+	for _, category := range m.categories {
+		var categoryTotal decimal.Decimal
+		for _, expense := range category.Expense {
+			amount := decimal.NewFromFloat(expense.Amount)
+			categoryTotal = categoryTotal.Add(amount)
+		}
+		expenseTotals = expenseTotals.Add(categoryTotal)
+		groupTotals[category.GroupID] = groupTotals[category.GroupID].Add(categoryTotal)
+	}
+
+	return expenseTotals, groupTotals
 }
 
 // getHeader renders the header section with month/year and total income.
@@ -499,6 +743,7 @@ func (m MonthlyModel) handleGroupNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd)
 	case "j", "down":
 		if numVisibleGroups > 0 {
 			m.focusedGroupIndex = (m.focusedGroupIndex + 1) % numVisibleGroups
+			m = m.ensureGroupsCursorVisible()
 		}
 	case "k", "up":
 		if numVisibleGroups > 0 {
@@ -506,12 +751,14 @@ func (m MonthlyModel) handleGroupNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd)
 			if m.focusedGroupIndex < 0 {
 				m.focusedGroupIndex = numVisibleGroups - 1
 			}
+			m = m.ensureGroupsCursorVisible()
 		}
 	case "enter":
 		if numVisibleGroups > 0 && m.focusedGroupIndex >= 0 && m.focusedGroupIndex < numVisibleGroups {
 			// The focused index now directly maps to visible groups
 			m.Level = focusLevelCategories
 			m.focusedCategoryIndex = 0
+			m = m.ensureCategoriesCursorVisible()
 		}
 
 	}
@@ -546,6 +793,7 @@ func (m MonthlyModel) handleCategoryNavigation(msg tea.KeyMsg) (tea.Model, tea.C
 	case "j", "down":
 		if numCategories > 0 {
 			m.focusedCategoryIndex = (m.focusedCategoryIndex + 1) % numCategories
+			m = m.ensureCategoriesCursorVisible()
 		}
 	case "k", "up":
 		if numCategories > 0 {
@@ -553,6 +801,7 @@ func (m MonthlyModel) handleCategoryNavigation(msg tea.KeyMsg) (tea.Model, tea.C
 			if m.focusedCategoryIndex < 0 {
 				m.focusedCategoryIndex = numCategories - 1
 			}
+			m = m.ensureCategoriesCursorVisible()
 		}
 	case "enter":
 		if numCategories > 0 && m.focusedCategoryIndex >= 0 && m.focusedCategoryIndex < numCategories {
@@ -581,6 +830,7 @@ func (m MonthlyModel) handleCategoryNavigation(msg tea.KeyMsg) (tea.Model, tea.C
 		// Go back to group navigation
 		m.Level = focusLevelGroups
 		m.focusedCategoryIndex = 0
+		m = m.ensureGroupsCursorVisible()
 
 	}
 	return m, nil
@@ -671,6 +921,46 @@ func (m MonthlyModel) UpdateData(appData AppData) MonthlyModel {
 	m.categories = appData.Categories
 	m.categoryGroups = appData.CategoryGroups
 	m.incomes = appData.Incomes
+
+	// Reset focus indices if they're out of bounds
+	// Group categories by their GroupID
+	categoriesByGroup := make(map[string][]domain.Category)
+	for _, category := range m.categories {
+		categoriesByGroup[category.GroupID] = append(categoriesByGroup[category.GroupID], category)
+	}
+
+	// Get visible groups
+	orderedGroups := m.getOrderedGroups()
+	visibleGroups := m.getVisibleGroups(orderedGroups, categoriesByGroup)
+
+	if m.focusedGroupIndex >= len(visibleGroups) && len(visibleGroups) > 0 {
+		m.focusedGroupIndex = len(visibleGroups) - 1
+	} else if len(visibleGroups) == 0 {
+		m.focusedGroupIndex = 0
+	}
+
+	// Reset category focus if needed
+	if len(visibleGroups) > 0 && m.focusedGroupIndex < len(visibleGroups) {
+		selectedGroup := visibleGroups[m.focusedGroupIndex]
+		categoriesInGroup := categoriesByGroup[selectedGroup.GroupID]
+		if m.focusedCategoryIndex >= len(categoriesInGroup) && len(categoriesInGroup) > 0 {
+			m.focusedCategoryIndex = len(categoriesInGroup) - 1
+		} else if len(categoriesInGroup) == 0 {
+			m.focusedCategoryIndex = 0
+		}
+	}
+
+	// Update viewport heights and content
+	m = m.updateViewportHeight()
+	if m.ready {
+		switch m.Level {
+		case focusLevelGroups:
+			m = m.ensureGroupsCursorVisible()
+		case focusLevelCategories:
+			m = m.ensureCategoriesCursorVisible()
+		}
+	}
+
 	return m
 }
 

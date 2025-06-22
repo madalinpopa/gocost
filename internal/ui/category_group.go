@@ -335,7 +335,7 @@ func (m CategoryGroupModel) headerView() string {
 func (m CategoryGroupModel) footerView() string {
 	var b strings.Builder
 	b.WriteString("\n")
-	keyHints := "(j/k: Nav, a/n: Add, e: Edit, d: Delete, Esc/q: Back)"
+	keyHints := "(j/k: Nav, a/n: Add, e: Edit, d: Delete, c: Categories, Esc/q: Back)"
 	if m.selectGroup {
 		keyHints = "(j/k: Nav, Enter: Select, Esc/q: Back)"
 	}

@@ -70,6 +70,33 @@ func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Width = msg.Width
 		m.Height = msg.Height
 
+		headerHeight := lipgloss.Height(m.getHeader(decimal.Zero, ""))
+		footerHeight := lipgloss.Height(m.getFooter(decimal.Zero, decimal.Zero, ""))
+		verticalMarginHeight := headerHeight + footerHeight
+
+		if !m.ready {
+			availableHeight := msg.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
+			groupsViewportHeight := m.calculateGroupsViewportHeight(availableHeight)
+			categoriesViewportHeight := m.calculateCategoriesViewportHeight(availableHeight)
+
+			m.groupsViewport = viewport.New(msg.Width, groupsViewportHeight)
+			m.categoriesViewport = viewport.New(msg.Width, categoriesViewportHeight)
+			m.groupsViewport.YPosition = headerHeight
+			m.categoriesViewport.YPosition = headerHeight
+			m.groupsViewport.SetContent(m.getGroupsContent(nil, ""))
+			m.categoriesViewport.SetContent(m.getCategoriesContent(nil, ""))
+			m.ready = true
+		} else {
+			m.groupsViewport.Width = msg.Width
+			m.categoriesViewport.Width = msg.Width
+			availableHeight := msg.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
+			groupsViewportHeight := m.calculateGroupsViewportHeight(availableHeight)
+			categoriesViewportHeight := m.calculateCategoriesViewportHeight(availableHeight)
+			m.groupsViewport.Height = groupsViewportHeight
+			m.categoriesViewport.Height = categoriesViewportHeight
+		}
+		return m, nil
+
 	case tea.KeyMsg:
 		// Handle populate command at any level - only if current month has no categories
 		if msg.String() == "p" && m.currentMonthHasNoCategories() {

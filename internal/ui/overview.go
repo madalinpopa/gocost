@@ -145,7 +145,6 @@ func (m MonthlyModel) View() string {
 	balance := totalIncome.Sub(totalExpenses)
 
 	header := m.getHeader(totalIncome, defaultCurrency)
-	content := m.getContent(totalExpensesGroup, defaultCurrency)
 	footer := m.getFooter(totalExpenses, balance, defaultCurrency)
 
 	b.WriteString(header)

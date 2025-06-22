@@ -159,11 +159,14 @@ func (m MonthlyModel) View() string {
 	b.WriteString(header)
 	b.WriteString("\n")
 
-	for _, category := range m.categories {
-		var categoryTotal decimal.Decimal
-		for _, expense := range category.Expense {
-			amount := decimal.NewFromFloat(expense.Amount)
-			categoryTotal = categoryTotal.Add(amount)
+	switch m.Level {
+	case focusLevelGroups:
+		b.WriteString(m.groupsViewport.View())
+	case focusLevelCategories:
+		groupHeader := m.getCategoryGroupHeader(totalExpensesGroup, defaultCurrency)
+		if groupHeader != "" {
+			b.WriteString(groupHeader)
+			b.WriteString("\n")
 		}
 		expenseTotals = expenseTotals.Add(categoryTotal)
 		groupTotals[category.GroupID] = groupTotals[category.GroupID].Add(categoryTotal)

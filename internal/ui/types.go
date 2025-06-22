@@ -61,6 +61,9 @@ type GroupUpdateMsg struct {
 	Group domain.CategoryGroup
 }
 
+// ManageGroupsMsg is a message used to switch to the group management view.
+type ManageGroupsMsg struct{}
+
 // SelectGroupMsg is a message used to indicate or trigger the selection of a group in the application state.
 type SelectGroupMsg struct{}
 

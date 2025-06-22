@@ -249,6 +249,8 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.handleReturnToMonthlyWithFocusMsg(msg)
 	case ui.CategoryViewMsg:
 		return m.handleCategoryViewMsg()
+	case ui.CategoryViewWithMonthMsg:
+		return m.handleCategoryViewWithMonthMsg(msg)
 	case StatusClearMsg:
 		return m.ClearStatus(), nil
 	}

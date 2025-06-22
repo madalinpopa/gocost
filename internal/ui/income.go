@@ -26,18 +26,15 @@ type IncomeModel struct {
 }
 
 // NewIncomeModel creates a new IncomeModel instance.
-func NewIncomeModel(incomes []domain.IncomeRecord, month time.Month, year int) IncomeModel {
-	monthKey := GetMonthKey(month, year)
+func NewIncomeModel(incomes []domain.IncomeRecord, monthYear MonthYear) IncomeModel {
+	monthKey := GetMonthKey(monthYear.CurrentMonth, monthYear.CurrentYear)
 
 	return IncomeModel{
-		incomes:  incomes,
-		monthKey: monthKey,
-		MonthYear: MonthYear{
-			CurrentMonth: month,
-			CurrentYear:  year,
-		},
-		viewport: viewport.New(70, 20),
-		ready:    false,
+		incomes:   incomes,
+		monthKey:  monthKey,
+		MonthYear: monthYear,
+		viewport:  viewport.New(70, 20),
+		ready:     false,
 	}
 }
 

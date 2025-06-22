@@ -544,7 +544,11 @@ func (m CategoryModel) getCategoriesContent() string {
 		if m.isFiltered {
 			b.WriteString(MutedText.Render(fmt.Sprintf("No categories found matching '%s'.", m.filterText)))
 		} else {
-			b.WriteString(MutedText.Render("No category defined yet."))
+			if len(m.categoryGroups) == 0 {
+				b.WriteString(MutedText.Render("No category groups defined yet. Press 'g' to manage groups."))
+			} else {
+				b.WriteString(MutedText.Render("No category defined yet."))
+			}
 		}
 	} else {
 		if m.isFiltered {

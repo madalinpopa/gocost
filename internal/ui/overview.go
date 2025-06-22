@@ -43,10 +43,13 @@ type MonthlyModel struct {
 // NewMonthlyModel creates a new MonthlyModel instance.
 func NewMonthlyModel(appData AppData, monthYear MonthYear) MonthlyModel {
 	return MonthlyModel{
-		MonthYear:      monthYear,
-		categories:     appData.Categories,
-		categoryGroups: appData.CategoryGroups,
-		incomes:        appData.Incomes,
+		MonthYear:          monthYear,
+		categories:         appData.Categories,
+		categoryGroups:     appData.CategoryGroups,
+		incomes:            appData.Incomes,
+		groupsViewport:     viewport.New(80, 20),
+		categoriesViewport: viewport.New(80, 20),
+		ready:              false,
 	}
 }
 

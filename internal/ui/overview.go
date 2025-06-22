@@ -128,6 +128,10 @@ func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the MonthlyModel displaying the monthly overview.
 func (m MonthlyModel) View() string {
+	if !m.ready {
+		return AppStyle.Width(m.Width).Height(m.Height).Render("\n  Initializing...")
+	}
+
 	var b strings.Builder
 
 	defaultCurrency := viper.GetString(config.CurrencyField)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -16,6 +17,7 @@ import (
 // It handles group rendering, selection, editing, and interaction logic for user input.
 type CategoryGroupModel struct {
 	WindowSize
+	MonthYear
 
 	cursor int
 	groups []domain.CategoryGroup
@@ -31,7 +33,7 @@ type CategoryGroupModel struct {
 }
 
 // NewCategoryGroupModel creates a new CategoryGroupModel instance.
-func NewCategoryGroupModel(groups []domain.CategoryGroup, width, height int) CategoryGroupModel {
+func NewCategoryGroupModel(groups []domain.CategoryGroup, width, height int, monthYear MonthYear) CategoryGroupModel {
 	ti := textinput.New()
 	ti.Placeholder = "Group Name"
 	ti.CharLimit = 30
@@ -44,6 +46,7 @@ func NewCategoryGroupModel(groups []domain.CategoryGroup, width, height int) Cat
 
 	return CategoryGroupModel{
 		WindowSize:   WindowSize{Width: width, Height: height},
+		MonthYear:    monthYear,
 		groups:       groups,
 		editInput:    ti,
 		editingIndex: -1,

@@ -147,19 +147,13 @@ func (m MonthlyModel) View() string {
 	header := m.getHeader(totalIncome, defaultCurrency)
 	footer := m.getFooter(totalExpenses, balance, defaultCurrency)
 
-	b.WriteString(header)
-	b.WriteString(content)
-	b.WriteString(footer)
-
-	return AppStyle.Render(b.String())
-}
-
-// getMonthIncome calculates the total income for the month.
-func (m MonthlyModel) getMonthIncome() decimal.Decimal {
-	var totalIncome decimal.Decimal
-	for _, income := range m.incomes {
-		amount := decimal.NewFromFloat(income.Amount)
-		totalIncome = totalIncome.Add(amount)
+	if m.ready {
+		switch m.Level {
+		case focusLevelGroups:
+			m.groupsViewport.SetContent(m.getGroupsContent(totalExpensesGroup, defaultCurrency))
+		case focusLevelCategories:
+			m.categoriesViewport.SetContent(m.getCategoriesContent(totalExpensesGroup, defaultCurrency))
+		}
 	}
 	return totalIncome
 }

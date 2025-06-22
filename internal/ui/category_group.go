@@ -153,7 +153,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "j", "down":
 			if len(m.groups) > 0 {
 				m.cursor = (m.cursor + 1) % len(m.groups)
-				(&m).ensureCursorVisible()
+				m = m.ensureCursorVisible()
 			}
 			return m, nil
 
@@ -163,7 +163,7 @@ func (m CategoryGroupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cursor < 0 {
 					m.cursor = len(m.groups) - 1
 				}
-				(&m).ensureCursorVisible()
+				m = m.ensureCursorVisible()
 			}
 			return m, nil
 
@@ -264,7 +264,7 @@ func (m CategoryGroupModel) UpdateData(groups []domain.CategoryGroup) CategoryGr
 	}
 
 	// Update viewport height when groups data changes
-	m.updateViewportHeight()
+	m = m.updateViewportHeight()
 	if m.ready {
 		m.viewport.SetContent(m.getGroupsContent())
 		m.viewport.GotoTop()
@@ -344,9 +344,9 @@ func (m CategoryGroupModel) footerView() string {
 }
 
 // updateViewportHeight updates the viewport height based on current window size.
-func (m *CategoryGroupModel) updateViewportHeight() {
+func (m CategoryGroupModel) updateViewportHeight() CategoryGroupModel {
 	if !m.ready {
-		return
+		return m
 	}
 
 	// Temporarily disable editing mode to measure normal header height
@@ -360,6 +360,7 @@ func (m *CategoryGroupModel) updateViewportHeight() {
 	availableHeight := m.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
 	viewportHeight := m.calculateViewportHeight(availableHeight)
 	m.viewport.Height = viewportHeight
+	return m
 }
 
 // calculateViewportHeight calculates the appropriate height for the viewport.
@@ -392,16 +393,16 @@ func (m CategoryGroupModel) getGroupsContent() string {
 }
 
 // ensureCursorVisible ensures the cursor is visible in the viewport.
-func (m *CategoryGroupModel) ensureCursorVisible() {
+func (m CategoryGroupModel) ensureCursorVisible() CategoryGroupModel {
 	if !m.ready {
-		return
+		return m
 	}
 
 	content := m.getGroupsContent()
 	m.viewport.SetContent(content)
 
 	if len(m.groups) == 0 {
-		return
+		return m
 	}
 
 	viewportTop := m.viewport.YOffset
@@ -414,4 +415,5 @@ func (m *CategoryGroupModel) ensureCursorVisible() {
 	if m.cursor < viewportTop {
 		m.viewport.SetYOffset(m.cursor)
 	}
+	return m
 }

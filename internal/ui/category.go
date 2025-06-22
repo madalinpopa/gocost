@@ -514,12 +514,15 @@ func (m CategoryModel) headerView() string {
 func (m CategoryModel) footerView() string {
 	var b strings.Builder
 	b.WriteString("\n")
-	keyHints := "(j/k: Nav, /: Filter, a/n: Add, e: Edit, d: Delete, m: Move, Esc/q: Back)"
+	keyHints := "(j/k: Nav, /: Filter, a/n: Add, e: Edit, d: Delete, m: Move, g: Groups, Esc/q: Back)"
 	if m.IsMovingCategory() {
 		keyHints = "(Select a group to move the category, Esc/q: Cancel)"
 	}
 	if m.isFiltered {
-		keyHints = "(j/k: Nav, /: Filter, a/n: Add, e: Edit, d: Delete, m: Move, c: Clear filter, Esc/q: Back)"
+		keyHints = "(j/k: Nav, /: Filter, a/n: Add, e: Edit, d: Delete, m: Move, c: Clear filter, g: Groups, Esc/q: Back)"
+	}
+	if len(m.categoryGroups) == 0 {
+		keyHints = "(g: Manage Groups, Esc/q: Back)"
 	}
 	b.WriteString(MutedText.Render(keyHints))
 	return b.String()

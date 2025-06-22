@@ -156,10 +156,8 @@ func (m MonthlyModel) View() string {
 		}
 	}
 
-// getMonthExpenses calculates total expenses and group totals for the month.
-func (m MonthlyModel) getMonthExpenses() (decimal.Decimal, map[string]decimal.Decimal) {
-	var expenseTotals decimal.Decimal
-	groupTotals := make(map[string]decimal.Decimal)
+	b.WriteString(header)
+	b.WriteString("\n")
 
 	for _, category := range m.categories {
 		var categoryTotal decimal.Decimal

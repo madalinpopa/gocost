@@ -31,7 +31,6 @@ type MonthlyModel struct {
 	focusedGroupIndex    int
 	focusedCategoryIndex int
 
-	// Data is now passed in as slices, decoupling the view from the data layer.
 	categories     []domain.Category
 	categoryGroups []domain.CategoryGroup
 	incomes        []domain.IncomeRecord

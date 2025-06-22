@@ -98,7 +98,6 @@ func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		// Handle populate command at any level - only if current month has no categories
 		if msg.String() == "p" && m.currentMonthHasNoCategories() {
 			return m.handlePopulateCategories()
 		}

@@ -474,7 +474,7 @@ func (m CategoryModel) focusInput() (tea.Model, tea.Cmd) {
 func (m CategoryModel) headerView() string {
 	var b strings.Builder
 
-	title := "Manage Expense Categories"
+	title := fmt.Sprintf("Manage Expense Categories - %s %d", m.CurrentMonth.String(), m.CurrentYear)
 	if m.isFiltering {
 		title = "Filter Categories"
 	} else if m.isEditingName {

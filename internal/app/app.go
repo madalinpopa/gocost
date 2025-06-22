@@ -217,6 +217,8 @@ func (m App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.handleGroupDeleteMsg(msg)
 	case ui.GroupUpdateMsg:
 		return m.handleGroupUpdateMsg(msg)
+	case ui.ManageGroupsMsg:
+		return m.handleManageGroupsMsg()
 	case ui.SelectGroupMsg:
 		return m.handleSelectGroupMsg()
 	case ui.SelectedGroupMsg:

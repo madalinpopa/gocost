@@ -161,7 +161,7 @@ func (m IncomeModel) View() string {
 
 // headerView renders the header section of the view.
 func (m IncomeModel) headerView() string {
-	title := fmt.Sprintf("Manage Income - %s", m.monthKey)
+	title := fmt.Sprintf("Manage Income - %s %d", m.CurrentMonth.String(), m.CurrentYear)
 	var b strings.Builder
 	b.WriteString(HeaderText.Render(title))
 	b.WriteString("\n")

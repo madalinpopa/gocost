@@ -155,8 +155,6 @@ func (m MonthlyModel) View() string {
 			m.categoriesViewport.SetContent(m.getCategoriesContent(totalExpensesGroup, defaultCurrency))
 		}
 	}
-	return totalIncome
-}
 
 // getMonthExpenses calculates total expenses and group totals for the month.
 func (m MonthlyModel) getMonthExpenses() (decimal.Decimal, map[string]decimal.Decimal) {

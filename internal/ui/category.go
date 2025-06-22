@@ -219,7 +219,7 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			displayCategories := m.getDisplayCategories()
 			if len(displayCategories) > 0 {
 				m.cursor = (m.cursor + 1) % len(displayCategories)
-				(&m).ensureCursorVisible()
+				m = m.ensureCursorVisible()
 			}
 			return m, nil
 
@@ -230,7 +230,7 @@ func (m CategoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cursor < 0 {
 					m.cursor = len(displayCategories) - 1
 				}
-				(&m).ensureCursorVisible()
+				m = m.ensureCursorVisible()
 			}
 			return m, nil
 		case "/":
@@ -364,9 +364,9 @@ func (m CategoryModel) getDisplayCategories() []domain.Category {
 }
 
 // ensureCursorVisible updates viewport content and scrolls to keep cursor visible
-func (m *CategoryModel) ensureCursorVisible() {
+func (m CategoryModel) ensureCursorVisible() CategoryModel {
 	if !m.ready {
-		return
+		return m
 	}
 
 	content := m.getCategoriesContent()
@@ -374,7 +374,7 @@ func (m *CategoryModel) ensureCursorVisible() {
 
 	displayCategories := m.getDisplayCategories()
 	if len(displayCategories) == 0 {
-		return
+		return m
 	}
 
 	viewportTop := m.viewport.YOffset
@@ -394,11 +394,12 @@ func (m *CategoryModel) ensureCursorVisible() {
 	if adjustedCursor < viewportTop {
 		m.viewport.SetYOffset(adjustedCursor)
 	}
+	return m
 }
 
-func (m *CategoryModel) updateViewportHeight() {
+func (m CategoryModel) updateViewportHeight() CategoryModel {
 	if !m.ready {
-		return
+		return m
 	}
 	headerHeight := lipgloss.Height(m.headerView())
 	footerHeight := lipgloss.Height(m.footerView())
@@ -406,6 +407,7 @@ func (m *CategoryModel) updateViewportHeight() {
 	availableHeight := m.Height - verticalMarginHeight - 4 // -4 for padding (2) and newlines (2)
 	viewportHeight := m.calculateViewportHeight(availableHeight)
 	m.viewport.Height = viewportHeight
+	return m
 }
 
 // handleFilterCategories processes the filter message and applies filtering.
@@ -427,8 +429,8 @@ func (m CategoryModel) handleFilterCategories(msg FilterCategoriesMsg) CategoryM
 	m.isFiltered = true
 	m.cursor = 0
 	m.filterInput.SetValue("")
-	(&m).ensureCursorVisible()
-	(&m).updateViewportHeight()
+	m = m.ensureCursorVisible()
+	m = m.updateViewportHeight()
 
 	return m
 }
@@ -441,8 +443,8 @@ func (m CategoryModel) clearFilter() CategoryModel {
 	m.isFiltered = false
 	m.filterInput.SetValue("")
 	m.filterInput.Blur()
-	(&m).ensureCursorVisible()
-	(&m).updateViewportHeight()
+	m = m.ensureCursorVisible()
+	m = m.updateViewportHeight()
 
 	return m
 }
@@ -585,8 +587,8 @@ func (m CategoryModel) UpdateData(appData AppData) CategoryModel {
 	m.categoryGroups = appData.CategoryGroups
 	m.cursor = 0
 	m = m.resetEditingState()
-	(&m).ensureCursorVisible()
-	(&m).updateViewportHeight()
+	m = m.ensureCursorVisible()
+	m = m.updateViewportHeight()
 
 	return m
 }
@@ -597,6 +599,6 @@ func (m CategoryModel) SetMonthYear(month time.Month, year int) CategoryModel {
 	m.CurrentYear = year
 	m.MonthKey = GetMonthKey(month, year)
 	m = m.resetEditingState()
-	(&m).ensureCursorVisible()
+	m = m.ensureCursorVisible()
 	return m
 }

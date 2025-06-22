@@ -243,6 +243,13 @@ func (m App) handleDeleteIncomeMsg(msg ui.DeleteIncomeMsg) (tea.Model, tea.Cmd) 
 	return app.SetSuccessStatus(fmt.Sprintf("Income '%s' has been deleted", msg.Income.Description))
 }
 
+// handleManageGroupsMsg handles switching to the group management view.
+func (m App) handleManageGroupsMsg() (tea.Model, tea.Cmd) {
+	app := m.refreshDataForModels()
+	app.activeView = viewCategoryGroup
+	return app, nil
+}
+
 // handleSelectGroupMsg handles the selection of a category group.
 func (m App) handleSelectGroupMsg() (tea.Model, tea.Cmd) {
 	m.CategoryGroupModel = m.CategoryGroupModel.SelectGroup()

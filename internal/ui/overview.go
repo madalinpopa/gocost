@@ -61,6 +61,9 @@ func (m MonthlyModel) Init() tea.Cmd {
 // Update handles messages and updates the MonthlyModel state.
 func (m MonthlyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:

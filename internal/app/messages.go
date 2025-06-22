@@ -331,3 +331,12 @@ func (m App) handleCategoryViewMsg() (tea.Model, tea.Cmd) {
 	app.activeView = viewCategory
 	return app, nil
 }
+
+// handleCategoryViewWithMonthMsg handles switching to category view with specific month context.
+func (m App) handleCategoryViewWithMonthMsg(msg ui.CategoryViewWithMonthMsg) (tea.Model, tea.Cmd) {
+	m.CurrentMonth = msg.CurrentMonth
+	m.CurrentYear = msg.CurrentYear
+	app := m.refreshDataForModels()
+	app.activeView = viewCategory
+	return app, nil
+}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"sort"
 
@@ -245,10 +246,7 @@ func (r *JsonRepository) CopyCategoriesFromMonth(fromMonthKey, toMonthKey string
 
 	var newCategories []domain.Category
 	for _, category := range prevRecord.Categories {
-		newExpense := make(map[string]domain.ExpenseRecord, len(category.Expense))
-		for k, v := range category.Expense {
-			newExpense[k] = v
-		}
+		newExpense := maps.Clone(category.Expense)
 		newCategories = append(newCategories, domain.Category{
 			CatID:        category.CatID,
 			GroupID:      category.GroupID,
@@ -259,7 +257,7 @@ func (r *JsonRepository) CopyCategoriesFromMonth(fromMonthKey, toMonthKey string
 
 	newIncomes := make([]domain.IncomeRecord, 0, len(prevRecord.Incomes))
 	for _, inc := range prevRecord.Incomes {
-		newIncomes = append(newIncomes, inc) // copia por valor
+		newIncomes = append(newIncomes, inc)
 	}
 
 	if existingRecord, exists := r.store.MonthlyData[toMonthKey]; exists {

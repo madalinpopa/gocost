@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"sort"
 
@@ -242,26 +243,41 @@ func (r *JsonRepository) CopyCategoriesFromMonth(fromMonthKey, toMonthKey string
 	if !exists || len(prevRecord.Categories) == 0 {
 		return 0, fmt.Errorf("no categories found in %s to copy from", fromMonthKey)
 	}
+
 	var newCategories []domain.Category
 	for _, category := range prevRecord.Categories {
-		newCategory := domain.Category{
+		newExpense := maps.Clone(category.Expense)
+		newCategories = append(newCategories, domain.Category{
 			CatID:        category.CatID,
 			GroupID:      category.GroupID,
 			CategoryName: category.CategoryName,
-			Expense:      make(map[string]domain.ExpenseRecord),
-		}
-		newCategories = append(newCategories, newCategory)
+			Expense:      newExpense,
+		})
 	}
-	currentRecord := domain.MonthlyRecord{
-		Incomes:    []domain.IncomeRecord{},
+
+	newIncomes := make([]domain.IncomeRecord, 0, len(prevRecord.Incomes))
+	for _, inc := range prevRecord.Incomes {
+		newIncomes = append(newIncomes, inc)
+	}
+
+	if existingRecord, exists := r.store.MonthlyData[toMonthKey]; exists {
+		seen := make(map[string]struct{}, len(newIncomes))
+		for _, inc := range newIncomes {
+			seen[inc.IncomeID] = struct{}{}
+		}
+		for _, inc := range existingRecord.Incomes {
+			if _, ok := seen[inc.IncomeID]; !ok {
+				newIncomes = append(newIncomes, inc)
+			}
+		}
+	}
+
+	r.store.MonthlyData[toMonthKey] = domain.MonthlyRecord{
+		Incomes:    newIncomes,
 		Categories: newCategories,
 	}
-	if existingRecord, exists := r.store.MonthlyData[toMonthKey]; exists {
-		currentRecord.Incomes = existingRecord.Incomes
-	}
-	r.store.MonthlyData[toMonthKey] = currentRecord
-	err := r.save()
-	if err != nil {
+
+	if err := r.save(); err != nil {
 		return 0, err
 	}
 	return len(newCategories), nil

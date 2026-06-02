@@ -54,14 +54,3 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.7.0 // indirect
 )
-
-tool (
-	github.com/madalinpopa/gocost/cmd/gocost
-	github.com/madalinpopa/gocost/internal/app
-	github.com/madalinpopa/gocost/internal/config
-	github.com/madalinpopa/gocost/internal/data
-	github.com/madalinpopa/gocost/internal/domain
-	github.com/madalinpopa/gocost/internal/service
-	github.com/madalinpopa/gocost/internal/ui
-	honnef.co/go/tools/cmd/staticcheck
-)
